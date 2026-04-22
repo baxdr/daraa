@@ -1,0 +1,34 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Next
+tsconfig.tsbuildinfo
+next-env.d.ts
+.next/
+.swc/
+
+# Vercel
+.vercel
+
+# Test artefacts
+coverage/
+
+# Local Claude Code permissions (per-developer)
+.claude/settings.local.json
