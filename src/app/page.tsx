@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { HeroAgentsMockup } from '@/components/landing/hero-agents-mockup';
 
 export default function LandingPage() {
   return (
@@ -30,10 +31,10 @@ export default function LandingPage() {
         <div className="rule animate-rule-draw" />
       </div>
 
-      {/* Hero — editorial layout: eyebrow → massive display headline → rule → lede → CTA. */}
-      <section className="relative mx-auto max-w-6xl px-6 pb-16 pt-16 md:px-10 md:pb-24 md:pt-24">
-        <div className="grid gap-12 md:grid-cols-12">
-          <div className="md:col-span-8">
+      {/* Hero — editorial layout: headline on the right, live agent mockup on the left. */}
+      <section className="relative mx-auto max-w-6xl px-6 pb-16 pt-14 md:px-10 md:pb-24 md:pt-20">
+        <div className="grid items-center gap-10 md:grid-cols-12 md:gap-12">
+          <div className="md:col-span-7">
             <span className="eyebrow animate-fade-rise">عدد ٠١ · ربيع ٢٠٢٦</span>
             <h1
               className="mt-5 font-display text-5xl font-extrabold leading-[1.05] tracking-tighter text-ink md:text-7xl lg:text-[5.5rem]"
@@ -60,7 +61,7 @@ export default function LandingPage() {
             </h1>
 
             <div
-              className="mt-8 max-w-xl animate-fade-rise"
+              className="mt-7 max-w-xl animate-fade-rise"
               style={{ animationDelay: '380ms' }}
             >
               <div className="rule-accent mb-5 w-16" />
@@ -72,7 +73,7 @@ export default function LandingPage() {
             </div>
 
             <div
-              className="mt-10 flex flex-wrap items-center gap-4 animate-fade-rise"
+              className="mt-9 flex flex-wrap items-center gap-3 animate-fade-rise"
               style={{ animationDelay: '520ms' }}
             >
               <Link href="/chat" className="btn-ink text-base">
@@ -83,9 +84,10 @@ export default function LandingPage() {
                 href="/demo/novatech/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-ink-2 underline decoration-rule decoration-2 underline-offset-4 hover:decoration-accent hover:text-ink"
+                className="btn-outline text-sm"
               >
-                أو شاهد الفحص على موقع تجريبي <span aria-hidden>↗</span>
+                <span>جرّب الفحص على موقع تجريبي</span>
+                <span aria-hidden className="text-xs">↗</span>
               </a>
             </div>
 
@@ -94,29 +96,26 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Stat column — editorial numeric statements */}
+          {/* Live mockup — replaces the stat column. Shows the product running. */}
           <aside
-            className="relative md:col-span-4 animate-fade-rise"
+            className="relative md:col-span-5 animate-fade-rise"
             style={{ animationDelay: '700ms' }}
           >
-            <div className="md:sticky md:top-10 md:pe-6 md:border-e md:border-rule">
-              <StatBlock
-                number="٩٠٪"
-                label="من الشركات السعودية لا تعرف حالة التزامها بأنظمة حماية البيانات"
-              />
-              <div className="my-6 rule" />
-              <StatBlock
-                number="٥ مليون"
-                label="ريال سقف الغرامة على مخالفة واحدة في PDPL"
-                numberClass="text-warn"
-              />
-              <div className="my-6 rule" />
-              <StatBlock
-                number="٧-١٥"
-                label="جهة حكومية يحتاجها صاحب المشروع السعودي — من التأسيس للتشغيل"
-              />
-            </div>
+            <HeroAgentsMockup />
+            <p className="mt-3 text-[11px] text-muted">
+              عرض توضيحي — الوكلاء في الإنتاج يشتغلون بنفس الترتيب
+            </p>
           </aside>
+        </div>
+      </section>
+
+      {/* Pre-title stat strip — the three numeric framings we used to have in the right column,
+          now as a horizontal ribbon under the hero. */}
+      <section className="relative mx-auto max-w-6xl px-6 md:px-10">
+        <div className="grid gap-0 border-y border-rule sm:grid-cols-3">
+          <StatCell number="٩٠٪" label="من الشركات السعودية لا تعرف حالة التزامها بأنظمة حماية البيانات" />
+          <StatCell number="٥ مليون ريال" label="سقف الغرامة على مخالفة واحدة في PDPL" numberClass="text-warn" />
+          <StatCell number="٧ – ١٥ جهة" label="حكومية يحتاجها صاحب المشروع السعودي — من التأسيس للتشغيل" last />
         </div>
       </section>
 
@@ -153,13 +152,94 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Social proof — what a real scan returned on Nova Tech. */}
+      <section className="relative mx-auto max-w-6xl px-6 pb-16 md:px-10 md:pb-24">
+        <div className="mb-10 flex items-baseline justify-between">
+          <h2 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">
+            شوف النتيجة
+          </h2>
+          <span className="text-xs text-muted md:text-sm">§ ٠٢</span>
+        </div>
+        <div className="rule mb-10" />
+
+        <div className="grid gap-0 overflow-hidden border border-ink bg-white md:grid-cols-[1.1fr_1fr]">
+          <div className="bg-ink px-6 py-10 text-paper md:px-10 md:py-12">
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-accent">
+              شركة تقنية فحصناها
+            </span>
+            <div className="mt-3 font-display text-2xl font-extrabold tracking-tight md:text-3xl">
+              Nova Tech — SaaS سعودية
+            </div>
+            <p className="mt-4 max-w-md text-sm leading-relaxed text-paper/80">
+              موقع مُنشَر مع سياسة خصوصية إنجليزية فقط، نموذج تواصل يجمع بريد وجوال
+              بدون موافقة، وأكثر من ١٠٠ ألف مستخدم بدون DPO معيّن. النتائج اللي
+              أدناه من فحص حي — مو افتراضي.
+            </p>
+            <a
+              href="/demo/novatech/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-8 inline-flex items-center gap-2 border-b-2 border-accent pb-1 text-sm font-bold text-paper hover:text-accent"
+            >
+              <span>شوف الموقع التجريبي</span>
+              <span aria-hidden>↗</span>
+            </a>
+          </div>
+
+          <div className="grid grid-rows-3">
+            <div className="grid grid-cols-[auto_1fr] items-baseline gap-4 border-b border-rule px-6 py-6 md:px-8 md:py-7">
+              <div className="font-display text-5xl font-extrabold leading-none tabular-nums tracking-tighter text-danger md:text-6xl">
+                ٢٧٪
+              </div>
+              <div>
+                <div className="eyebrow">نسبة الامتثال</div>
+                <p className="mt-1 text-[13px] text-ink-2">فجوات حرجة متعدّدة في PDPL و NCA ECC</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-[auto_1fr] items-baseline gap-4 border-b border-rule px-6 py-6 md:px-8 md:py-7">
+              <div className="font-display text-5xl font-extrabold leading-none tabular-nums tracking-tighter text-ink md:text-6xl">
+                ٠٧
+              </div>
+              <div>
+                <div className="eyebrow">فجوة مكتشفة</div>
+                <p className="mt-1 text-[13px] text-ink-2">منها ٥ حرجة و ٢ متوسطة</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-[auto_1fr] items-baseline gap-4 px-6 py-6 md:px-8 md:py-7">
+              <div className="font-display text-3xl font-extrabold leading-none tabular-nums tracking-tighter text-danger md:text-5xl">
+                ١٤ م.
+              </div>
+              <div>
+                <div className="eyebrow">سقف الغرامات</div>
+                <p className="mt-1 text-[13px] text-ink-2">ريال سعودي — مجموع الحد الأقصى النظامي</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-wrap items-center gap-4">
+          <Link href="/chat" className="btn-ink text-sm">
+            ابدأ فحصك أنت
+            <ArrowLeft />
+          </Link>
+          <a
+            href="/demo/novatech/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-ink-2 underline decoration-rule decoration-2 underline-offset-4 hover:decoration-accent hover:text-ink"
+          >
+            أو اختبر الفحص أول على موقع نوفا تك <span aria-hidden>↗</span>
+          </a>
+        </div>
+      </section>
+
       {/* How it works — numbered editorial steps. */}
       <section id="how" className="relative mx-auto max-w-6xl px-6 pb-20 md:px-10 md:pb-32">
         <div className="mb-10 flex items-baseline justify-between">
           <h2 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">
             كيف يشتغل
           </h2>
-          <span className="text-xs text-muted md:text-sm">§ ٠٢</span>
+          <span className="text-xs text-muted md:text-sm">§ ٠٣</span>
         </div>
         <div className="rule mb-10" />
         <ol className="grid gap-10 md:grid-cols-3">
@@ -239,25 +319,29 @@ function ArrowLeft() {
   );
 }
 
-function StatBlock({
+function StatCell({
   number,
   label,
   numberClass,
+  last,
 }: {
   number: string;
   label: string;
   numberClass?: string;
+  last?: boolean;
 }) {
   return (
-    <div>
+    <div
+      className={`px-5 py-6 md:px-6 md:py-7 ${last ? '' : 'border-b border-rule sm:border-b-0 sm:border-s'}`}
+    >
       <div
-        className={`font-display text-5xl font-extrabold leading-none tracking-tighter md:text-6xl ${
+        className={`font-display text-3xl font-extrabold leading-none tracking-tighter md:text-4xl ${
           numberClass ?? 'text-ink'
         }`}
       >
         {number}
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-ink-2">{label}</p>
+      <p className="mt-3 text-[13px] leading-relaxed text-ink-2">{label}</p>
     </div>
   );
 }

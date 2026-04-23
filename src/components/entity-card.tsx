@@ -37,11 +37,14 @@ export function EntityCard({
           {String(step).padStart(2, '0')}
         </div>
 
-        {/* Title + regulator name */}
+        {/* Title + regulator name + status pill */}
         <div className="min-w-0">
-          <h3 className="font-display text-xl font-extrabold leading-tight tracking-tight md:text-2xl">
-            {entity.nameSimpleAr}
-          </h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-display text-xl font-extrabold leading-tight tracking-tight md:text-2xl">
+              {entity.nameSimpleAr}
+            </h3>
+            <EntityStatusPill entity={entity} />
+          </div>
           <p className="mt-1 text-xs text-muted">{entity.nameAr}</p>
         </div>
 
@@ -121,6 +124,37 @@ export function EntityCard({
         )}
       </div>
     </article>
+  );
+}
+
+/**
+ * Status pill — classifies the entity by what matters most to the user. We
+ * don't have a real runtime "status" (this is advisory data), so the pill
+ * reflects visibility signals: a critical warning flips it to "تحذير",
+ * a common-mistake note flips to "تنبّه لها", otherwise "جاهزة للبدء".
+ */
+function EntityStatusPill({ entity }: { entity: import('@/knowledge/entities').GovEntity }) {
+  if (entity.criticalWarningAr) {
+    return (
+      <span className="inline-flex items-center gap-1 border border-warn/40 bg-warn-soft px-2 py-0.5 text-[11px] font-bold text-warn-strong">
+        <span aria-hidden>⚠</span>
+        <span>تحذير — اقرأ قبل التقديم</span>
+      </span>
+    );
+  }
+  if (entity.commonMistakeAr) {
+    return (
+      <span className="inline-flex items-center gap-1 border border-rule bg-paper-2 px-2 py-0.5 text-[11px] font-semibold text-ink-2">
+        <span aria-hidden>ℹ</span>
+        <span>نقطة شائعة للخطأ</span>
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 border border-accent/30 bg-accent-soft px-2 py-0.5 text-[11px] font-bold text-accent-strong">
+      <span aria-hidden>✓</span>
+      <span>جاهزة للبدء</span>
+    </span>
   );
 }
 

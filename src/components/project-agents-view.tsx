@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import type { AgentActivity, AgentId, AgentMessage } from '@/agents/types';
 import { Timeline } from './timeline';
 
@@ -32,11 +33,25 @@ export function ProjectAgentsView({ projectId }: { projectId: string }) {
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [status, setStatus] = useState<string>('pending');
   const [mode, setMode] = useState<string>('');
+  const [companyName, setCompanyName] = useState<string>('');
+  const [elapsedSec, setElapsedSec] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const cancelledRef = useRef(false);
+  const startedAtRef = useRef<number>(Date.now());
+
+  // Elapsed-time ticker — independent of polling so the UI feels alive
+  // even between network round-trips.
+  useEffect(() => {
+    if (status === 'complete' || status === 'error') return;
+    const id = setInterval(() => {
+      setElapsedSec((Date.now() - startedAtRef.current) / 1000);
+    }, 100);
+    return () => clearInterval(id);
+  }, [status]);
 
   useEffect(() => {
     cancelledRef.current = false;
+    startedAtRef.current = Date.now();
     let attempts = 0;
     const MAX_ATTEMPTS = 180;
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -48,7 +63,7 @@ export function ProjectAgentsView({ projectId }: { projectId: string }) {
         const res = await fetch(`/api/project/${projectId}`, { cache: 'no-store' });
         if (!res.ok) throw new Error('فشل التواصل مع الخادم');
         const data = (await res.json()) as {
-          status: string; mode: string;
+          status: string; mode: string; companyName?: string;
           activities: AgentActivity[]; messages: AgentMessage[];
           errorMessage?: string | null;
         };
@@ -57,6 +72,7 @@ export function ProjectAgentsView({ projectId }: { projectId: string }) {
         setMessages(data.messages ?? []);
         setStatus(data.status);
         setMode(data.mode);
+        if (data.companyName) setCompanyName(data.companyName);
 
         if (data.status === 'complete') {
           timer = setTimeout(() => {
@@ -97,17 +113,44 @@ export function ProjectAgentsView({ projectId }: { projectId: string }) {
     return Math.min(100, Math.round((completed / expected) * 100));
   }, [stationStatus, visibleStations.length]);
 
+  const title = companyName
+    ? (mode === 'compliance'
+        ? `درع يفحص امتثال ${companyName}`
+        : `درع يجهّز خريطة ${companyName}`)
+    : 'الوكلاء يتواصلون';
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-10 md:px-10 md:py-16">
-      <header className="mb-8">
-        <span className="eyebrow">{mode === 'compliance' ? 'الفحص جارٍ' : 'جاري التحضير'}</span>
-        <h1 className="mt-3 font-display text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
-          الوكلاء يتواصلون
-        </h1>
-        <p className="mt-3 max-w-xl text-base text-ink-2">
-          وكيل البحث (LLM) يجلب التحديثات، المتخصّصون يتبادلون الرسائل عبر الحافلة،
-          ووكيل التحليل يُنتج النتيجة. السجل أدناه يعرض كل نشاط + كل رسالة A2A حقيقية.
-        </p>
+      {/* Breadcrumb */}
+      <nav aria-label="مسار التنقّل" className="mb-6 flex items-center gap-2 text-xs text-muted">
+        <Link href="/" className="hover:text-ink">درع</Link>
+        <span aria-hidden>›</span>
+        <Link href="/chat" className="hover:text-ink">المحادثة</Link>
+        <span aria-hidden>›</span>
+        <span className="font-medium text-ink-2">الوكلاء</span>
+      </nav>
+
+      <header className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <span className="eyebrow">{mode === 'compliance' ? 'الفحص جارٍ' : 'جاري التحضير'}</span>
+          <h1 className="mt-3 font-display text-3xl font-extrabold leading-tight tracking-tight md:text-4xl">
+            {title}
+          </h1>
+          <p className="mt-3 max-w-xl text-sm text-ink-2 md:text-base">
+            وكيل البحث يجلب التحديثات، المتخصّصون يتبادلون الرسائل على الحافلة،
+            ووكيل التحليل يُنتج النتيجة. السجل أدناه مباشر.
+          </p>
+        </div>
+
+        {/* Elapsed-time badge — live */}
+        {status !== 'complete' && status !== 'error' && (
+          <div className="shrink-0 border border-rule bg-paper-2 px-3 py-2 text-center" aria-live="polite">
+            <div className="font-mono text-[10px] uppercase tracking-widest text-muted">الزمن</div>
+            <div className="mt-1 font-display text-xl font-extrabold tabular-nums leading-none text-ink">
+              {elapsedSec.toFixed(1)}s
+            </div>
+          </div>
+        )}
       </header>
 
       <div className="rule mb-8" />
@@ -145,7 +188,11 @@ export function ProjectAgentsView({ projectId }: { projectId: string }) {
             {activities.length} نشاط · {messages.length} رسالة A2A
           </span>
         </div>
-        <Timeline activities={activities} messages={messages} />
+        {activities.length === 0 && messages.length === 0 ? (
+          <TimelineSkeleton />
+        ) : (
+          <Timeline activities={activities} messages={messages} />
+        )}
       </section>
 
       {error && (
@@ -176,6 +223,23 @@ function computeStationStatus(activities: AgentActivity[]): Partial<Record<Agent
     else if (current !== 'completed' && current !== 'error') out[a.agent] = 'working';
   }
   return out;
+}
+
+function TimelineSkeleton() {
+  // 4 shimmering placeholder rows that mimic activity + message shapes.
+  return (
+    <ol aria-hidden className="space-y-0">
+      {[0, 1, 2, 3].map((i) => (
+        <li key={i} className="flex items-baseline gap-4 border-b border-rule/50 py-3">
+          <span className="h-2 w-2 shrink-0 animate-pulse-subtle rounded-full bg-rule" />
+          <span
+            className="h-3 animate-pulse-subtle bg-paper-2"
+            style={{ width: `${60 - i * 8}%` }}
+          />
+        </li>
+      ))}
+    </ol>
+  );
 }
 
 function Station({

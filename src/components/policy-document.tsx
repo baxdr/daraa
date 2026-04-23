@@ -58,13 +58,25 @@ export function PolicyDocumentView({ doc }: { doc: StoredDocument }) {
 
   return (
     <div className="min-h-screen bg-paper-3/40 py-10 print:bg-white print:py-0">
-      {/* Toolbar */}
-      <div className="mx-auto mb-6 flex max-w-[210mm] flex-wrap items-center justify-between gap-3 px-4 print:hidden">
+      {/* Breadcrumb */}
+      <nav
+        aria-label="مسار التنقّل"
+        className="mx-auto mb-4 flex max-w-[210mm] items-center gap-2 px-4 text-xs text-muted print:hidden"
+      >
+        <Link href="/" className="hover:text-ink">درع</Link>
+        <span aria-hidden>›</span>
+        <span className="font-medium text-ink-2">المستندات</span>
+        <span aria-hidden>›</span>
+        <span className="font-medium text-ink-2">{doc.title}</span>
+      </nav>
+
+      {/* Sticky toolbar */}
+      <div className="sticky top-0 z-10 mx-auto mb-6 flex max-w-[210mm] flex-wrap items-center justify-between gap-3 border border-rule bg-white/95 px-4 py-3 shadow-sm backdrop-blur print:hidden">
         <Link
           href="/"
           className="text-xs text-muted underline decoration-rule decoration-2 underline-offset-4 hover:text-ink"
         >
-          العودة →
+          ← العودة
         </Link>
         <div className="flex flex-wrap items-center gap-2">
           <input
