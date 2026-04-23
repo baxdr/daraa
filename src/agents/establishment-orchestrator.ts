@@ -1,58 +1,40 @@
 /**
- * Establishment-path orchestrator.
+ * Establishment-path orchestrator — now driven by the real agent runtime.
  *
- * Fire-and-forget from /api/establishment/resolve. Walks the entity
- * dependency graph in entities.ts in order (mci → civil_defense → municipality
- * → sfda → mohr_gosi → zatca) and emits A2A messages at each handoff.
+ * Before this rewrite, "specialists" were plain objects in a for-loop and
+ * A2A messages were hardcoded if-branches. Now:
  *
- * The message routing is deterministic — who-sends-what-to-whom is derived
- * from the dependency graph, not emergent. The protocol is real (sender
- * names the recipient by id; receiver acks when applicable), but don't
- * sell this as agent autonomy.
+ *   1. getAgentsForVertical(v) returns a fresh set of class instances.
+ *   2. runAgents(agents, context, hooks) runs them in dependency-ordered
+ *      waves — Municipality literally waits in a 'blocked' state until
+ *      Civil Defense's outbox message lands in its inbox.
+ *   3. Every message delivered through the bus is mirrored to the
+ *      plan-store so the UI timeline shows real agent dialogue.
+ *
+ * See src/agents/runtime/ for the bus + orchestrator runtime, and
+ * src/agents/specialists/ for per-regulator classes.
  */
 
 import type { Answers } from './chat-flow';
 import { runResearchAgent } from './research-agent';
 import { personalizeWarnings } from './personalizer';
 import {
-  VERTICALS,
-  ALWAYS_REQUIRED,
   buildRoadmap,
-  resolveEntities,
   summariseCosts,
+  VERTICALS,
   type GovEntity,
   type VerticalId,
 } from '@/knowledge/entities';
-import type { AgentId } from './types';
 import { emit, send, type RunRef } from '@/lib/agent-bus';
 import { getPlan, updatePlan } from '@/lib/plan-store';
+import { runAgents } from './runtime/orchestrator-runtime';
+import type { AgentContext, AgentId, AgentResult } from './runtime/types';
+import { getAgentsForVertical } from './specialists';
 
-/** Map entity.id → AgentId used on the bus. */
-const ENTITY_TO_AGENT: Record<string, AgentId> = {
-  mci:            'mci',
-  zatca:          'zatca',
-  mol:            'mohr_gosi',
-  gosi:           'mohr_gosi',
-  civil_defense:  'civil_defense',
-  municipality:   'municipality',
-  sfda:           'sfda',
-  pdpl_readiness: 'pdpl_nca',
-  maroof:         'mci', // maroof is under MCI
+const CITY_LABELS: Record<string, string> = {
+  riyadh: 'الرياض', jeddah: 'جدة', mecca: 'مكة المكرمة',
+  medina: 'المدينة المنورة', dammam: 'الدمام', khobar: 'الخُبَر', other: 'مدينة أخرى',
 };
-
-function agentFor(entityId: string): AgentId {
-  return ENTITY_TO_AGENT[entityId] ?? 'mci';
-}
-
-/**
- * Pick the set of entity-specialist agents that will actually "speak" given
- * the vertical — used as the Research Agent's targeting list.
- */
-function activeAgentsForPlan(entities: GovEntity[]): AgentId[] {
-  const set = new Set<AgentId>();
-  for (const e of entities) set.add(agentFor(e.id));
-  return Array.from(set);
-}
 
 export async function runEstablishmentOrchestrator(planId: string): Promise<void> {
   const plan = getPlan(planId);
@@ -60,19 +42,17 @@ export async function runEstablishmentOrchestrator(planId: string): Promise<void
   const run: RunRef = { kind: 'plan', id: planId };
   const vertical: VerticalId = plan.vertical;
   const answers: Answers = plan.answers;
-  const shipsInMvp = plan.verticalShipsInMvp;
 
   updatePlan(planId, { status: 'running' });
-  emit(run, 'orchestrator', 'started', 'جاري التنسيق بين متخصّصي الجهات…');
+  emit(run, 'orchestrator', 'started', 'جاري استدعاء المتخصّصين وتشغيل حافلة الرسائل…');
 
   try {
-    // 1. Entity list (ALWAYS_REQUIRED + vertical-specific)
-    const entities = shipsInMvp ? resolveEntities(vertical) : [...ALWAYS_REQUIRED];
-    const activeAgents = activeAgentsForPlan(entities);
+    /* 1. Research Agent — runs outside the agent bus (upstream concern). */
+    const agents = getAgentsForVertical(vertical);
+    const activeIds = agents.map((a) => a.id);
 
-    // 2. Research Agent — pull recent updates for the specialists we'll run.
     emit(run, 'research', 'started', 'جاري البحث عن آخر التحديثات التنظيمية لهذه الجهات…');
-    const updates = await runResearchAgent(run, activeAgents);
+    const updates = await runResearchAgent(run, activeIds);
     emit(
       run,
       'research',
@@ -82,96 +62,59 @@ export async function runEstablishmentOrchestrator(planId: string): Promise<void
         : `لقينا ${updates.length} تحديثاً — أُرسلت للمتخصصين المعنيين.`,
     );
 
-    // 3. Walk the entity list in dependency order, emitting handoffs.
-    const completedIds = new Set<string>();
-    const label = VERTICALS[vertical].labelAr;
+    /* 2. Build the context that every specialist gets. */
+    const context: AgentContext = {
+      vertical,
+      answers,
+      cityId: answers.est2_city,
+      cityLabelAr: answers.est2_city ? CITY_LABELS[answers.est2_city] : undefined,
+      partnerCount: answers.est3_partner_count,
+      capitalSar: answers.est4_capital_sar,
+      hasForeignPartner: answers.est5_foreign_partner === 'yes',
+      leaseStatus: answers.est6_lease_status,
+    };
 
-    for (const entity of entities) {
-      const agent = agentFor(entity.id);
-
-      // If dependencies aren't all done, emit a "waiting" status.
-      const unmet = entity.dependencies.filter((d) => !completedIds.has(d));
-      if (unmet.length > 0) {
-        // Send a dependency message from this agent back to the dependency.
-        for (const dep of unmet) {
-          send(run, {
-            from: agent,
-            to: agentFor(dep),
-            type: 'dependency',
-            messageAr: `أحتاج إنجازك قبل ما أبدأ — ${entity.nameSimpleAr} يعتمد على ${dep === 'mci' ? 'السجل التجاري' : dep === 'civil_defense' ? 'شهادة السلامة' : 'خطوتك'}.`,
-          });
+    /* 3. Run the real multi-agent pipeline. Every activity + message
+     *    flows through the hooks below into the plan-store so the UI
+     *    timeline reflects what actually happened. */
+    const runResult = await runAgents(agents, context, {
+      onAgentStart: (agentId, wave) => {
+        emit(run, agentId, 'started', `المتخصّص بدأ — الموجة ${wave}`);
+      },
+      onAgentFinish: (event) => {
+        if (event.result.status === 'complete') {
+          const { data } = event.result;
+          emit(
+            run,
+            event.agentId,
+            'completed',
+            `${data.nameSimpleAr}: ${costLabel(data.estimatedCostSar)} — ${data.estimatedTimeAr}`,
+          );
+        } else if (event.result.status === 'blocked') {
+          emit(run, event.agentId, 'working', `محجوب: ${event.result.reason}`);
+        } else {
+          emit(run, event.agentId, 'error', `خطأ: ${event.result.error}`);
         }
-        emit(run, agent, 'working', `بانتظار الاعتماد من ${unmet.map(prettifyDep).join('، ')}…`);
-      }
+      },
+      onMessages: (messages) => {
+        for (const m of messages) send(run, m);
+      },
+    });
 
-      // "Run" the specialist — compile requirements + warnings.
-      emit(run, agent, 'started', `${entity.nameSimpleAr} — جاري تحديد المتطلبات…`);
-
-      // Specialist emits findings (cost range, any critical warning).
-      if (entity.criticalWarningAr) {
-        emit(run, agent, 'working', `⚠️ تنبيه: ${entity.criticalWarningAr.slice(0, 120)}…`);
-      }
-
-      emit(
-        run,
-        agent,
-        'completed',
-        `${entity.nameSimpleAr}: ${costLabel(entity)} — ${entity.estimatedTimeAr}.`,
-      );
-
-      // A2A: after completing, broadcast to the next in line where relevant.
-      if (entity.id === 'mci') {
-        send(run, {
-          from: agent,
-          to: 'ALL',
-          type: 'data_share',
-          messageAr: 'السجل التجاري جاهز — تقدرون تعتمدون على رقم السجل في طلباتكم.',
-          payload: { entityType: recommendEntityType(answers) },
-        });
-      }
-      if (entity.id === 'civil_defense') {
-        send(run, {
-          from: 'civil_defense',
-          to: 'municipality',
-          type: 'dependency',
-          messageAr: 'شهادة السلامة اكتملت — الحين تقدر تبدأ رخصة البلدية.',
-        });
-      }
-      if (entity.id === 'municipality') {
-        send(run, {
-          from: 'municipality',
-          to: 'sfda',
-          type: 'dependency',
-          messageAr: 'رخصة البلدية جاهزة — تقدر تطلب ترخيص الغذاء.',
-        });
-      }
-      // mol → gosi is internally the same AgentId ('mohr_gosi') — the
-      // specialist tracks both in one module — so there's no A2A to emit.
-
-      completedIds.add(entity.id);
-    }
-
-    // Sanity: every entity should have completed. If not, the dependency
-    // graph is malformed (e.g. a future typo in entities.ts) and the loop
-    // above silently failed to progress past an unsatisfiable dep.
-    if (completedIds.size !== entities.length) {
-      const missing = entities.filter((e) => !completedIds.has(e.id)).map((e) => e.nameSimpleAr).join('، ');
-      throw new Error(`تعذّر إكمال الجدول — تبعيات غير مُحلَّة: ${missing}`);
-    }
-
-    // 4. Report agent compiles the final plan artifacts.
-    emit(run, 'report', 'started', 'تجميع خريطة الطريق والتكاليف…');
+    /* 4. Assemble the roadmap from agent results (NOT from static data).
+     *    Preserve each agent's declared deps so buildRoadmap can group the
+     *    entities by dependency depth (= wave number in practice). */
+    const entities = buildEntitiesFromAgents(agents, runResult.results);
     const roadmap = buildRoadmap(entities);
     const costSummary = summariseCosts(entities);
-    const rawWarnings = computeTopWarnings(vertical, answers);
-    const topWarnings = rawWarnings.length > 0
-      ? await personalizeWarnings(answers, rawWarnings)
-      : rawWarnings;
+
+    const topWarnings = await personalizeWarnings(answers, computeTopWarnings(vertical, answers));
+
     emit(
       run,
       'report',
       'completed',
-      `الخريطة جاهزة — ${entities.length} جهة، ${roadmap.length} مراحل.`,
+      `الخريطة جاهزة — ${entities.length} جهة، ${roadmap.length} مراحل، ${runResult.waves} موجة تشغيل.`,
     );
 
     updatePlan(planId, {
@@ -180,6 +123,8 @@ export async function runEstablishmentOrchestrator(planId: string): Promise<void
       roadmap,
       costSummary,
       topWarnings,
+      // Keep the vertical metadata in sync with the chat answers.
+      verticalLabelAr: VERTICALS[vertical].labelAr,
     });
     emit(run, 'orchestrator', 'completed', 'خريطة الطريق جاهزة — بنحوّلك لها.');
   } catch (err) {
@@ -191,32 +136,46 @@ export async function runEstablishmentOrchestrator(planId: string): Promise<void
 }
 
 /* ------------------------------------------------------------------------- */
+/* Transform agent results → GovEntity[] (what the roadmap UI already knows) */
+/* ------------------------------------------------------------------------- */
 
-function costLabel(e: GovEntity): string {
-  if (e.estimatedCostSar.max === 0) return 'رسوم: مجاني';
-  if (e.estimatedCostSar.min === e.estimatedCostSar.max) {
-    return `رسوم: ~${e.estimatedCostSar.max.toLocaleString('en-US')} ريال`;
+function buildEntitiesFromAgents(
+  agents: readonly import('./runtime/types').Agent[],
+  results: Map<AgentId, AgentResult>,
+): GovEntity[] {
+  const entities: GovEntity[] = [];
+  let order = 1;
+  for (const agent of agents) {
+    const result = results.get(agent.id);
+    if (!result || result.status !== 'complete') continue;
+    const d = result.data;
+    entities.push({
+      id: d.entityId,
+      nameAr: d.nameAr,
+      nameSimpleAr: d.nameSimpleAr,
+      explainAr: d.explainAr,
+      estimatedCostSar: d.estimatedCostSar,
+      estimatedTimeAr: d.estimatedTimeAr,
+      order: order++,
+      // Preserve the agent's declared dependencies so buildRoadmap can
+      // group entities by dependency depth — this is what gives the UI
+      // its weekly phases.
+      dependencies: [...agent.dependencies],
+      criticalWarningAr: d.criticalWarningAr,
+      commonMistakeAr: d.commonMistakeAr,
+      renewalPeriodAr: d.renewalPeriodAr,
+      officialUrl: d.officialUrl,
+    });
   }
-  return `رسوم تقديرية: ${e.estimatedCostSar.min.toLocaleString('en-US')}–${e.estimatedCostSar.max.toLocaleString('en-US')} ريال`;
+  return entities;
 }
 
-function prettifyDep(id: string): string {
-  switch (id) {
-    case 'mci':           return 'متخصّص التجارة';
-    case 'civil_defense': return 'متخصّص الدفاع المدني';
-    case 'municipality':  return 'متخصّص البلدية';
-    case 'mol':           return 'متخصّص الموارد البشرية';
-    default:              return id;
-  }
-}
+/* ------------------------------------------------------------------------- */
 
-function recommendEntityType(answers: Answers): string {
-  const partners = answers.est3_partner_count ?? 1;
-  const capital = answers.est4_capital_sar ?? 0;
-  const foreign = answers.est5_foreign_partner === 'yes';
-  if (partners === 1 && !foreign && capital < 500_000) return 'مؤسسة فردية';
-  if (partners === 1) return 'شركة شخص واحد (ذ.م.م)';
-  return 'شركة ذات مسؤولية محدودة (ذ.م.م)';
+function costLabel(cost: { min: number; max: number }): string {
+  if (cost.max === 0) return 'رسوم: مجاني';
+  if (cost.min === cost.max) return `رسوم: ~${cost.max.toLocaleString('en-US')} ريال`;
+  return `رسوم تقديرية: ${cost.min.toLocaleString('en-US')}–${cost.max.toLocaleString('en-US')} ريال`;
 }
 
 function computeTopWarnings(vertical: VerticalId, answers: Answers): string[] {

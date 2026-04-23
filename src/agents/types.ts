@@ -83,9 +83,13 @@ export type EntityAgent =
   | 'municipality'
   | 'civil_defense'
   | 'sfda'
+  | 'moh'
   | 'mohr_gosi'
   | 'zatca'
-  | 'pdpl_nca';
+  | 'zatca_einvoice'
+  | 'maroof'
+  | 'pdpl_nca'
+  | 'contractor_classification';
 
 export type AgentId = CoordinationAgent | EntityAgent;
 
@@ -139,11 +143,15 @@ export const AGENT_LABELS_AR: Record<AgentId, string> = {
   report:       'وكيل التقرير',
   document:     'وكيل المستندات',
   // Entity specialists
-  mci:           'متخصّص التجارة',
-  municipality:  'متخصّص البلدية',
-  civil_defense: 'متخصّص الدفاع المدني',
-  sfda:          'متخصّص الغذاء والدواء',
-  mohr_gosi:     'متخصّص الموارد البشرية والتأمينات',
-  zatca:         'متخصّص الزكاة والضريبة',
-  pdpl_nca:      'متخصّص حماية البيانات',
+  mci:                       'متخصّص التجارة',
+  municipality:              'متخصّص البلدية',
+  civil_defense:             'متخصّص الدفاع المدني',
+  sfda:                      'متخصّص الغذاء والدواء',
+  moh:                       'متخصّص وزارة الصحة',
+  mohr_gosi:                 'متخصّص الموارد البشرية والتأمينات',
+  zatca:                     'متخصّص الزكاة والضريبة',
+  zatca_einvoice:            'متخصّص الفوترة الإلكترونية',
+  maroof:                    'متخصّص معروف',
+  pdpl_nca:                  'متخصّص حماية البيانات',
+  contractor_classification: 'متخصّص تصنيف المقاولين',
 };
