@@ -20,6 +20,15 @@ import {
   type QuestionId,
 } from '@/agents/chat-flow';
 
+const QUESTION_ORDER: readonly QuestionId[] = [
+  'q0_mode', 'q_company_name',
+  'est1_vertical', 'est2_city', 'est3_partner_count', 'est4_capital_sar',
+  'est5_foreign_partner', 'est6_lease_status',
+  'q1_company_type', 'q2_employee_count', 'q3_processes_personal_data',
+  'q4_user_count', 'q5_dpo_appointed', 'q6_data_location',
+  'q7_government_clients', 'q8_website_url',
+];
+
 export interface ChatSession {
   id: string;
   createdAt: number;
@@ -77,4 +86,31 @@ export function recordAnswer(
   session.currentQuestion = next;
 
   return { ok: true, session, nextQ: next ? QUESTIONS[next] : null, justAnswered };
+}
+
+/**
+ * Seed a fresh session with known answers (used by the establishment →
+ * compliance handoff) and advance `currentQuestion` to the first unanswered
+ * field in priority order. Silently drops any entry that fails validation.
+ */
+export function applyPrefill(session: ChatSession, prefill: Record<string, unknown>): void {
+  for (const [rawKey, rawValue] of Object.entries(prefill)) {
+    if (!QUESTION_ORDER.includes(rawKey as QuestionId)) continue;
+    if (rawValue === undefined || rawValue === null) continue;
+    const str = typeof rawValue === 'number' ? String(rawValue) : String(rawValue);
+    const validated = validateAnswer(rawKey as QuestionId, str);
+    if (!validated.ok) continue;
+    (session.answers as Record<string, unknown>)[rawKey] = validated.value;
+  }
+  session.currentQuestion = firstUnanswered(session.answers);
+}
+
+function firstUnanswered(answers: Answers): QuestionId | null {
+  // Walk the scripted flow — stop at the first unanswered required field.
+  let current: QuestionId | null = FIRST_QUESTION;
+  while (current) {
+    if ((answers as Record<string, unknown>)[current] === undefined) return current;
+    current = nextQuestion(current, answers);
+  }
+  return null;
 }

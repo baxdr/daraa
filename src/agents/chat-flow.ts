@@ -18,6 +18,8 @@ export type Mode = 'establishment' | 'compliance';
 export type QuestionId =
   // Mode selector (always first).
   | 'q0_mode'
+  // Company/project name — shared across both modes, asked right after mode.
+  | 'q_company_name'
   // Establishment branch.
   | 'est1_vertical'
   | 'est2_city'
@@ -40,6 +42,9 @@ export type AnswerValue = string; // label as shown to the user
 export interface Answers {
   // Mode selector.
   q0_mode?: Mode;
+
+  // Company/project name — mandatory for both branches.
+  q_company_name?: string;
 
   // Establishment branch.
   est1_vertical?: VerticalId;
@@ -65,7 +70,7 @@ export interface QuickOption {
   label: string;       // Arabic label shown on the button
 }
 
-export type InputKind = 'choice' | 'number' | 'url' | 'url_or_skip';
+export type InputKind = 'choice' | 'text' | 'number' | 'url' | 'url_or_skip';
 
 export interface Question {
   id: QuestionId;
@@ -97,6 +102,13 @@ export const QUESTIONS: Record<QuestionId, Question> = {
       { value: 'establishment', label: 'أبي أفتح مشروع جديد' },
       { value: 'compliance',    label: 'عندي مشروع شغّال وأبي أتأكد من الامتثال' },
     ],
+  },
+
+  q_company_name: {
+    id: 'q_company_name',
+    text: 'تمام. وش اسم المشروع أو الشركة اللي في بالك؟',
+    hint: 'الاسم بيطلع في عقد التأسيس، التقرير، والمستندات اللي بنجهّزها لك — خلّيه الاسم التجاري اللي تبغى يُسجَّل به.',
+    input: { kind: 'text', placeholder: 'مثال: كوفي الأصالة' },
   },
 
   /* ---------------- Establishment branch ---------------- */
@@ -179,7 +191,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
   q3_processes_personal_data: {
     id: 'q3_processes_personal_data',
     text: 'هل تطبيقكم أو خدمتكم تجمع بيانات شخصية من عملاء سعوديين؟',
-    hint: 'يعني أشياء مثل: أسماء، أرقام جوال، إيميلات، عناوين، أو أي معلومات تعرّف الشخص.',
+    hint: 'يعني أشياء مثل: أسماء، أرقام جوال، إيميلات، عناوين، أو أي معلومات تعرّف الشخص. السؤال هذا مهم لأنه يحدد هل يطبّق عليك نظام حماية البيانات الشخصية (PDPL) أو لا.',
     options: [
       { value: 'yes', label: 'نعم' },
       { value: 'no',  label: 'لا' },
@@ -200,6 +212,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
   q5_dpo_appointed: {
     id: 'q5_dpo_appointed',
     text: 'هذا عدد كبير — وهذا يعني إن شركتك ملزمة بتعيين مسؤول حماية بيانات (DPO). هل عيّنتم شخص لهذا الدور؟',
+    hint: 'المادة ٣٢ من اللائحة التنفيذية تلزم الشركات اللي تعالج بيانات عدد كبير من الناس بتعيين DPO موثّق. ما يحتاج يكون توظيف جديد — يقدر يكون أحد موظفينك الحاليين.',
     options: [
       { value: 'yes',     label: 'نعم' },
       { value: 'no',      label: 'لا' },
@@ -211,6 +224,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
   q6_data_location: {
     id: 'q6_data_location',
     text: 'بياناتكم وين مستضافة؟ يعني السيرفرات اللي عليها بيانات عملائكم.',
+    hint: 'إذا السيرفرات خارج السعودية (مثل AWS إيرلندا أو GCP فرانكفورت) — يصير نقل بيانات عبر الحدود ويحتاج مبرّر قانوني واضح قبل أي تدقيق.',
     options: [
       { value: 'saudi',   label: 'داخل السعودية' },
       { value: 'outside', label: 'خارج السعودية (AWS/Azure/GCP)' },
@@ -222,7 +236,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
   q7_government_clients: {
     id: 'q7_government_clients',
     text: 'هل شركتكم تتعامل مع أي جهة حكومية سعودية؟',
-    hint: 'يعني عقود أو خدمات تقدمونها لجهات حكومية.',
+    hint: 'التعامل مع جهات حكومية يضيف طبقة أمن سيبراني إضافية — ضوابط NCA ECC الأساسية مطلوبة قبل أي عقد، وتشمل HTTPS وسجلات المراجعة وضبط صلاحيات الوصول.',
     options: [
       { value: 'yes', label: 'نعم' },
       { value: 'no',  label: 'لا' },
@@ -257,6 +271,8 @@ export function nextQuestion(current: QuestionId, answers: Answers): QuestionId 
   switch (current) {
     /* ---- mode selector ---- */
     case 'q0_mode':
+      return 'q_company_name';
+    case 'q_company_name':
       return answers.q0_mode === 'establishment' ? 'est1_vertical' : 'q1_company_type';
 
     /* ---- establishment branch ---- */
@@ -300,6 +316,13 @@ export function validateAnswer(
     const opt = q.options.find((o) => o.value === rawAnswer || o.label === rawAnswer);
     if (!opt) return { ok: false, error: 'اختر من الخيارات المعروضة' };
     return { ok: true, value: opt.value as Answers[QuestionId] };
+  }
+
+  if (q.input?.kind === 'text') {
+    const trimmed = rawAnswer.trim();
+    if (trimmed.length < 2) return { ok: false, error: 'الاسم قصير جداً — اكتب اسم المشروع' };
+    if (trimmed.length > 80) return { ok: false, error: 'الاسم طويل — اختصره' };
+    return { ok: true, value: trimmed as Answers[QuestionId] };
   }
 
   if (q.input?.kind === 'number') {

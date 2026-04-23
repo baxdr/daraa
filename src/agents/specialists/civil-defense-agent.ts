@@ -1,18 +1,18 @@
 import type { Agent, AgentContext, AgentId, AgentMessage, AgentResult } from '../runtime/types';
 
 /**
- * Civil Defense — reads the MCI broadcast and tailors requirements to the
- * vertical. Returns a structured list + sends a `safetyCertReady` message
- * for Municipality to observe.
+ * Civil Defense — tailors requirements to the vertical AND forwards the
+ * physical-site signals (kitchen presence, floor) on the safety-cert
+ * message so Municipality can reason about them in the next wave.
+ *
+ * Also absorbs any research-agent regulatory update addressed to
+ * civil_defense and tags it as "new" on the requirement list.
  */
 export class CivilDefenseAgent implements Agent {
   readonly id: AgentId = 'civil_defense';
   readonly dependencies: readonly AgentId[] = ['mci'];
 
   async run(context: AgentContext, inbox: AgentMessage[]): Promise<AgentResult> {
-    // Real inbox read — not a hardcoded branch. If MCI's data_share didn't
-    // arrive, we block, and the orchestrator retries us in the next wave
-    // once messages flow.
     const mciSignal = inbox.find(
       (m) => m.from === 'mci' && m.type === 'data_share' && m.payload?.crReady === true,
     );
@@ -21,6 +21,14 @@ export class CivilDefenseAgent implements Agent {
     }
 
     const requirements = this.requirementsFor(context.vertical);
+
+    // Absorb any research update targeted at civil_defense.
+    const updates = inbox.filter((m) => m.from === 'research' && m.type === 'update');
+    for (const u of updates) {
+      const summary = String(u.payload?.summary ?? u.messageAr ?? '').trim();
+      if (summary) requirements.push(`جديد — ${summary.slice(0, 120)}`);
+    }
+
     const cost = this.estimateCost(context.vertical);
     const estimatedTimeAr = '٣ إلى ١٤ يوم (يحتاج زيارة ميدانية)';
 
@@ -28,6 +36,10 @@ export class CivilDefenseAgent implements Agent {
       context.vertical === 'restaurant' || context.vertical === 'salon'
         ? 'شهادة السلامة غالباً تسبق رخصة البلدية — تأكّد من التسلسل الصحيح لحيّك على منصة بلدي قبل التقديم.'
         : undefined;
+
+    // Forward the kitchen/floor signals to Municipality.
+    const hasKitchen = context.vertical === 'restaurant';
+    const nonGroundFloor = false; // reserved — not collected yet in chat
 
     return {
       status: 'complete',
@@ -50,7 +62,12 @@ export class CivilDefenseAgent implements Agent {
           from: 'civil_defense',
           to: 'municipality',
           type: 'dependency',
-          payload: { safetyCertReady: true, estimatedTimeAr },
+          payload: {
+            safetyCertReady: true,
+            estimatedTimeAr,
+            hasKitchen,
+            nonGroundFloor,
+          },
           messageAr: 'شهادة السلامة جاهزة للإصدار — تقدر تبدأ طلب رخصة البلدية.',
         },
       ],

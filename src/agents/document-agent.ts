@@ -96,20 +96,49 @@ export const DOCUMENT_META: Record<
 export async function generateDocument(
   kind: DocumentKind,
   answers: Answers,
+  companyName?: string,
 ): Promise<GeneratedDocument> {
   const ctx = buildCompanyContext(answers);
-  switch (kind) {
-    case 'privacy_policy':      return generatePrivacyPolicy(ctx);
-    case 'dpo_appointment':     return generateDpoAppointment(ctx);
-    case 'processing_register': return generateProcessingRegister(ctx);
-    case 'incident_response':   return generateIncidentResponse(ctx);
-    default: {
-      // Exhaustive check — if a new DocumentKind is added to the union, the
-      // compiler flags this branch and forces the caller to update the switch.
-      const _exhaustive: never = kind;
-      throw new Error(`Unknown document kind: ${_exhaustive as string}`);
+  const base = await (async (): Promise<GeneratedDocument> => {
+    switch (kind) {
+      case 'privacy_policy':      return generatePrivacyPolicy(ctx);
+      case 'dpo_appointment':     return generateDpoAppointment(ctx);
+      case 'processing_register': return generateProcessingRegister(ctx);
+      case 'incident_response':   return generateIncidentResponse(ctx);
+      default: {
+        const _exhaustive: never = kind;
+        throw new Error(`Unknown document kind: ${_exhaustive as string}`);
+      }
     }
-  }
+  })();
+  return substituteCompanyName(base, companyName);
+}
+
+/**
+ * Swap [اسم الشركة] placeholders throughout the generated document when the
+ * caller passed a real name. Keeps the placeholder if `companyName` is
+ * empty so the user still sees where to fill in.
+ */
+function substituteCompanyName(doc: GeneratedDocument, companyName?: string): GeneratedDocument {
+  const name = companyName?.trim();
+  if (!name) return doc;
+  const swap = (s: string) => s.split(COMPANY_NAME_PLACEHOLDER).join(name);
+  return {
+    ...doc,
+    companyName: name,
+    sections: doc.sections.map((s) => ({
+      ...s,
+      body: swap(s.body),
+      listItems: s.listItems?.map(swap),
+      table: s.table
+        ? {
+            headers: s.table.headers.map(swap),
+            rows: s.table.rows.map((row) => row.map(swap)),
+          }
+        : undefined,
+    })),
+    metadata: doc.metadata?.map((m) => ({ label: m.label, value: swap(m.value) })),
+  };
 }
 
 /* ========================================================================= */

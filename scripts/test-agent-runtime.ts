@@ -14,6 +14,7 @@ import type { AgentContext } from '../src/agents/runtime/types';
 import { getAgentsForVertical } from '../src/agents/specialists';
 
 const ctx: AgentContext = {
+  mode: 'establishment',
   vertical: 'restaurant',
   answers: {
     q0_mode: 'establishment',

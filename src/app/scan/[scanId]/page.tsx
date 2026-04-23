@@ -1,9 +1,5 @@
-import { ScanProgress } from '@/components/scan-progress';
+import { redirect } from 'next/navigation';
 
-export default function ScanProgressPage({ params }: { params: { scanId: string } }) {
-  return (
-    <main className="mx-auto max-w-xl px-6 py-20">
-      <ScanProgress scanId={params.scanId} />
-    </main>
-  );
+export default function LegacyScanRedirect({ params }: { params: { scanId: string } }) {
+  redirect(`/project/${params.scanId}/agents`);
 }

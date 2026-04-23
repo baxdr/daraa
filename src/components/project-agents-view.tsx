@@ -5,31 +5,33 @@ import { useRouter } from 'next/navigation';
 import type { AgentActivity, AgentId, AgentMessage } from '@/agents/types';
 import { Timeline } from './timeline';
 
-/**
- * Live progress view for the establishment orchestrator.
- *
- * Mirrors `ScanProgress` but for plan runs — shows the entity-specialists
- * communicating with each other as they assemble the roadmap. When the
- * orchestrator reports status=complete, the page is refreshed so the
- * parent server component can render the final roadmap view.
- */
-
 const STATION_ROW: Array<{ id: AgentId; label: string }> = [
   { id: 'orchestrator',  label: 'المنسّق' },
   { id: 'research',      label: 'البحث' },
   { id: 'mci',           label: 'التجارة' },
+  { id: 'zatca',         label: 'الزكاة' },
+  { id: 'mohr_gosi',     label: 'الموارد والتأمينات' },
   { id: 'civil_defense', label: 'الدفاع المدني' },
   { id: 'municipality',  label: 'البلدية' },
   { id: 'sfda',          label: 'الغذاء والدواء' },
-  { id: 'mohr_gosi',     label: 'الموارد والتأمينات' },
-  { id: 'zatca',         label: 'الزكاة والضريبة' },
+  { id: 'moh',           label: 'الصحة' },
+  { id: 'pdpl_nca',      label: 'حماية البيانات' },
+  { id: 'scan',          label: 'الفحص' },
+  { id: 'analysis',      label: 'التحليل' },
 ];
 
-export function EstablishmentProgress({ planId }: { planId: string }) {
+/**
+ * Live-timeline view for /project/[id]/agents. Polls the unified project
+ * endpoint and navigates to the dashboard when status flips to complete.
+ * Shows which specialists actually spoke during the run — others stay
+ * grey-dot idle so the user sees the true execution set, not a padded list.
+ */
+export function ProjectAgentsView({ projectId }: { projectId: string }) {
   const router = useRouter();
   const [activities, setActivities] = useState<AgentActivity[]>([]);
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [status, setStatus] = useState<string>('pending');
+  const [mode, setMode] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const cancelledRef = useRef(false);
 
@@ -43,23 +45,23 @@ export function EstablishmentProgress({ planId }: { planId: string }) {
       if (cancelledRef.current) return;
       attempts += 1;
       try {
-        const res = await fetch(`/api/establishment/${planId}`, { cache: 'no-store' });
+        const res = await fetch(`/api/project/${projectId}`, { cache: 'no-store' });
         if (!res.ok) throw new Error('فشل التواصل مع الخادم');
         const data = (await res.json()) as {
-          status: string;
-          activities: AgentActivity[];
-          messages: AgentMessage[];
+          status: string; mode: string;
+          activities: AgentActivity[]; messages: AgentMessage[];
           errorMessage?: string | null;
         };
         if (cancelledRef.current) return;
         setActivities(data.activities ?? []);
         setMessages(data.messages ?? []);
         setStatus(data.status);
+        setMode(data.mode);
 
         if (data.status === 'complete') {
           timer = setTimeout(() => {
-            if (!cancelledRef.current) router.refresh();
-          }, 800);
+            if (!cancelledRef.current) router.replace(`/project/${projectId}`);
+          }, 900);
           return;
         }
         if (data.status === 'error') {
@@ -82,11 +84,11 @@ export function EstablishmentProgress({ planId }: { planId: string }) {
       cancelledRef.current = true;
       if (timer) clearTimeout(timer);
     };
-  }, [planId, router]);
+  }, [projectId, router]);
 
   const stationStatus = useMemo(() => computeStationStatus(activities), [activities]);
   const visibleStations = useMemo(
-    () => STATION_ROW.filter((s) => s.id in stationStatus || s.id === 'orchestrator' || s.id === 'research'),
+    () => STATION_ROW.filter((s) => s.id in stationStatus),
     [stationStatus],
   );
   const progress = useMemo(() => {
@@ -98,12 +100,13 @@ export function EstablishmentProgress({ planId }: { planId: string }) {
   return (
     <main className="mx-auto max-w-3xl px-6 py-10 md:px-10 md:py-16">
       <header className="mb-8">
-        <span className="eyebrow">جاري التحضير</span>
+        <span className="eyebrow">{mode === 'compliance' ? 'الفحص جارٍ' : 'جاري التحضير'}</span>
         <h1 className="mt-3 font-display text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
-          متخصّصو الجهات يتواصلون
+          الوكلاء يتواصلون
         </h1>
         <p className="mt-3 max-w-xl text-base text-ink-2">
-          كل متخصّص يعرف جهة حكومية ويتواصل مع الباقيين — يتّفقون على الترتيب ويبنون خريطتك.
+          وكيل البحث (LLM) يجلب التحديثات، المتخصّصون يتبادلون الرسائل عبر الحافلة،
+          ووكيل التحليل يُنتج النتيجة. السجل أدناه يعرض كل نشاط + كل رسالة A2A حقيقية.
         </p>
       </header>
 
@@ -152,8 +155,8 @@ export function EstablishmentProgress({ planId }: { planId: string }) {
       )}
 
       {status !== 'complete' && status !== 'error' && (
-        <p className="mt-12 text-[11px] text-muted">
-          معرّف الخطة: <code dir="ltr" className="font-mono">{planId}</code>
+        <p className="mt-12 text-xs text-muted">
+          معرّف المشروع: <code dir="ltr" className="font-mono">{projectId}</code>
         </p>
       )}
     </main>

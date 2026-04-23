@@ -12,9 +12,9 @@ export interface ScanResult {
   privacyPolicy: PrivacyPolicyCheck;
   securityHeaders?: import('@/scanner/security-headers').SecurityHeaderCheck;
   thirdParty?: import('@/scanner/third-party').ThirdPartyCheck;
+  dataForms?: import('@/scanner/forms').FormScanResult;
   // Still pending Puppeteer work:
   cookieConsent?: unknown;
-  dataForms?: unknown;
 }
 
 export interface PrivacyPolicyCheck {

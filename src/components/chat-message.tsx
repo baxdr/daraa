@@ -1,12 +1,14 @@
 import type { ReactNode } from 'react';
-import type { TermId } from '@/knowledge/terms';
-import { TermTooltip } from './term-tooltip';
+import { TERMS, type TermId } from '@/knowledge/terms';
 
 /**
  * Flat editorial chat bubbles — no tails, no rounded gimmicks.
  *
  * Agent side: subtle paper-2 surface with a small accent marker to the right
  * (speaker side in RTL). User side: solid accent fill, left-aligned.
+ *
+ * Terms render as inline margin-notes directly inside the bubble — the
+ * explanation is embedded in the question itself, not hidden behind a chip.
  */
 
 interface AgentMessageProps {
@@ -25,15 +27,40 @@ export function AgentMessage({ text, hint, terms, children }: AgentMessageProps)
           <p className="text-[15px] leading-relaxed">{text}</p>
           {hint && <p className="mt-2 text-sm leading-relaxed text-ink-2">{hint}</p>}
           {terms?.length ? (
-            <div className="mt-3 space-y-1.5">
+            <div className="mt-3 space-y-2.5 border-t border-rule/70 pt-3">
               {terms.map((t) => (
-                <TermTooltip key={t} termId={t} />
+                <InlineTerm key={t} termId={t} />
               ))}
             </div>
           ) : null}
         </div>
         {children && <div className="mt-3">{children}</div>}
       </div>
+    </div>
+  );
+}
+
+function InlineTerm({ termId }: { termId: TermId }) {
+  const term = TERMS[termId];
+  if (!term) return null;
+  return (
+    <div className="text-[13.5px] leading-relaxed text-ink-2">
+      <span className="me-2 font-mono text-[10px] font-bold tracking-[0.16em] text-accent">مصطلح</span>
+      <span className="font-display font-extrabold tracking-tight text-ink">{term.termAr}</span>
+      <span className="mx-1 text-muted">—</span>
+      <span>{term.simpleExplanation}</span>
+      {term.analogy && (
+        <div className="mt-1 text-ink-2/90">
+          <span className="font-semibold">تشبيه: </span>
+          {term.analogy}
+        </div>
+      )}
+      {term.whenRequired && (
+        <div className="mt-1 text-ink-2/90">
+          <span className="font-semibold">متى ينطبق: </span>
+          {term.whenRequired}
+        </div>
+      )}
     </div>
   );
 }

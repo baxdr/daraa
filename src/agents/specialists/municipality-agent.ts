@@ -1,12 +1,13 @@
 import type { Agent, AgentContext, AgentId, AgentMessage, AgentResult } from '../runtime/types';
 
 /**
- * Municipality — WAITS for Civil Defense's safetyCertReady message.
+ * Municipality — behavior depends on what Civil Defense's inbox message
+ * carried. Restaurants with a kitchen get an additional commercial-kitchen
+ * requirement; sites not on the ground floor surface a warning because
+ * many food activities are ground-floor-only.
  *
- * Dependency-graph satisfaction alone isn't enough: even if Civil Defense
- * completed, we require the explicit payload `safetyCertReady: true` on
- * the inbox before we publish our own data. If it's missing (e.g. CD
- * errored), we block and surface that reason.
+ * If MOHR broadcast a red-nitaqat warning, Municipality surfaces that too —
+ * many balady services are constrained while the zone is red.
  */
 export class MunicipalityAgent implements Agent {
   readonly id: AgentId = 'municipality';
@@ -22,23 +23,45 @@ export class MunicipalityAgent implements Agent {
     if (!safetyCert) {
       return {
         status: 'blocked',
-        reason: 'لم نستلم تأكيد شهادة السلامة من متخصّص الدفاع المدني بعد',
+        reason: 'لم نستلم تأكيد شهادة السلامة من متخصّص الدفاع المدني',
       };
     }
 
-    const cost = this.estimateCost(context.vertical);
+    // Signals forwarded by Civil Defense.
+    const hasKitchen = Boolean(safetyCert.payload?.hasKitchen);
+    const nonGroundFloor = Boolean(safetyCert.payload?.nonGroundFloor);
+
+    const cost = this.estimateCost(context.vertical, hasKitchen);
     const licenceLabel = this.licenceLabel(context.vertical);
+
+    const requirements: string[] = ['إثبات الموافقة على الموقع في منصّة بلدي', 'شهادة السلامة (مُستلمة من الدفاع المدني)'];
+    if (hasKitchen) requirements.push('ترخيص مطبخ تجاري — إضافي لأن المحل يحتوي مطبخ');
+
+    const warnings: string[] = [];
+    if (nonGroundFloor && context.vertical === 'restaurant') {
+      warnings.push('الموقع ليس في الدور الأرضي — بعض أنشطة المطاعم تتطلّب الدور الأرضي، راجع اشتراطات بلديتك قبل توقيع العقد.');
+    }
+
+    // Cross-agent input: MOHR flagged red nitaqat → constrain municipality services.
+    const mohrWarning = inbox.find(
+      (m) => m.from === 'mohr_gosi' && m.type === 'warning' && m.payload?.nitaqatZone === 'red',
+    );
+    if (mohrWarning) {
+      warnings.push('النطاق أحمر — بعض خدمات البلدية تتقيّد، وقد يُرفض طلب التجديد أو الإصدار الجديد حتى تصحيح النطاق.');
+    }
 
     const commonMistakeAr = context.leaseStatus === 'not_signed'
       ? 'لا تعتمد على وعد شفهي من المالك إن الموقع "يطلع له رخصة". تحقّق من منصة بلدي بنفسك قبل التوقيع.'
       : undefined;
+
+    const criticalWarningAr = warnings.length > 0 ? warnings.join(' ') : undefined;
 
     const outbox: AgentMessage[] = [
       {
         from: 'municipality',
         to: 'sfda',
         type: 'dependency',
-        payload: { municipalityLicense: 'pending-issuance', licenceLabel },
+        payload: { municipalityLicense: 'pending-issuance', licenceLabel, hasKitchen },
         messageAr: `${licenceLabel} قيد الإصدار — تقدر تبدأ ترخيص الغذاء بالتوازي.`,
       },
       {
@@ -70,6 +93,8 @@ export class MunicipalityAgent implements Agent {
         officialUrl: 'https://balady.gov.sa',
         renewalPeriodAr: 'سنوي',
         commonMistakeAr,
+        criticalWarningAr,
+        requirements,
       },
       outbox,
     };
@@ -84,12 +109,16 @@ export class MunicipalityAgent implements Agent {
     }
   }
 
-  private estimateCost(vertical: AgentContext['vertical']): { min: number; max: number } {
-    switch (vertical) {
-      case 'restaurant':   return { min: 500, max: 3000 };
-      case 'salon':        return { min: 500, max: 2000 };
-      case 'construction': return { min: 500, max: 2000 };
-      default:             return { min: 500, max: 2500 };
-    }
+  private estimateCost(vertical: AgentContext['vertical'], hasKitchen: boolean): { min: number; max: number } {
+    const base = (() => {
+      switch (vertical) {
+        case 'restaurant':   return { min: 500, max: 3000 };
+        case 'salon':        return { min: 500, max: 2000 };
+        case 'construction': return { min: 500, max: 2000 };
+        default:             return { min: 500, max: 2500 };
+      }
+    })();
+    if (hasKitchen) return { min: base.min + 500, max: base.max + 1500 };
+    return base;
   }
 }

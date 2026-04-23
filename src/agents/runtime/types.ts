@@ -24,6 +24,9 @@ import type { AgentId } from '../types';
 /* ─── Context provided to every agent ──────────────────────────────────── */
 
 export interface AgentContext {
+  /** Which lens the agents reason through. Every specialist gets both modes
+   *  from the same `run()`; switching is internal per agent. */
+  mode: 'establishment' | 'compliance';
   vertical: VerticalId;
   answers: Answers;
   cityId?: string;
@@ -32,6 +35,9 @@ export interface AgentContext {
   capitalSar?: number;
   hasForeignPartner?: boolean;
   leaseStatus?: 'not_signed' | 'signed' | 'no_location_yet';
+  /** Optional — URL collected from the user; used by pdpl_nca in compliance
+   *  mode and passed to the scan pipeline. */
+  websiteUrl?: string | null;
 }
 
 /* ─── Messages on the bus ──────────────────────────────────────────────── */

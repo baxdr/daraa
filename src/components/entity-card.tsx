@@ -1,15 +1,33 @@
 import type { GovEntity } from '@/knowledge/entities';
+import type { AgentMessage } from '@/agents/types';
+import { AGENT_LABELS_AR } from '@/agents/types';
 
 /**
  * Editorial entity card — numbered step, hairline rules, RTL-correct arrows.
+ *
+ * When A2A messages are passed, they render as a small inbox/outbox feed
+ * at the bottom of the card so the user can see which other agents this
+ * one actually talked to.
  */
-export function EntityCard({ entity, step }: { entity: GovEntity; step: number }) {
+export function EntityCard({
+  entity,
+  step,
+  incoming,
+  outgoing,
+}: {
+  entity: GovEntity;
+  step: number;
+  incoming?: AgentMessage[];
+  outgoing?: AgentMessage[];
+}) {
   const costLabel =
     entity.estimatedCostSar.max === 0
       ? 'مجاني'
       : entity.estimatedCostSar.min === entity.estimatedCostSar.max
         ? `~${entity.estimatedCostSar.max.toLocaleString('en-US')} ريال`
         : `${entity.estimatedCostSar.min.toLocaleString('en-US')} – ${entity.estimatedCostSar.max.toLocaleString('en-US')} ريال`;
+
+  const a2aCount = (incoming?.length ?? 0) + (outgoing?.length ?? 0);
 
   return (
     <article className="relative border border-rule bg-white px-5 py-5 md:px-6 md:py-6">
@@ -66,9 +84,82 @@ export function EntityCard({ entity, step }: { entity: GovEntity; step: number }
             <span>{entity.commonMistakeAr}</span>
           </div>
         )}
+
+        {/* Requirements checklist — derived from the specialist agent's run. */}
+        {entity.requirements && entity.requirements.length > 0 && (
+          <div className="col-span-2 mt-2">
+            <div className="eyebrow mb-2">المتطلبات</div>
+            <ul className="space-y-1.5">
+              {entity.requirements.map((req, i) => (
+                <li key={i} className="flex items-start gap-2 text-[13.5px] leading-relaxed text-ink-2">
+                  <span aria-hidden className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <span>{req}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* A2A feed — which other agents talked to (or heard from) this one. */}
+        {a2aCount > 0 && (
+          <div className="col-span-2 mt-2 border-t border-rule pt-4">
+            <div className="mb-2 flex items-baseline justify-between">
+              <div className="eyebrow">محادثة الوكلاء</div>
+              <span className="font-mono text-[10px] tabular-nums text-muted">
+                {a2aCount.toString().padStart(2, '0')} رسالة
+              </span>
+            </div>
+            <ul className="space-y-1.5">
+              {(incoming ?? []).map((m, i) => (
+                <A2ALine key={`in-${i}`} msg={m} direction="in" />
+              ))}
+              {(outgoing ?? []).map((m, i) => (
+                <A2ALine key={`out-${i}`} msg={m} direction="out" />
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </article>
   );
+}
+
+function A2ALine({ msg, direction }: { msg: AgentMessage; direction: 'in' | 'out' }) {
+  const otherLabel = direction === 'in'
+    ? AGENT_LABELS_AR[msg.from] ?? msg.from
+    : typeof msg.to === 'string' && msg.to !== 'ALL'
+      ? (AGENT_LABELS_AR[msg.to] ?? msg.to)
+      : 'جميع المتخصّصين';
+  const typeLabel = typeLabelAr(msg.type);
+  return (
+    <li className="flex items-start gap-2 text-[13px] leading-relaxed text-ink-2">
+      <span
+        aria-hidden
+        className={`mt-0.5 font-mono text-[10px] tracking-widest ${
+          direction === 'in' ? 'text-accent' : 'text-ink'
+        }`}
+      >
+        {direction === 'in' ? '→ من' : '← إلى'}
+      </span>
+      <span>
+        <span className="font-display font-extrabold tracking-tight text-ink">{otherLabel}</span>
+        <span className="mx-1.5 text-muted">·</span>
+        <span className="font-mono text-[10px] uppercase tracking-widest text-muted">{typeLabel}</span>
+        <span className="mx-1.5 text-muted">—</span>
+        <span>{msg.messageAr}</span>
+      </span>
+    </li>
+  );
+}
+
+function typeLabelAr(t: AgentMessage['type']): string {
+  switch (t) {
+    case 'dependency': return 'تبعية';
+    case 'data_share': return 'تبادل بيانات';
+    case 'warning':    return 'تنبيه';
+    case 'update':     return 'تحديث';
+    case 'ack':        return 'إقرار';
+  }
 }
 
 function MetaItem({ label, value, note }: { label: string; value: string; note?: string }) {

@@ -39,6 +39,9 @@ export interface GovEntity {
   renewalPeriodAr?: string;
   /** Official portal link — users are directed here for the actual filing. */
   officialUrl?: string;
+  /** Checklist of what the user needs to gather/have in place for this entity.
+   *  Populated by each specialist agent (class-based runtime). */
+  requirements?: string[];
 }
 
 export interface Vertical {

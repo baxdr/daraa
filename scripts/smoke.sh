@@ -68,43 +68,49 @@ advance() {
 
 echo
 echo "=== Establishment path (restaurant, not_signed → warning) ==="
-for a in "establishment" "restaurant" "riyadh" "2" "80000" "no" "not_signed"; do advance "$a"; done
-plan=$(curl -s -X POST "$BASE/api/establishment/resolve" -H 'content-type: application/json' -d "{\"sessionId\":\"$sid\"}" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).planId||""))')
-if [ -z "$plan" ]; then printf "  $FAIL establishment/resolve returned no planId\n"; failed=1; else printf "  $PASS planId=%s\n" "$plan"; fi
+for a in "establishment" "كوفي الأصالة" "restaurant" "riyadh" "2" "80000" "no" "not_signed"; do advance "$a"; done
+plan=$(curl -s -X POST "$BASE/api/project/start" -H 'content-type: application/json' -d "{\"sessionId\":\"$sid\"}" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).projectId||""))')
+if [ -z "$plan" ]; then printf "  $FAIL project/start returned no projectId\n"; failed=1; else printf "  $PASS projectId=%s\n" "$plan"; fi
 
 # Poll until complete
 for i in $(seq 1 30); do
-  status=$(curl -s "$BASE/api/establishment/$plan" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).status))')
+  status=$(curl -s "$BASE/api/project/$plan" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).status))')
   [ "$status" = "complete" ] && break
   [ "$status" = "error" ] && break
   sleep 1
 done
-[ "$status" = "complete" ] && printf "  $PASS plan status = complete\n" || { printf "  $FAIL plan status = %s\n" "$status"; failed=1; }
-assert_http_200 "/establishment/$plan" "/establishment/[planId]"
-assert_contains "/establishment/$plan" "قبل ما توقّع" "lease warning banner fires"
-assert_contains "/establishment/$plan" "خريطة الطريق" "roadmap renders"
+[ "$status" = "complete" ] && printf "  $PASS project status = complete\n" || { printf "  $FAIL project status = %s\n" "$status"; failed=1; }
+assert_http_200 "/project/$plan" "/project/[projectId]"
+assert_contains "/project/$plan" "قبل ما توقّع" "lease warning banner fires"
+assert_contains "/project/$plan" "خريطة الطريق" "roadmap renders"
 
 echo
 echo "=== Compliance path (skip URL, expect DPO gap) ==="
 sid2=$(curl -s -X POST "$BASE/api/chat/start" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).sessionId))')
-advance_sid2() { curl -s -X POST "$BASE/api/chat/message" -H 'content-type: application/json' -d "{\"sessionId\":\"$sid2\",\"answer\":\"$1\"}" > /dev/null; }
-for a in "compliance" "saas" "25" "yes" "over_100k" "no" "outside" "yes" "__skip__"; do
+for a in "compliance" "أنظمة سحابية" "saas" "25" "yes" "over_100k" "no" "outside" "yes" "__skip__"; do
   curl -s -X POST "$BASE/api/chat/message" -H 'content-type: application/json' -d "{\"sessionId\":\"$sid2\",\"answer\":\"$a\"}" > /dev/null
 done
-scan=$(curl -s -X POST "$BASE/api/scan/start" -H 'content-type: application/json' -d "{\"sessionId\":\"$sid2\"}" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).scanId||""))')
-[ -n "$scan" ] && printf "  $PASS scanId=%s\n" "$scan" || { printf "  $FAIL scan/start no scanId\n"; failed=1; }
+scan=$(curl -s -X POST "$BASE/api/project/start" -H 'content-type: application/json' -d "{\"sessionId\":\"$sid2\"}" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).projectId||""))')
+[ -n "$scan" ] && printf "  $PASS projectId=%s\n" "$scan" || { printf "  $FAIL project/start (compliance) no projectId\n"; failed=1; }
 
-for i in $(seq 1 20); do
-  status=$(curl -s "$BASE/api/scan/$scan" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).status))')
+for i in $(seq 1 30); do
+  status=$(curl -s "$BASE/api/project/$scan" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).status))')
   [ "$status" = "complete" ] && break
   [ "$status" = "error" ] && break
   sleep 1
 done
-[ "$status" = "complete" ] && printf "  $PASS scan status = complete\n" || { printf "  $FAIL scan status = %s\n" "$status"; failed=1; }
-assert_http_200 "/scan/$scan" "/scan/[scanId] (progress)"
-assert_http_200 "/scan/$scan/report" "/scan/[scanId]/report"
-assert_contains "/scan/$scan/report" "نسبة الامتثال" "compliance score present"
-assert_contains "/scan/$scan/report" "الغرامة القصوى" "fine ceiling present"
+[ "$status" = "complete" ] && printf "  $PASS compliance project status = complete\n" || { printf "  $FAIL compliance project status = %s\n" "$status"; failed=1; }
+assert_http_200 "/project/$scan" "/project/[projectId] (compliance)"
+assert_contains "/project/$scan" "نسبة الامتثال" "compliance score present"
+assert_contains "/project/$scan" "الغرامة القصوى" "fine ceiling present"
+
+echo
+echo "=== Form scanner unit (against bundled Nova Tech HTML) ==="
+if npx tsx scripts/test-form-scanner.ts > /tmp/daraa-form.log 2>&1; then
+  printf "  $PASS form scanner detects the Nova Tech gap\n"
+else
+  printf "  $FAIL form scanner test failed (see /tmp/daraa-form.log)\n"; failed=1
+fi
 
 echo
 echo "=== Document generation (4 types) ==="
@@ -130,20 +136,20 @@ echo
 echo "=== SSRF guard (attempt to scan private IP, expect graceful failure) ==="
 sid3=$(curl -s -X POST "$BASE/api/chat/start" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).sessionId||""))')
 if [ -n "$sid3" ]; then
-  for a in "compliance" "saas" "25" "yes" "over_100k" "no" "outside" "yes" "http://169.254.169.254/"; do
+  for a in "compliance" "شركة تجريبية" "saas" "25" "yes" "over_100k" "no" "outside" "yes" "http://169.254.169.254/"; do
     curl -s -X POST "$BASE/api/chat/message" -H 'content-type: application/json' -d "{\"sessionId\":\"$sid3\",\"answer\":\"$a\"}" > /dev/null
   done
-  scan3=$(curl -s -X POST "$BASE/api/scan/start" -H 'content-type: application/json' -d "{\"sessionId\":\"$sid3\"}" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).scanId||""))')
+  scan3=$(curl -s -X POST "$BASE/api/project/start" -H 'content-type: application/json' -d "{\"sessionId\":\"$sid3\"}" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).projectId||""))')
   if [ -n "$scan3" ]; then
     for i in $(seq 1 15); do
-      st=$(curl -s "$BASE/api/scan/$scan3" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).status||""))')
+      st=$(curl -s "$BASE/api/project/$scan3" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).status||""))')
       [ "$st" = "complete" ] && break
       [ "$st" = "error" ] && break
       sleep 1
     done
     [ "$st" = "complete" ] && printf "  $PASS SSRF attempt absorbed (scan completed, no metadata leak)\n" || { printf "  $FAIL SSRF attempt status=%s\n" "$st"; failed=1; }
   else
-    printf "  $FAIL SSRF: scan/start returned no scanId\n"; failed=1
+    printf "  $FAIL SSRF: project/start returned no projectId\n"; failed=1
   fi
 else
   printf "  ~ SSRF skipped (rate limit already tripped by earlier tests — rerun after 60 s)\n"

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getScan } from '@/lib/scan-store';
+import { getProject } from '@/lib/project-store';
 import { saveDocument } from '@/lib/document-store';
 import { generateDocument } from '@/agents/document-agent';
 import { enforceRateLimit } from '@/lib/rate-limit';
@@ -27,12 +27,12 @@ export async function POST(req: Request) {
   const parsed = BodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: 'طلب غير صالح' }, { status: 400 });
 
-  const scan = getScan(parsed.data.scanId);
-  if (!scan) return NextResponse.json({ error: 'الفحص غير موجود' }, { status: 404 });
+  const project = getProject(parsed.data.scanId);
+  if (!project) return NextResponse.json({ error: 'المشروع غير موجود' }, { status: 404 });
 
   try {
-    const doc = await generateDocument(parsed.data.docType, scan.answers);
-    const stored = saveDocument(scan.id, doc);
+    const doc = await generateDocument(parsed.data.docType, project.answers, project.companyName);
+    const stored = saveDocument(project.id, doc);
     return NextResponse.json({
       docId: stored.id,
       kind: stored.kind,

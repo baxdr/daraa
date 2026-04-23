@@ -1,214 +1,437 @@
 /**
- * Chat Agent — generates a one-sentence contextual bridge between questions.
+ * Chat Agent — Claude-driven conversational intake.
  *
- * The scripted QUESTIONS list in chat-flow.ts is deterministic. Without any
- * LLM, the chat reads as a canned form. This agent adds one short Arabic
- * acknowledgment-line that references what the user just said, before the
- * next scripted question renders. e.g.:
+ * This is the single brain behind the /chat experience. Given the session's
+ * accumulated answers and the user's latest message (free text OR a
+ * button-click value), it:
  *
- *   User: "80000"
- *   Bridge: "٨٠ ألف ريال مبدأ معقول لكوفي شوب في الرياض."
- *   [scripted next question: "هل أحد الشركاء غير سعودي؟"]
+ *   1. Calls Claude with a strict schema of fields we still need,
+ *   2. Claude extracts any info present in the user's text — even if buried
+ *      in a Gulf-Arabic colloquial sentence ("ودي أفتح كوفي بجدة أنا وشريك
+ *      رأس مال ٨٠ ألف"),
+ *   3. Claude picks the next single field to ask about and writes a natural
+ *      message — including any term explanation (PDPL, DPO, ذ.م.م…) inline,
+ *   4. Claude suggests quick-reply buttons when the field has a closed set
+ *      of options.
  *
- * Falls back to a short deterministic string when the API key is missing —
- * the chat still feels responsive, just less personalised.
+ * Validation stays deterministic: every extraction Claude returns goes
+ * through the existing `validateAnswer` before being stored. Invalid /
+ * unrecognised values are dropped — the loop then re-asks for that field.
+ *
+ * Fallback: if the API key is missing or Claude errors out, we revert to
+ * the scripted flow (validate → next-question → local bridge sentence) so
+ * the chat still works in degraded mode.
  */
 
-import { callClaude, MODELS, MissingApiKeyError } from '@/lib/claude';
-import { QUESTIONS, type Answers, type QuestionId } from './chat-flow';
+import { callClaude, MODELS, parseJsonResponse, MissingApiKeyError, hasApiKey } from '@/lib/claude';
+import {
+  QUESTIONS,
+  nextQuestion,
+  validateAnswer,
+  type Answers,
+  type Question,
+  type QuestionId,
+} from './chat-flow';
+import type { ChatSession } from '@/lib/chat-sessions';
+
+/* ------------------------------------------------------------------------- */
+/* Public API                                                                 */
+/* ------------------------------------------------------------------------- */
+
+export interface QuickReply {
+  label: string;
+  value: string;
+}
+
+export interface InputAffordance {
+  kind: 'text' | 'number' | 'url_or_skip';
+  placeholder: string;
+  skipLabel?: string;
+}
+
+export interface ChatAgentTurn {
+  /** The session with updated `answers` + `currentQuestion`. (Mutated in place.) */
+  session: ChatSession;
+  /** Agent's message to render. */
+  agentMessage: string;
+  /** True when all required fields are collected. */
+  done: boolean;
+  /** What we're about to ask — null when done. */
+  nextQuestionId: QuestionId | null;
+  /** Optional quick-reply suggestions the UI renders as clickable chips. */
+  suggestions?: QuickReply[];
+  /** Optional affordance — free text / number / URL box. */
+  input?: InputAffordance;
+  /** IDs of fields extracted this turn (for UI feedback / debug). */
+  extracted: QuestionId[];
+}
+
+export interface ChatAgentError {
+  error: string;
+}
 
 /**
- * Produce the bridge line for the transition FROM `justAnswered` TO `nextQuestionId`.
- * Returns a short Arabic sentence, or null when nothing suitable fits.
+ * Advance the chat by one user turn. Mutates session in place.
  */
-export async function generateBridge(params: {
-  answers: Answers;
-  justAnswered: QuestionId;
-  nextQuestionId: QuestionId;
-}): Promise<string | null> {
-  const { answers, justAnswered, nextQuestionId } = params;
+export async function advanceChat(params: {
+  session: ChatSession;
+  userInput: string;
+}): Promise<ChatAgentTurn | ChatAgentError> {
+  const { session, userInput } = params;
+  const trimmed = userInput.trim();
+  if (!trimmed) return { error: 'اكتب شي أو اختر من الاقتراحات' };
 
-  // First-question bridge skipped — no prior context to reference.
-  if (justAnswered === 'q0_mode') return null;
+  // Fast path — exact match on the CURRENT question's options. Typical
+  // button click. Short-circuits the LLM for deterministic inputs.
+  const fastPath = tryFastPath(session, trimmed);
+  if (fastPath) return fastPath;
 
-  try {
-    return await generateWithClaude({ answers, justAnswered, nextQuestionId });
-  } catch (err) {
-    if (err instanceof MissingApiKeyError) {
-      return localBridge(answers, justAnswered);
+  // Claude path — extract + compose.
+  if (hasApiKey()) {
+    try {
+      return await claudeTurn(session, trimmed);
+    } catch (err) {
+      if (!(err instanceof MissingApiKeyError)) {
+        console.warn(
+          '[chat-agent] Claude turn failed, falling back to scripted path:',
+          err instanceof Error ? err.message : err,
+        );
+      }
+      // Fall through to scripted path.
     }
-    console.warn('[chat-agent] bridge generation failed, falling back:', err instanceof Error ? err.message : err);
-    return localBridge(answers, justAnswered);
   }
+
+  return scriptedFallback(session, trimmed);
 }
 
 /* ------------------------------------------------------------------------- */
+/* Fast path — exact button-value or button-label match                       */
+/* ------------------------------------------------------------------------- */
 
-async function generateWithClaude(params: {
-  answers: Answers;
-  justAnswered: QuestionId;
-  nextQuestionId: QuestionId;
-}): Promise<string> {
-  const { answers, justAnswered, nextQuestionId } = params;
+function tryFastPath(session: ChatSession, rawAnswer: string): ChatAgentTurn | null {
+  const current = session.currentQuestion;
+  if (!current) return null;
+  const q = QUESTIONS[current];
+  if (!q.options) return null;
+  const match = q.options.find(
+    (o) => o.value === rawAnswer || o.label.trim() === rawAnswer.trim(),
+  );
+  if (!match) return null;
 
-  const system = `أنت مستشار تأسيس وامتثال سعودي اسمك "درع". أنت في منتصف محادثة مع صاحب مشروع.
+  // Apply + advance via the scripted flow.
+  const validated = validateAnswer(current, match.value);
+  if (!validated.ok) return null;
+  (session.answers as Record<string, unknown>)[current] = validated.value;
+  const next = nextQuestion(current, session.answers);
+  session.currentQuestion = next;
 
-مهمتك: كتابة جملة واحدة قصيرة (أقل من ٣٠ كلمة) بالعربي السعودي تعلّق على الإجابة الأخيرة وتمهّد للسؤال اللي بعدها.
-
-قواعد صارمة:
-- جملة واحدة فقط. بدون تكرار السؤال السابق أو التالي.
-- عربي سعودي مبسّط ("تمام"، "ممتاز"، "بالنسبة لـ"، "طيب"). ليس فصحى رسمية.
-- لو الإجابة تكشف شي مميز، علّق عليه (٨٠ ألف رأس مال = معقول لكوفي شوب؛ ١٥٠ألف مستخدم = رقم كبير يستدعي متطلبات إضافية).
-- لا تعطي نصائح قانونية ولا تذكر مصطلحات تقنية — فقط تعليق ودّي يعترف بالمعلومة.
-- لا تستخدم علامات تنصيص ولا نقاط، فقط نص عادي.
-- ممنوع الإيموجي.
-
-أخرج النص فقط بدون أي مقدمة.`;
-
-  const userPrompt = buildContextPrompt({ answers, justAnswered, nextQuestionId });
-  const raw = await callClaude({ model: MODELS.sonnet, system, user: userPrompt, maxTokens: 120 });
-  // Strip surrounding quotes or any "assistant-like" prefix.
-  return raw.trim().replace(/^["'«»]|["'«»]$/g, '').trim();
+  if (!next) {
+    return {
+      session,
+      done: true,
+      nextQuestionId: null,
+      agentMessage: compilationMessage(session.answers),
+      extracted: [current],
+    };
+  }
+  const nextQ = QUESTIONS[next];
+  return {
+    session,
+    done: false,
+    nextQuestionId: next,
+    agentMessage: nextQ.text + (nextQ.hint ? `\n\n${nextQ.hint}` : ''),
+    suggestions: nextQ.options ? nextQ.options.map((o) => ({ label: o.label, value: o.value })) : undefined,
+    input: inputAffordanceFor(nextQ),
+    extracted: [current],
+  };
 }
 
-function buildContextPrompt(params: {
-  answers: Answers;
-  justAnswered: QuestionId;
-  nextQuestionId: QuestionId;
-}): string {
-  const { answers, justAnswered, nextQuestionId } = params;
-  const lastQ = QUESTIONS[justAnswered];
-  const nextQ = QUESTIONS[nextQuestionId];
-  const answerLabel = describeAnswer(answers, justAnswered);
+/* ------------------------------------------------------------------------- */
+/* Scripted fallback — validate raw input against current question            */
+/* ------------------------------------------------------------------------- */
 
-  const contextLines: string[] = [];
-  // Include a compact summary of known answers so the bridge can reference earlier context.
-  if (answers.q0_mode) contextLines.push(`المسار: ${answers.q0_mode === 'establishment' ? 'تأسيس مشروع جديد' : 'فحص امتثال'}`);
-  if (answers.est1_vertical) contextLines.push(`القطاع: ${verticalLabel(answers.est1_vertical)}`);
-  if (answers.q1_company_type) contextLines.push(`نوع الشركة: ${companyTypeLabel(answers.q1_company_type)}`);
-  if (answers.est2_city) contextLines.push(`المدينة: ${answers.est2_city}`);
-  if (answers.est3_partner_count) contextLines.push(`عدد الشركاء: ${answers.est3_partner_count}`);
-  if (answers.est4_capital_sar) contextLines.push(`رأس المال: ${answers.est4_capital_sar.toLocaleString('en-US')} ريال`);
+function scriptedFallback(session: ChatSession, rawAnswer: string): ChatAgentTurn | ChatAgentError {
+  const current = session.currentQuestion;
+  if (!current) return { error: 'الجلسة منتهية' };
+  const validated = validateAnswer(current, rawAnswer);
+  if (!validated.ok) return { error: validated.error };
 
+  (session.answers as Record<string, unknown>)[current] = validated.value;
+  const next = nextQuestion(current, session.answers);
+  session.currentQuestion = next;
+
+  if (!next) {
+    return {
+      session,
+      done: true,
+      nextQuestionId: null,
+      agentMessage: compilationMessage(session.answers),
+      extracted: [current],
+    };
+  }
+  const nextQ = QUESTIONS[next];
+  return {
+    session,
+    done: false,
+    nextQuestionId: next,
+    agentMessage: nextQ.text + (nextQ.hint ? `\n\n${nextQ.hint}` : ''),
+    suggestions: nextQ.options ? nextQ.options.map((o) => ({ label: o.label, value: o.value })) : undefined,
+    input: inputAffordanceFor(nextQ),
+    extracted: [current],
+  };
+}
+
+/* ------------------------------------------------------------------------- */
+/* Claude path                                                                */
+/* ------------------------------------------------------------------------- */
+
+async function claudeTurn(session: ChatSession, userInput: string): Promise<ChatAgentTurn> {
+  const prompt = buildUserPrompt(session, userInput);
+  const raw = await callClaude({
+    model: MODELS.sonnet,
+    system: SYSTEM_PROMPT,
+    user: prompt,
+    maxTokens: 900,
+  });
+
+  const parsed = parseJsonResponse<ClaudeResponse>(raw);
+  const extracted: QuestionId[] = [];
+
+  // Validate + apply each extraction.
+  if (parsed.extractions && typeof parsed.extractions === 'object') {
+    for (const [rawKey, rawValue] of Object.entries(parsed.extractions)) {
+      if (!isQuestionId(rawKey)) continue;
+      if (rawValue === undefined || rawValue === null) continue;
+      const str = typeof rawValue === 'number' ? String(rawValue) : String(rawValue);
+      const validated = validateAnswer(rawKey, str);
+      if (!validated.ok) continue;
+      (session.answers as Record<string, unknown>)[rawKey] = validated.value;
+      extracted.push(rawKey);
+    }
+  }
+
+  // Decide next question ourselves — trust Claude's `nextQuestionId` only
+  // if it matches what our deterministic resolver would pick given the new
+  // answer state. Otherwise use the resolver's pick. This prevents Claude
+  // from jumping ahead / skipping fields.
+  const lastAnswered = highestPriorityAnswered(session.answers);
+  const deterministicNext = lastAnswered ? nextQuestion(lastAnswered, session.answers) : 'q0_mode';
+  let nextId: QuestionId | null = deterministicNext;
+
+  // Skip over any already-answered fields (Claude may have filled several).
+  while (nextId && session.answers[nextId] !== undefined) {
+    nextId = nextQuestion(nextId, session.answers);
+  }
+  session.currentQuestion = nextId;
+
+  if (!nextId) {
+    return {
+      session,
+      done: true,
+      nextQuestionId: null,
+      agentMessage: parsed.message?.trim() || compilationMessage(session.answers),
+      extracted,
+    };
+  }
+
+  const nextQ = QUESTIONS[nextId];
+  const suggestions = computeSuggestions(nextId, parsed.suggestions);
+  return {
+    session,
+    done: false,
+    nextQuestionId: nextId,
+    agentMessage: parsed.message?.trim() || nextQ.text,
+    suggestions: suggestions.length ? suggestions : undefined,
+    input: inputAffordanceFor(nextQ),
+    extracted,
+  };
+}
+
+/* ------------------------------------------------------------------------- */
+/* Claude prompt                                                              */
+/* ------------------------------------------------------------------------- */
+
+const SYSTEM_PROMPT = `أنت "درع" — مستشار سعودي ذكي للتأسيس والامتثال. تتكلم عربي سعودي دافئ وطبيعي ("تمام"، "ممتاز"، "خلنا"، "طيب"). لا فصحى متصلّبة ولا إنجليزي بلا ضرورة.
+
+وظيفتك إدارة محادثة لجمع معلومات محدّدة من صاحب المشروع، ثم تسليمها لفريق الوكلاء.
+
+══════════ الحقول المطلوبة ══════════
+
+كل حقل له "معرّف" و"قيم مسموح بها فقط". لا تخترع حقلاً ولا قيمة خارج القائمة.
+
+مشتركة (مطلوبة في كل المسارات):
+• q0_mode:           "establishment" (مشروع جديد) أو "compliance" (مشروع شغّال)
+• q_company_name:    نص حر — اسم المشروع/الشركة. من حرفين إلى ٨٠ حرف.
+
+للتأسيس فقط (إذا q0_mode = establishment):
+• est1_vertical:     "restaurant" (مطعم/كوفي) | "tech" (تطبيق/شركة تقنية) | "services" (متجر إلكتروني) | "salon" (صالون/تجميل) | "construction" (مقاولات)
+• est2_city:         "riyadh" | "jeddah" | "mecca" | "medina" | "dammam" | "khobar" | "other"
+• est3_partner_count: رقم صحيح موجب (عدد المؤسسين بما فيهم المستخدم)
+• est4_capital_sar:  رقم صحيح موجب بالريال
+• est5_foreign_partner: "yes" | "no"
+• est6_lease_status: "not_signed" | "signed" | "no_location_yet"  ← فقط للمطاعم والصالونات والمقاولات (الأنشطة اللي تحتاج موقع فعلي)
+
+للامتثال فقط (إذا q0_mode = compliance):
+• q1_company_type:   "saas" | "ecommerce" | "fintech" | "services" | "other"
+• q2_employee_count: رقم صحيح موجب
+• q3_processes_personal_data: "yes" | "no"
+• q4_user_count:     "under_10k" | "10k_100k" | "over_100k"   ← فقط إذا q3=yes
+• q5_dpo_appointed:  "yes" | "no" | "unknown"                ← فقط إذا q4 != under_10k
+• q6_data_location:  "saudi" | "outside" | "unknown"          ← فقط إذا q3=yes
+• q7_government_clients: "yes" | "no"
+• q8_website_url:    رابط يبدأ بـ https أو null (لو تخطّى)
+
+══════════ قواعد الاستخراج ══════════
+
+1. استخرج كل معلومة واضحة من رسالة المستخدم. مثال: "ودي أفتح كوفي بجدة أنا وشريك ٨٠ ألف" →
+   { q0_mode: "establishment", est1_vertical: "restaurant", est2_city: "jeddah", est3_partner_count: 2, est4_capital_sar: 80000 }
+
+2. لا تخترع معلومة. لو غامض ← لا تستخرج، اسأل.
+3. "اثنين" → 2. "ألفين" → 2000. "١٠٠ ألف" → 100000. "ربع مليون" → 250000.
+4. المدينة: "الرياض"/"رياض" → riyadh. "جدة"/"بجده"/"بجدة" → jeddah. "الدمام" → dammam. "الخبر"/"خبر" → khobar. غير الرئيسية → "other".
+5. النشاط: "كوفي/قهوة/مطعم" → restaurant. "تطبيق/ساس/سوفت" → tech. "متجر/إلكتروني/أونلاين" → services. "صالون/مركز تجميل" → salon. "مقاولات/عمارة/بناء" → construction.
+6. "شريك/شريكين" = 2. "أنا لوحدي" = 1.
+7. "سعوديين كلنا/كلّنا سعوديين" → est5_foreign_partner = "no". "شريك أجنبي/فيه أجنبي" → "yes".
+
+══════════ اختيار السؤال التالي ══════════
+
+بعد تحديث الحقول، اختر السؤال التالي حسب هذا الترتيب:
+q0_mode → q_company_name → (فرع التأسيس أو الامتثال بترتيبه أعلاه) → null عند اكتمال الحقول المطلوبة.
+
+تخطّ الحقول المجمّعة مسبقاً. لا تسأل عن est6_lease_status إلا للمطاعم/الصالونات/المقاولات. لا تسأل عن q4/q5/q6 إلا لو q3=yes.
+
+══════════ رسالتك للمستخدم ══════════
+
+اكتب رسالة قصيرة واحدة فيها (بهذا الترتيب):
+1. اعتراف ودّي بما استخرجته من كلامه (جملة واحدة، مثال: "ممتاز — كوفي بجدة مع شريك، والنوع المناسب ذ.م.م لأنكم اثنين.").
+2. إذا السؤال التالي فيه مصطلح يحتاج شرح (DPO، PDPL، نقل البيانات، NCA، ذ.م.م، نطاقات): اشرحه في جملة أو جملتين داخل نفس الرسالة (مو في صندوق منفصل). اشرح المصطلح فقط لو ما شُرح قبل.
+3. اسأل السؤال التالي بوضوح.
+
+إذا خلصت كل الحقول المطلوبة: أخرج done=true ورسالة ختامية دافئة.
+
+══════════ اقتراحات الضغط السريع ══════════
+
+إذا السؤال التالي له خيارات محددة، أرجع قائمة suggestions بنفس الـ value/label من المخطّط أعلاه (مو بصياغتك).
+
+══════════ صيغة الإخراج ══════════
+
+JSON صارم، بدون أي نص خارجه:
+{
+  "extractions": { "fieldId": value, ... },   // الحقول اللي استخرجتها هالجولة
+  "done": false,
+  "nextQuestionId": "...",                     // معرّف السؤال التالي
+  "message": "رسالتك الكاملة بالعربي السعودي",
+  "suggestions": [ { "label": "...", "value": "..." }, ... ]   // اختياري
+}
+
+أو عند الاكتمال:
+{
+  "extractions": { ... },
+  "done": true,
+  "message": "تمام، جمعت كل اللي أحتاجه. الحين أسلّم الوكلاء…"
+}`;
+
+interface ClaudeResponse {
+  extractions?: Record<string, string | number | null | boolean>;
+  done?: boolean;
+  nextQuestionId?: string | null;
+  message?: string;
+  suggestions?: QuickReply[];
+}
+
+function buildUserPrompt(session: ChatSession, userInput: string): string {
+  const known = Object.entries(session.answers)
+    .filter(([, v]) => v !== undefined && v !== null)
+    .map(([k, v]) => `  ${k}: ${JSON.stringify(v)}`)
+    .join('\n');
+  const askedAbout = session.currentQuestion ?? '(بداية المحادثة)';
   return [
-    'السؤال اللي سأله وكيلك قبل شوي:',
-    `  ${lastQ.text}`,
+    'الإجابات اللي انجمعت حتى الآن:',
+    known || '  (لا شيء بعد)',
     '',
-    'إجابة المستخدم:',
-    `  ${answerLabel}`,
+    `السؤال اللي سألته في الجولة السابقة: ${askedAbout}`,
     '',
-    'السياق المتراكم:',
-    ...contextLines.map((l) => `  ${l}`),
+    'رسالة المستخدم الحالية:',
+    `  "${userInput}"`,
     '',
-    'السؤال التالي اللي الوكيل راح يسأله (لا تكرره):',
-    `  ${nextQ.text}`,
-    '',
-    'الآن اكتب جملة واحدة قصيرة تعلّق على الإجابة الأخيرة وتمهّد للسؤال التالي.',
+    'استخرج ما تستطيع، اختر السؤال التالي، اكتب رسالة واحدة ترحب + تشرح + تسأل. أخرج JSON.',
   ].join('\n');
 }
 
-function describeAnswer(answers: Answers, qid: QuestionId): string {
-  // Map typed enum values back to the UI label so Claude sees what the user saw.
-  const q = QUESTIONS[qid];
-  const rawValue = (answers as Record<string, unknown>)[qid];
-  if (rawValue === undefined || rawValue === null) return '(بدون)';
-  if (q.options) {
-    const match = q.options.find((o) => o.value === rawValue);
-    if (match) return match.label;
-  }
-  if (q.input?.kind === 'number') return String(rawValue);
-  if (q.input?.kind === 'url_or_skip') return String(rawValue || 'تخطى رابط الموقع');
-  return String(rawValue);
-}
-
-function verticalLabel(v: NonNullable<Answers['est1_vertical']>): string {
-  switch (v) {
-    case 'restaurant':  return 'مطعم / كوفي شوب';
-    case 'tech':        return 'شركة تقنية';
-    case 'services':    return 'متجر إلكتروني';
-    case 'salon':       return 'صالون';
-    case 'construction':return 'مقاولات';
-  }
-}
-
-function companyTypeLabel(v: NonNullable<Answers['q1_company_type']>): string {
-  switch (v) {
-    case 'saas':      return 'SaaS';
-    case 'ecommerce': return 'متجر إلكتروني';
-    case 'fintech':   return 'فينتك';
-    case 'services':  return 'خدمات';
-    case 'other':     return 'أخرى';
-  }
-}
-
 /* ------------------------------------------------------------------------- */
-/* Deterministic fallback — used when the API key is missing. Each branch     */
-/* returns a short, context-aware acknowledgment so the chat doesn't look     */
-/* broken in no-key mode.                                                     */
+/* Helpers                                                                    */
 /* ------------------------------------------------------------------------- */
 
-function localBridge(answers: Answers, justAnswered: QuestionId): string | null {
-  switch (justAnswered) {
-    case 'est1_vertical': {
-      const v = answers.est1_vertical;
-      if (v === 'restaurant') return 'تمام — الكوفي والمطاعم لها مسار مميز.';
-      if (v === 'salon')      return 'تمام — الصالونات عليها ترخيص صحي إضافي.';
-      if (v === 'tech')       return 'تمام — الشركات التقنية يطبّق عليها نظام حماية البيانات غالباً.';
-      if (v === 'services')   return 'تمام — المتاجر الإلكترونية يطبّق عليها نظام حماية البيانات.';
-      if (v === 'construction') return 'تمام — المقاولات محتاجة تصنيف لو ودّك تشتغل مع القطاع الحكومي.';
-      return 'تمام.';
-    }
-    case 'est2_city': return 'ممتاز، خلنا نعرف عن الشركاء.';
-    case 'est3_partner_count': {
-      const n = answers.est3_partner_count;
-      if (n === 1) return 'لوحدك — هذا يفتح خيار مؤسسة فردية لو رأس المال صغير.';
-      if (n && n >= 2) return `${n} شركاء — ذ.م.م عادة الخيار الأنسب.`;
-      return 'تمام.';
-    }
-    case 'est4_capital_sar': {
-      const c = answers.est4_capital_sar ?? 0;
-      if (c < 100_000) return `${c.toLocaleString('en-US')} ريال — رأس مال متواضع، نقدر نبدأ بكيان مبسّط.`;
-      if (c < 500_000) return `${c.toLocaleString('en-US')} ريال — مبدأ مناسب.`;
-      return `${c.toLocaleString('en-US')} ريال — رأس مال محترم.`;
-    }
-    case 'est5_foreign_partner':
-      return answers.est5_foreign_partner === 'yes'
-        ? 'وجود شريك أجنبي يضيف خطوة ترخيص استثمار، بس نتعامل معاها.'
-        : 'تمام، كلكم سعوديين — الإجراءات أبسط.';
-    case 'est6_lease_status': return null; // last q — no next bridge
+const QUESTION_IDS: readonly QuestionId[] = [
+  'q0_mode', 'q_company_name',
+  'est1_vertical', 'est2_city', 'est3_partner_count', 'est4_capital_sar',
+  'est5_foreign_partner', 'est6_lease_status',
+  'q1_company_type', 'q2_employee_count', 'q3_processes_personal_data',
+  'q4_user_count', 'q5_dpo_appointed', 'q6_data_location',
+  'q7_government_clients', 'q8_website_url',
+];
 
-    case 'q1_company_type': return 'تمام — خلنا نعرف حجم الفريق.';
-    case 'q2_employee_count': {
-      const n = answers.q2_employee_count ?? 0;
-      if (n < 10) return `${n} موظف — شركة صغيرة، إجراءات الامتثال أخف.`;
-      if (n < 50) return `${n} موظف — حجم متوسط.`;
-      return `${n} موظف — حجم محترم، الامتثال هنا صار عليه نظرة أوسع.`;
-    }
-    case 'q3_processes_personal_data':
-      return answers.q3_processes_personal_data === 'yes'
-        ? 'تمام — لأنكم تجمعون بيانات، PDPL يطبّق عليكم.'
-        : 'فهمت — بما إنكم ما تجمعون بيانات، نركّز على الأنظمة الثانية.';
-    case 'q4_user_count': {
-      const v = answers.q4_user_count;
-      if (v === 'over_100k') return 'عدد كبير — PDPL يتطلب تعيين مسؤول حماية بيانات عندكم.';
-      if (v === '10k_100k')  return 'عدد متوسط — في متطلبات نظامية لازم نشيك عليها.';
-      return 'عدد محدود — المتطلبات أخف بس موجودة.';
-    }
-    case 'q5_dpo_appointed':
-      return answers.q5_dpo_appointed === 'yes'
-        ? 'ممتاز — عندكم DPO، هذا يوفّر نقاط في الامتثال.'
-        : 'أوكي — هذي نقطة بنشوفها في التقرير.';
-    case 'q6_data_location':
-      return answers.q6_data_location === 'outside'
-        ? 'بيانات خارج المملكة — هذي ينطبق عليها الإفصاح عن نقل البيانات.'
-        : answers.q6_data_location === 'saudi'
-          ? 'داخل المملكة — نقطة إيجابية.'
-          : 'تمام، نتحقق في الفحص.';
-    case 'q7_government_clients':
-      return answers.q7_government_clients === 'yes'
-        ? 'بما إنكم مع جهات حكومية — ضوابط الأمن السيبراني (NCA) تطبّق عليكم.'
-        : 'أوكي، NCA مو ضروري في حالتكم.';
-    case 'q8_website_url': return null;
-    default: return null;
+function isQuestionId(s: string): s is QuestionId {
+  return (QUESTION_IDS as readonly string[]).includes(s);
+}
+
+/**
+ * Find the most-downstream question that's already been answered — used as a
+ * seed for the deterministic next-question resolver so we pick up wherever
+ * Claude's extractions ended.
+ */
+function highestPriorityAnswered(answers: Answers): QuestionId | null {
+  let last: QuestionId | null = null;
+  for (const id of QUESTION_IDS) {
+    if ((answers as Record<string, unknown>)[id] !== undefined) last = id;
   }
+  return last;
+}
+
+function inputAffordanceFor(q: Question): InputAffordance | undefined {
+  if (!q.input) {
+    // For choice questions we still offer a free-text input so the user
+    // can type an answer like "الرياض" instead of clicking.
+    return { kind: 'text', placeholder: 'اكتب جوابك أو اختر من الاقتراحات' };
+  }
+  if (q.input.kind === 'text') {
+    return { kind: 'text', placeholder: q.input.placeholder };
+  }
+  if (q.input.kind === 'number') {
+    return { kind: 'number', placeholder: q.input.placeholder };
+  }
+  if (q.input.kind === 'url_or_skip') {
+    return { kind: 'url_or_skip', placeholder: q.input.placeholder, skipLabel: q.input.skipLabel };
+  }
+  return { kind: 'text', placeholder: 'اكتب جوابك' };
+}
+
+/**
+ * If Claude returns suggestions, prefer them — but fall back to the scripted
+ * options for the next question when Claude omitted them.
+ */
+function computeSuggestions(
+  nextId: QuestionId,
+  fromClaude?: QuickReply[],
+): QuickReply[] {
+  const q = QUESTIONS[nextId];
+  if (fromClaude && Array.isArray(fromClaude) && fromClaude.length > 0) {
+    // Filter to valid values when the question has a fixed option set.
+    if (q.options) {
+      const validValues = new Set(q.options.map((o) => o.value));
+      const filtered = fromClaude.filter((s) => s && s.value && validValues.has(s.value));
+      if (filtered.length > 0) return filtered;
+    } else {
+      return fromClaude.filter((s) => s && s.label && s.value);
+    }
+  }
+  if (q.options) return q.options.map((o) => ({ label: o.label, value: o.value }));
+  return [];
+}
+
+function compilationMessage(answers: Answers): string {
+  const name = answers.q_company_name?.trim();
+  return name
+    ? `تمام يا بطل. جمعت كل اللي نحتاجه عن ${name}. الوكلاء الحين يشتغلون ويجهّزون لك التقرير…`
+    : 'تمام. جمعت كل اللي نحتاجه. الوكلاء الحين يشتغلون ويجهّزون لك التقرير…';
 }

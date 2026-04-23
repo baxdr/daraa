@@ -56,6 +56,10 @@ export interface ScanSignalMap {
   trackers_disclosed_when_present: boolean; // true = no trackers OR trackers declared in policy
   consent_banner_present: boolean;
 
+  // Form scanner signal — true when every form that collects personal data
+  // has both a consent checkbox AND a visible privacy link nearby.
+  forms_consent_present: boolean;
+
   // Security-headers signals (NCA ECC-adjacent).
   https_enforced: boolean;
   hsts_present: boolean;
@@ -153,6 +157,16 @@ export const PDPL_RULES: readonly PdplRule[] = [
     appliesTo: 'all',
     fineCapSar: 3_000_000,
     signal: 'trackers_disclosed_when_present',
+  },
+  {
+    id: 'pdpl_form_consent_present',
+    titleAr: 'الموافقة الصريحة في نماذج جمع البيانات',
+    requirementAr:
+      'كل نموذج يجمع بيانات شخصية (بريد، جوال، اسم، هوية) يجب أن يتضمّن مربع موافقة صريح ورابطاً واضحاً لسياسة الخصوصية قريباً منه.',
+    severity: 'critical',
+    appliesTo: 'all',
+    fineCapSar: 1_000_000,
+    signal: 'forms_consent_present',
   },
   // NCA ECC-adjacent security-headers rules. Fine caps are 0 because NCA
   // enforcement is typically contractual (loss of government-client access)

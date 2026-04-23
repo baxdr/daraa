@@ -1,27 +1,22 @@
 /**
- * Agent Bus — A2A message passing across scans and plans.
+ * Agent Bus — A2A message passing over the unified project store.
  *
  * The messages here are deterministic: sender and recipient are fixed at
  * orchestrator-design time from the entity dependency graph (e.g.
  * civil_defense → municipality). Don't oversell as emergent.
  *
- * Thin facade over scan-store and plan-store so orchestrator code reads
- * naturally: `send(run, { from, to, ... })`.
+ * Thin facade over project-store so orchestrator code reads naturally:
+ * `send(run, { from, to, ... })`.
  */
 
 import type { AgentMessage, AgentActivity, AgentId } from '@/agents/types';
 import {
-  emitActivity as emitScanActivity,
-  sendScanMessage,
-  getScan,
-} from './scan-store';
-import {
-  emitPlanActivity,
-  sendPlanMessage,
-  getPlan,
-} from './plan-store';
+  emitProjectActivity,
+  sendProjectMessage,
+  getProject,
+} from './project-store';
 
-export type RunKind = 'scan' | 'plan';
+export type RunKind = 'project';
 
 export interface RunRef {
   kind: RunKind;
@@ -37,8 +32,7 @@ export function emit(
   status: AgentActivity['status'],
   messageAr: string,
 ): void {
-  if (run.kind === 'scan') emitScanActivity(run.id, agent, status, messageAr);
-  else                     emitPlanActivity(run.id, agent, status, messageAr);
+  emitProjectActivity(run.id, agent, status, messageAr);
 }
 
 /**
@@ -48,14 +42,12 @@ export function send(
   run: RunRef,
   msg: Omit<AgentMessage, 'seq' | 'kind' | 'createdAt'>,
 ): void {
-  if (run.kind === 'scan') sendScanMessage(run.id, msg);
-  else                     sendPlanMessage(run.id, msg);
+  sendProjectMessage(run.id, msg);
 }
 
 /**
- * Convenience: emit a working-status activity AND immediately send a
- * dependency-type A2A message. Used at entity handoffs in the establishment
- * orchestrator (e.g. "civil_defense: done → municipality: I'm ready").
+ * Convenience: send a dependency-type A2A message. Used at entity handoffs
+ * (e.g. "civil_defense: done → municipality: I'm ready").
  */
 export function handoff(
   run: RunRef,
@@ -69,11 +61,9 @@ export function handoff(
 }
 
 export function loadMessages(run: RunRef): AgentMessage[] {
-  const record = run.kind === 'scan' ? getScan(run.id) : getPlan(run.id);
-  return record?.messages ?? [];
+  return getProject(run.id)?.messages ?? [];
 }
 
 export function loadActivities(run: RunRef): AgentActivity[] {
-  const record = run.kind === 'scan' ? getScan(run.id) : getPlan(run.id);
-  return record?.activities ?? [];
+  return getProject(run.id)?.activities ?? [];
 }

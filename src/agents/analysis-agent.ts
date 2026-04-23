@@ -159,6 +159,18 @@ function buildSignals(answers: Answers, scan: ScanResult | null): PartialSignals
     s.referrer_policy_present = { value: sh.referrerPolicy, source: 'scan' };
   }
 
+  // Forms signal — pass if no sensitive-data forms exist, or if every
+  // sensitive-data form has both consent and a privacy link. Fail otherwise.
+  if (scan?.dataForms) {
+    const sensitiveForms = scan.dataForms.results;
+    if (sensitiveForms.length === 0) {
+      s.forms_consent_present = { value: true, source: 'scan' };
+    } else {
+      const allOk = sensitiveForms.every((f) => f.hasConsent && f.hasPrivacyLink);
+      s.forms_consent_present = { value: allOk, source: 'scan' };
+    }
+  }
+
   // Trackers-disclosed composite signal: pass if NO trackers detected,
   // or if trackers detected AND the policy declares third-party sharing.
   // Unknown if the scan found trackers but we couldn't analyse the policy.
@@ -278,6 +290,12 @@ const PLAIN_LANGUAGE: Record<string, { titleAr: string; explanationAr: string; c
     explanationAr:
       'اكتشفنا أدوات تتبع على موقعكم (مثل Google Analytics أو Facebook Pixel) لكن سياسة الخصوصية ما تذكرها بشكل صريح. لازم كل أداة خارجية تشارك معها البيانات تكون مذكورة بالاسم في السياسة، مع إمكانية للمستخدم يرفضها.',
     canAutoGenerate: true,
+  },
+  pdpl_form_consent_present: {
+    titleAr: 'نماذج الموقع تجمع بيانات بدون موافقة صريحة',
+    explanationAr:
+      'لقينا نماذج (فورمز) على موقعكم تجمع بيانات شخصية — مثل بريد إلكتروني وجوال واسم — لكن بعضها بدون مربع موافقة أو بدون رابط واضح لسياسة الخصوصية قريب من النموذج. النظام يتطلب موافقة صريحة من المستخدم قبل جمع أي بيانات شخصية.',
+    canAutoGenerate: false,
   },
   nca_https_enforced: {
     titleAr: 'موقعكم لا يستخدم HTTPS بشكل كامل',

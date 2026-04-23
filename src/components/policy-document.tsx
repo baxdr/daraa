@@ -35,7 +35,12 @@ function sanitizeUserText(input: string): string {
 }
 
 export function PolicyDocumentView({ doc }: { doc: StoredDocument }) {
-  const [companyName, setCompanyName] = useState('');
+  // Server-side substitution already filled real company names into section
+  // bodies. Seed the editor input so the masthead matches; the placeholder
+  // fallback only kicks in if the project had no name (shouldn't happen now).
+  const initialCompanyName =
+    doc.companyName && doc.companyName !== COMPANY_NAME_PLACEHOLDER ? doc.companyName : '';
+  const [companyName, setCompanyName] = useState(initialCompanyName);
   const [dpoName, setDpoName] = useState('');
   const effectiveCompany = sanitizeUserText(companyName).trim() || COMPANY_NAME_PLACEHOLDER;
   const effectiveDpo = sanitizeUserText(dpoName).trim() || DPO_NAME_PLACEHOLDER;
