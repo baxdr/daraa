@@ -30,5 +30,8 @@ next-env.d.ts
 # Test artefacts
 coverage/
 
+# File-backed persistence — live user projects, never committed.
+data/
+
 # Local Claude Code permissions (per-developer)
 .claude/settings.local.json

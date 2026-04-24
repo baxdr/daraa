@@ -22,6 +22,7 @@ import { scanPrivacyPolicy } from '@/scanner/privacy-policy';
 import { scanSecurityHeaders } from '@/scanner/security-headers';
 import { scanThirdParty } from '@/scanner/third-party';
 import { scanForms } from '@/scanner/forms';
+import { runOperationalAnalysis } from './operational-analysis';
 import {
   buildRoadmap,
   summariseCosts,
@@ -51,7 +52,11 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
   const answers = project.answers;
 
   updateProject(projectId, { status: 'running' });
-  emit(run, 'orchestrator', 'started', `جاري تشغيل المتخصّصين — وضع ${mode === 'establishment' ? 'التأسيس' : 'الامتثال'}.`);
+  const modeLabel =
+    mode === 'establishment'            ? 'التأسيس' :
+    mode === 'operational_compliance'   ? 'الامتثال التشغيلي' :
+                                          'الامتثال الرقمي';
+  emit(run, 'orchestrator', 'started', `جاري تشغيل المتخصّصين — وضع ${modeLabel}.`);
 
   try {
     /* ---------------------------------------------------------------
@@ -126,7 +131,13 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
      *    because they don't fit the inbox/dependency model cleanly.
      * --------------------------------------------------------------- */
     let scanResult: ScanResult | null = null;
-    if (mode === 'compliance' && project.url) {
+    // Scanners fire for digital compliance always, AND for operational
+    // compliance when the user opted in via op9_has_website=yes and
+    // provided a URL via op10_website_url.
+    const shouldScan =
+      (mode === 'compliance' && !!project.url) ||
+      (mode === 'operational_compliance' && answers.op9_has_website === 'yes' && !!project.url);
+    if (shouldScan && project.url) {
       emit(run, 'scan', 'started', `جاري زيارة ${project.url}…`);
       emit(run, 'scan', 'working', '↳ فحص سياسة الخصوصية + رؤوس الأمان + أدوات التتبع + الفورمز');
 
@@ -236,6 +247,44 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
     }
 
     /* ---------------------------------------------------------------
+     * 3b. Operational compliance — license renewal analysis for
+     *     physical businesses. Deterministic, no LLM.
+     * --------------------------------------------------------------- */
+    if (mode === 'operational_compliance') {
+      emit(run, 'analysis', 'started', 'جاري تقييم حالة الرخص والتجديدات…');
+      try {
+        const opReport = runOperationalAnalysis({ answers });
+        emit(
+          run,
+          'analysis',
+          'completed',
+          `اكتمل التقييم — صحة الرخص ${opReport.healthScore}٪، ${opReport.gaps.length} تنبيهاً ` +
+            `منها ${opReport.overdue.length} متأخرة و ${opReport.upcomingRenewals.length} قادمة.`,
+        );
+        send(run, {
+          from: 'analysis',
+          to: 'report',
+          type: 'data_share',
+          messageAr:
+            `نتيجة تشغيلية — ${opReport.healthScore}٪ صحة الرخص، ${opReport.overdue.length} ` +
+            `متأخرة، ${opReport.upcomingRenewals.length} تجديد خلال ١٨٠ يوم.`,
+          payload: {
+            healthScore: opReport.healthScore,
+            overdueCount: opReport.overdue.length,
+            upcomingCount: opReport.upcomingRenewals.length,
+          },
+        });
+        updateProject(projectId, {
+          scanResult: scanResult ?? undefined,
+          operationalReport: opReport,
+        });
+      } catch (err) {
+        console.error('[orchestrator] runOperationalAnalysis failed:', err instanceof Error ? err.message : err);
+        emit(run, 'analysis', 'error', 'تعذّر تقييم الرخص — عرضنا باقي النتائج.');
+      }
+    }
+
+    /* ---------------------------------------------------------------
      * 4. Compile the roadmap from specialist results + warnings.
      * --------------------------------------------------------------- */
     const entities = buildEntitiesFromAgents(agents, runResult.results);
@@ -310,7 +359,7 @@ function costLabel(cost: { min: number; max: number }): string {
 }
 
 function computeTopWarnings(
-  mode: 'establishment' | 'compliance',
+  mode: 'establishment' | 'compliance' | 'operational_compliance',
   vertical: VerticalId,
   answers: Answers,
 ): string[] {

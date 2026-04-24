@@ -10,7 +10,7 @@ interface QuickReply {
   value: string;
 }
 interface InputAffordance {
-  kind: 'text' | 'number' | 'url_or_skip';
+  kind: 'text' | 'number' | 'url_or_skip' | 'date' | 'date_or_skip';
   placeholder: string;
   skipLabel?: string;
 }
@@ -214,8 +214,8 @@ export function ChatInterface() {
     if (!freeText.trim()) return;
     submitAnswer(freeText, freeText);
   }
-  function handleSkipUrl() {
-    submitAnswer('__skip__', 'تخطى الفحص');
+  function handleSkipInput() {
+    submitAnswer('__skip__', 'تخطى');
   }
 
   const progress = computeProgress(turns);
@@ -316,7 +316,7 @@ export function ChatInterface() {
             value={freeText}
             onChange={setFreeText}
             onSubmit={handleFreeSubmit}
-            onSkip={input.kind === 'url_or_skip' ? handleSkipUrl : undefined}
+            onSkip={input.kind === 'url_or_skip' || input.kind === 'date_or_skip' ? handleSkipInput : undefined}
             submitting={submitting}
           />
         )}
@@ -355,16 +355,17 @@ function FreeInput({
 }) {
   const isUrl = input.kind === 'url_or_skip';
   const isNumber = input.kind === 'number';
+  const isDate = input.kind === 'date' || input.kind === 'date_or_skip';
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-2">
       <div className="flex gap-2">
         <input
-          type={isUrl ? 'url' : isNumber ? 'text' : 'text'}
+          type={isDate ? 'date' : isUrl ? 'url' : 'text'}
           inputMode={isNumber ? 'text' : 'text'}
-          dir={isUrl ? 'ltr' : 'rtl'}
+          dir={isUrl || isDate ? 'ltr' : 'rtl'}
           aria-label="اكتب ردك"
           className={`flex-1 border border-ink bg-paper px-4 py-3 text-ink placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent ${
-            isUrl ? 'font-mono' : ''
+            isUrl || isDate ? 'font-mono' : ''
           }`}
           placeholder={input.placeholder}
           value={value}

@@ -13,7 +13,7 @@
 import type { TermId } from '@/knowledge/terms';
 import type { VerticalId } from '@/knowledge/entities';
 
-export type Mode = 'establishment' | 'compliance';
+export type Mode = 'establishment' | 'compliance' | 'operational_compliance';
 
 export type QuestionId =
   // Mode selector (always first).
@@ -35,7 +35,19 @@ export type QuestionId =
   | 'q5_dpo_appointed'
   | 'q6_data_location'
   | 'q7_government_clients'
-  | 'q8_website_url';
+  | 'q8_website_url'
+  // Operational-compliance branch (physical businesses: restaurants, salons,
+  // construction, retail). License-renewal-first rather than PDPL-scan.
+  | 'op1_vertical'
+  | 'op2_city'
+  | 'op3_cr_issue_date'
+  | 'op4_municipal_last_renewed'
+  | 'op5_civil_defense_last'
+  | 'op6_sfda_cert_date'
+  | 'op7_employee_count'
+  | 'op8_lease_expiry'
+  | 'op9_has_website'
+  | 'op10_website_url';
 
 export type AnswerValue = string; // label as shown to the user
 
@@ -63,6 +75,18 @@ export interface Answers {
   q6_data_location?: 'saudi' | 'outside' | 'unknown';
   q7_government_clients?: 'yes' | 'no';
   q8_website_url?: string | null;
+
+  // Operational-compliance branch.
+  op1_vertical?: 'restaurant' | 'salon' | 'construction' | 'retail';
+  op2_city?: string;
+  op3_cr_issue_date?: string;              // ISO YYYY-MM-DD
+  op4_municipal_last_renewed?: string | null;
+  op5_civil_defense_last?: string | null;
+  op6_sfda_cert_date?: string | null;
+  op7_employee_count?: number;
+  op8_lease_expiry?: string | null;
+  op9_has_website?: 'yes' | 'no';
+  op10_website_url?: string | null;
 }
 
 export interface QuickOption {
@@ -70,7 +94,7 @@ export interface QuickOption {
   label: string;       // Arabic label shown on the button
 }
 
-export type InputKind = 'choice' | 'text' | 'number' | 'url' | 'url_or_skip';
+export type InputKind = 'choice' | 'text' | 'number' | 'url' | 'url_or_skip' | 'date' | 'date_or_skip';
 
 export interface Question {
   id: QuestionId;
@@ -100,7 +124,8 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     text: 'أهلاً! أنا درع — مستشار ذكي للتأسيس والامتثال في السعودية. وش تبي تسوي اليوم؟',
     options: [
       { value: 'establishment', label: 'أبي أفتح مشروع جديد' },
-      { value: 'compliance',    label: 'عندي مشروع شغّال وأبي أتأكد من الامتثال' },
+      { value: 'compliance',    label: 'عندي نشاط رقمي وأبي أتأكد من امتثال PDPL' },
+      { value: 'operational_compliance', label: 'عندي محل/مطعم وأبي أتتبّع رخصي وتجديداتي' },
     ],
   },
 
@@ -253,6 +278,86 @@ export const QUESTIONS: Record<QuestionId, Question> = {
       skipLabel: 'تخطى — أبي التقرير بدون فحص الموقع',
     },
   },
+
+  /* ---------------- Operational-compliance branch (physical) ---------------- */
+
+  op1_vertical: {
+    id: 'op1_vertical',
+    text: 'ممتاز. وش نوع نشاطكم؟',
+    options: [
+      { value: 'restaurant',   label: 'مطعم / كوفي شوب' },
+      { value: 'salon',        label: 'صالون / مركز تجميل' },
+      { value: 'construction', label: 'مقاولات / مكتب بناء' },
+      { value: 'retail',       label: 'محل تجزئة' },
+    ],
+  },
+  op2_city: {
+    id: 'op2_city',
+    text: 'في أي مدينة؟',
+    options: [
+      { value: 'riyadh', label: 'الرياض' },
+      { value: 'jeddah', label: 'جدة' },
+      { value: 'mecca',  label: 'مكة المكرمة' },
+      { value: 'medina', label: 'المدينة المنورة' },
+      { value: 'dammam', label: 'الدمام' },
+      { value: 'khobar', label: 'الخُبَر' },
+      { value: 'other',  label: 'مدينة ثانية' },
+    ],
+  },
+  op3_cr_issue_date: {
+    id: 'op3_cr_issue_date',
+    text: 'متى أصدرتم السجل التجاري؟',
+    hint: 'نحتاج التاريخ عشان نحسب موعد التجديد القادم — السجل التجاري يُجدَّد سنوياً.',
+    input: { kind: 'date', placeholder: 'مثال: 2024-03-15' },
+  },
+  op4_municipal_last_renewed: {
+    id: 'op4_municipal_last_renewed',
+    text: 'متى آخر تجديد لرخصة البلدية؟',
+    hint: 'لو ما عندك تاريخ بالضبط، تقدر تتخطى وراح نفترض أنها جديدة مع السجل التجاري.',
+    input: { kind: 'date_or_skip', placeholder: 'YYYY-MM-DD', skipLabel: 'تخطى — ما أدري بالضبط' },
+  },
+  op5_civil_defense_last: {
+    id: 'op5_civil_defense_last',
+    text: 'متى آخر شهادة سلامة من الدفاع المدني؟',
+    hint: 'شهادة السلامة (الطفايات، مخارج الطوارئ، كواشف الدخان) تُجدَّد سنوياً. لو عندك تاريخ قريب عطنا إياه.',
+    input: { kind: 'date_or_skip', placeholder: 'YYYY-MM-DD', skipLabel: 'تخطى — ما عندنا تاريخ' },
+  },
+  op6_sfda_cert_date: {
+    id: 'op6_sfda_cert_date',
+    text: 'متى آخر ترخيص من هيئة الغذاء والدواء (SFDA)؟',
+    hint: 'فقط للمطاعم والكوفي شوب — يُجدَّد سنوياً وإلا تُوقف الخدمة.',
+    input: { kind: 'date_or_skip', placeholder: 'YYYY-MM-DD', skipLabel: 'تخطى' },
+  },
+  op7_employee_count: {
+    id: 'op7_employee_count',
+    text: 'كم عدد موظفينكم الحالي؟',
+    hint: 'نحتاج الرقم لتقدير وضعكم في نطاقات — ١٠ موظفين فأكثر تستوجب نسبة توطين معيّنة.',
+    input: { kind: 'number', placeholder: 'مثال: 6' },
+  },
+  op8_lease_expiry: {
+    id: 'op8_lease_expiry',
+    text: 'متى ينتهي عقد الإيجار؟',
+    hint: 'لو الإيجار قارب الانتهاء بنذكّرك قبل ما تصير أزمة — تقدر تتخطى لو ما عندك التاريخ.',
+    input: { kind: 'date_or_skip', placeholder: 'YYYY-MM-DD', skipLabel: 'تخطى' },
+  },
+  op9_has_website: {
+    id: 'op9_has_website',
+    text: 'هل عندكم موقع إلكتروني أو متجر أونلاين؟',
+    hint: 'لو نعم، بنضيف طبقة فحص رقمي (PDPL + رؤوس الأمان) فوق الامتثال التشغيلي.',
+    options: [
+      { value: 'yes', label: 'نعم، عندنا موقع' },
+      { value: 'no',  label: 'لا — فقط محل فعلي' },
+    ],
+  },
+  op10_website_url: {
+    id: 'op10_website_url',
+    text: 'ممتاز — عطنا رابط موقعكم عشان نفحصه.',
+    input: {
+      kind: 'url_or_skip',
+      placeholder: 'https://yourbrand.sa',
+      skipLabel: 'تخطى — ابقَ على الامتثال التشغيلي فقط',
+    },
+  },
 };
 
 /* ------------------------------------------------------------------------- */
@@ -273,7 +378,9 @@ export function nextQuestion(current: QuestionId, answers: Answers): QuestionId 
     case 'q0_mode':
       return 'q_company_name';
     case 'q_company_name':
-      return answers.q0_mode === 'establishment' ? 'est1_vertical' : 'q1_company_type';
+      if (answers.q0_mode === 'establishment') return 'est1_vertical';
+      if (answers.q0_mode === 'operational_compliance') return 'op1_vertical';
+      return 'q1_company_type';
 
     /* ---- establishment branch ---- */
     case 'est1_vertical':    return 'est2_city';
@@ -299,6 +406,21 @@ export function nextQuestion(current: QuestionId, answers: Answers): QuestionId 
     case 'q6_data_location': return 'q7_government_clients';
     case 'q7_government_clients': return 'q8_website_url';
     case 'q8_website_url':   return null;
+
+    /* ---- operational-compliance branch ---- */
+    case 'op1_vertical':                return 'op2_city';
+    case 'op2_city':                    return 'op3_cr_issue_date';
+    case 'op3_cr_issue_date':           return 'op4_municipal_last_renewed';
+    case 'op4_municipal_last_renewed':  return 'op5_civil_defense_last';
+    case 'op5_civil_defense_last':
+      // SFDA only applies to restaurants.
+      return answers.op1_vertical === 'restaurant' ? 'op6_sfda_cert_date' : 'op7_employee_count';
+    case 'op6_sfda_cert_date':          return 'op7_employee_count';
+    case 'op7_employee_count':          return 'op8_lease_expiry';
+    case 'op8_lease_expiry':            return 'op9_has_website';
+    case 'op9_has_website':
+      return answers.op9_has_website === 'yes' ? 'op10_website_url' : null;
+    case 'op10_website_url':            return null;
   }
 }
 
@@ -345,6 +467,28 @@ export function validateAnswer(
     } catch {
       return { ok: false, error: 'رابط غير صالح — ابدأ بـ https://' };
     }
+  }
+
+  if (q.input?.kind === 'date' || q.input?.kind === 'date_or_skip') {
+    if (q.input.kind === 'date_or_skip' && (rawAnswer === '__skip__' || rawAnswer === '')) {
+      return { ok: true, value: null as Answers[QuestionId] };
+    }
+    // Accept YYYY-MM-DD strictly. Reject obviously bad dates (year out of range,
+    // non-existent calendar days).
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(rawAnswer.trim());
+    if (!match) return { ok: false, error: 'التاريخ بصيغة YYYY-MM-DD (مثل 2024-03-15)' };
+    const [, y, m, d] = match;
+    const year = Number(y);
+    const month = Number(m);
+    const day = Number(d);
+    if (year < 2000 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 31) {
+      return { ok: false, error: 'التاريخ خارج النطاق المسموح' };
+    }
+    const dt = new Date(Date.UTC(year, month - 1, day));
+    if (dt.getUTCFullYear() !== year || dt.getUTCMonth() !== month - 1 || dt.getUTCDate() !== day) {
+      return { ok: false, error: 'تاريخ غير صالح' };
+    }
+    return { ok: true, value: rawAnswer.trim() as Answers[QuestionId] };
   }
 
   return { ok: false, error: 'سؤال غير معروف' };

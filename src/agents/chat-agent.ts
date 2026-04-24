@@ -45,7 +45,7 @@ export interface QuickReply {
 }
 
 export interface InputAffordance {
-  kind: 'text' | 'number' | 'url_or_skip';
+  kind: 'text' | 'number' | 'url_or_skip' | 'date' | 'date_or_skip';
   placeholder: string;
   skipLabel?: string;
 }
@@ -270,7 +270,7 @@ const SYSTEM_PROMPT = `أنت "درع" — مستشار سعودي ذكي للت
 • est5_foreign_partner: "yes" | "no"
 • est6_lease_status: "not_signed" | "signed" | "no_location_yet"  ← فقط للمطاعم والصالونات والمقاولات (الأنشطة اللي تحتاج موقع فعلي)
 
-للامتثال فقط (إذا q0_mode = compliance):
+للامتثال الرقمي فقط (إذا q0_mode = compliance):
 • q1_company_type:   "saas" | "ecommerce" | "fintech" | "services" | "other"
 • q2_employee_count: رقم صحيح موجب
 • q3_processes_personal_data: "yes" | "no"
@@ -279,6 +279,20 @@ const SYSTEM_PROMPT = `أنت "درع" — مستشار سعودي ذكي للت
 • q6_data_location:  "saudi" | "outside" | "unknown"          ← فقط إذا q3=yes
 • q7_government_clients: "yes" | "no"
 • q8_website_url:    رابط يبدأ بـ https أو null (لو تخطّى)
+
+للامتثال التشغيلي فقط (إذا q0_mode = operational_compliance):
+• op1_vertical:              "restaurant" | "salon" | "construction" | "retail"
+• op2_city:                  مثل est2_city
+• op3_cr_issue_date:         تاريخ ISO "YYYY-MM-DD" لتاريخ إصدار السجل التجاري
+• op4_municipal_last_renewed: "YYYY-MM-DD" أو null
+• op5_civil_defense_last:    "YYYY-MM-DD" أو null
+• op6_sfda_cert_date:        "YYYY-MM-DD" أو null  ← فقط للمطاعم (op1=restaurant)
+• op7_employee_count:        رقم صحيح موجب
+• op8_lease_expiry:          "YYYY-MM-DD" أو null
+• op9_has_website:           "yes" | "no"
+• op10_website_url:          رابط https  ← فقط إذا op9=yes
+
+ملاحظات التواريخ: التعرّف على "فبراير ٢٠٢٤" → "2024-02-01". "قبل شهرين" → احسب من اليوم. "ما أدري" → null. لا تخترع تواريخ.
 
 ══════════ قواعد الاستخراج ══════════
 
@@ -301,12 +315,29 @@ q0_mode → q_company_name → (فرع التأسيس أو الامتثال بت
 
 ══════════ رسالتك للمستخدم ══════════
 
-اكتب رسالة قصيرة واحدة فيها (بهذا الترتيب):
-1. اعتراف ودّي بما استخرجته من كلامه (جملة واحدة، مثال: "ممتاز — كوفي بجدة مع شريك، والنوع المناسب ذ.م.م لأنكم اثنين.").
-2. إذا السؤال التالي فيه مصطلح يحتاج شرح (DPO، PDPL، نقل البيانات، NCA، ذ.م.م، نطاقات): اشرحه في جملة أو جملتين داخل نفس الرسالة (مو في صندوق منفصل). اشرح المصطلح فقط لو ما شُرح قبل.
-3. اسأل السؤال التالي بوضوح.
+اكتب رسالة واحدة فقط. لا تسأل سؤالين. اتبع هذا الهيكل بالضبط:
 
-إذا خلصت كل الحقول المطلوبة: أخرج done=true ورسالة ختامية دافئة.
+١. **إذا استخرجت حقلين أو أكثر في هذه الجولة**: ابدأ بتلخيص مُرقّم يُعلن كل حقل ✓ مثلاً:
+   "ممتاز، وصلتني كل هذي:
+   ✓ النشاط: كوفي/مطعم
+   ✓ المدينة: جدة
+   ✓ الشركاء: اثنين سعوديين
+   ✓ رأس المال: ٨٠ ألف ريال"
+   ثم جملة ربط قصيرة تبرر السؤال التالي ("بقي شي واحد:").
+
+٢. **إذا استخرجت حقلاً واحداً فقط أو لا شيء**: اعتراف ودّي قصير جداً ("تمام —" أو "ممتاز —") جملة واحدة، ثم السؤال.
+
+٣. **شرح المصطلح** (إن وجد): إذا السؤال التالي فيه DPO/PDPL/نقل البيانات/NCA/ذ.م.م/نطاقات، اشرحه داخل نفس الرسالة (جملة واحدة بسيطة). لا تكرر شرحاً قُدِّم سابقاً.
+
+٤. **السؤال التالي** بوضوح، في سطر مستقل.
+
+قواعد صارمة:
+- لا تسأل أكثر من سؤال واحد في نفس الرسالة.
+- لا تكرر سؤالاً سبق الإجابة عنه — حتى لو كان الاستخراج من جولة سابقة.
+- استخدم العربي السعودي الدافئ، لا الفصحى.
+- استخدم ✓ حرفياً (U+2713) لعرض الحقول المستخرجة، لا علامات أخرى.
+
+إذا خلصت كل الحقول المطلوبة: أخرج done=true مع رسالة ختامية دافئة تذكر اسم المشروع.
 
 ══════════ اقتراحات الضغط السريع ══════════
 
@@ -368,6 +399,9 @@ const QUESTION_IDS: readonly QuestionId[] = [
   'q1_company_type', 'q2_employee_count', 'q3_processes_personal_data',
   'q4_user_count', 'q5_dpo_appointed', 'q6_data_location',
   'q7_government_clients', 'q8_website_url',
+  'op1_vertical', 'op2_city', 'op3_cr_issue_date', 'op4_municipal_last_renewed',
+  'op5_civil_defense_last', 'op6_sfda_cert_date', 'op7_employee_count',
+  'op8_lease_expiry', 'op9_has_website', 'op10_website_url',
 ];
 
 function isQuestionId(s: string): s is QuestionId {
@@ -388,6 +422,9 @@ function inputAffordanceFor(q: Question): InputAffordance | undefined {
   }
   if (q.input.kind === 'url_or_skip') {
     return { kind: 'url_or_skip', placeholder: q.input.placeholder, skipLabel: q.input.skipLabel };
+  }
+  if (q.input.kind === 'date' || q.input.kind === 'date_or_skip') {
+    return { kind: q.input.kind, placeholder: q.input.placeholder, skipLabel: q.input.skipLabel };
   }
   return { kind: 'text', placeholder: 'اكتب جوابك' };
 }

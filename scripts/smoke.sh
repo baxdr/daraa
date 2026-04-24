@@ -73,11 +73,11 @@ plan=$(curl -s -X POST "$BASE/api/project/start" -H 'content-type: application/j
 if [ -z "$plan" ]; then printf "  $FAIL project/start returned no projectId\n"; failed=1; else printf "  $PASS projectId=%s\n" "$plan"; fi
 
 # Poll until complete
-for i in $(seq 1 30); do
+for i in $(seq 1 60); do
   status=$(curl -s "$BASE/api/project/$plan" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).status))')
   [ "$status" = "complete" ] && break
   [ "$status" = "error" ] && break
-  sleep 1
+  sleep 2
 done
 [ "$status" = "complete" ] && printf "  $PASS project status = complete\n" || { printf "  $FAIL project status = %s\n" "$status"; failed=1; }
 assert_http_200 "/project/$plan" "/project/[projectId]"

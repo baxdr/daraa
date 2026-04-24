@@ -56,13 +56,17 @@ export async function POST(req: Request) {
   if (!companyName) {
     return NextResponse.json({ error: 'اسم المشروع مفقود' }, { status: 400 });
   }
-  const url = answers.q8_website_url ?? null;
+  // URL source depends on mode: digital compliance uses q8, operational uses op10.
+  const url = mode === 'operational_compliance'
+    ? (answers.op10_website_url ?? null)
+    : (answers.q8_website_url ?? null);
+  const cityId = answers.est2_city ?? answers.op2_city;
 
   const project = createProject({
     mode,
     vertical,
     companyName,
-    cityId: answers.est2_city,
+    cityId,
     url,
     answers,
   });
@@ -76,15 +80,27 @@ export async function POST(req: Request) {
 }
 
 type ResolveInput = {
-  q0_mode?: 'establishment' | 'compliance';
+  q0_mode?: 'establishment' | 'compliance' | 'operational_compliance';
   est1_vertical?: VerticalId;
   q1_company_type?: 'saas' | 'ecommerce' | 'fintech' | 'services' | 'other';
+  op1_vertical?: 'restaurant' | 'salon' | 'construction' | 'retail';
 };
 function resolveVertical(answers: ResolveInput): VerticalId {
   if (answers.q0_mode === 'establishment') {
     return (answers.est1_vertical ?? 'tech') as VerticalId;
   }
-  // Compliance side — map q1 to closest vertical.
+  if (answers.q0_mode === 'operational_compliance') {
+    // Operational verticals map 1:1 to the establishment vertical set,
+    // with `retail` folded to `services` (closest existing vertical).
+    switch (answers.op1_vertical) {
+      case 'restaurant':   return 'restaurant';
+      case 'salon':        return 'salon';
+      case 'construction': return 'construction';
+      case 'retail':       return 'services';
+      default:             return 'services';
+    }
+  }
+  // Digital compliance — map q1 to closest vertical.
   switch (answers.q1_company_type) {
     case 'saas':      return 'tech';
     case 'fintech':   return 'tech';

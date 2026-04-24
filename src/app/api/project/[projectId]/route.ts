@@ -31,6 +31,8 @@ export async function GET(
       gaps:              p.gaps ?? null,
       analysis:          p.analysis ?? null,
       scanResult:        p.scanResult ?? null,
+      operationalReport: p.operationalReport ?? null,
+      email:             p.email ?? null,
       errorMessage:      p.errorMessage ?? null,
     });
   } catch (err) {

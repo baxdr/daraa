@@ -7,6 +7,8 @@ import { ScoreRing } from '@/components/score-ring';
 import { NumberTicker } from '@/components/number-ticker';
 import { DocumentsSection } from '@/components/documents-section';
 import { LegalDisclaimer } from '@/components/legal-disclaimer';
+import { SaveProjectBanner } from '@/components/save-project-banner';
+import { OperationalDashboard } from '@/components/operational-dashboard';
 import { computeRenewals } from '@/lib/renewals';
 import type { DocumentKind } from '@/agents/document-agent';
 import type { Gap } from '@/agents/analysis-agent';
@@ -35,10 +37,11 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
     return <ProjectErrorState projectId={project.id} message={project.errorMessage} />;
   }
 
-  const { mode, companyName, vertical, cityId, entities, roadmap, costSummary, topWarnings, analysis, complianceScore, totalFineCeilingSar, gaps, answers, url, messages } = project;
+  const { mode, companyName, vertical, cityId, entities, roadmap, costSummary, topWarnings, analysis, complianceScore, totalFineCeilingSar, gaps, answers, url, messages, operationalReport } = project;
   const cityLabel = cityId ? CITY_LABELS[cityId] ?? cityId : null;
   const verticalLabel = verticalDisplayLabel(vertical);
   const isCompliance = mode === 'compliance';
+  const isOperational = mode === 'operational_compliance';
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 md:px-10 md:py-14">
@@ -51,7 +54,7 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
         <Link href={`/project/${project.id}/agents`} className="hover:text-ink">الوكلاء</Link>
         <span aria-hidden>›</span>
         <span className="font-medium text-ink-2">
-          {isCompliance ? 'تقرير الامتثال' : 'خريطة التأسيس'}
+          {isOperational ? 'الامتثال التشغيلي' : isCompliance ? 'تقرير الامتثال' : 'خريطة التأسيس'}
         </span>
       </nav>
 
@@ -59,7 +62,7 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
       <header className="mb-10 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0 flex-1">
           <span className="pill mb-3 text-[11px] font-bold tracking-widest text-accent-strong border-accent/30 bg-accent-soft">
-            {isCompliance ? '◉ تقرير الامتثال' : '◉ خريطة التأسيس'}
+            {isOperational ? '◉ الامتثال التشغيلي' : isCompliance ? '◉ تقرير الامتثال' : '◉ خريطة التأسيس'}
           </span>
           <h1 className="font-display text-4xl font-extrabold leading-[1.08] tracking-tighter md:text-6xl">
             {companyName}
@@ -93,6 +96,8 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
 
       <div className="rule-ink mb-10" />
 
+      <SaveProjectBanner projectId={project.id} initialEmail={project.email} />
+
       {/* Trade-name finding — hoisted to the top for establishment projects so it's
           the first answer a new founder sees. Full detail still renders inside the
           MCI entity card below. */}
@@ -121,6 +126,13 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
               <p className="mt-3 text-sm leading-relaxed text-ink">{w}</p>
             </div>
           ))}
+        </section>
+      )}
+
+      {/* Operational-compliance dashboard — for physical businesses */}
+      {isOperational && operationalReport && (
+        <section className="mb-12">
+          <OperationalDashboard report={operationalReport} />
         </section>
       )}
 
@@ -250,8 +262,9 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
         </section>
       )}
 
-      {/* Renewals */}
-      {(() => {
+      {/* Renewals — operational mode already shows a richer timeline above,
+          so we suppress the legacy section there to avoid duplication. */}
+      {!isOperational && (() => {
         const renewals = computeRenewals(entities);
         if (renewals.length === 0) return null;
         return (

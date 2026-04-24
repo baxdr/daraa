@@ -24,9 +24,11 @@ import type { AgentId } from '../types';
 /* ─── Context provided to every agent ──────────────────────────────────── */
 
 export interface AgentContext {
-  /** Which lens the agents reason through. Every specialist gets both modes
-   *  from the same `run()`; switching is internal per agent. */
-  mode: 'establishment' | 'compliance';
+  /** Which lens the agents reason through. Every specialist gets all modes
+   *  from the same `run()`; switching is internal per agent.
+   *  `operational_compliance` is for physical businesses (restaurants, salons,
+   *  construction, retail) — license-renewal-first rather than PDPL-scan. */
+  mode: 'establishment' | 'compliance' | 'operational_compliance';
   vertical: VerticalId;
   answers: Answers;
   cityId?: string;
