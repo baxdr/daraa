@@ -133,7 +133,11 @@ export function ChatInterface() {
         if (body.projectId) {
           router.push(`/project/${body.projectId}/agents`);
         } else {
+          // Project creation refused — surface the reason and re-enable the
+          // chat input so the user can answer the still-missing field.
           setError(body.error ?? 'تعذّر بدء الخطوة التالية');
+          setDone(false);
+          setInput({ kind: 'text', placeholder: 'اكتب جوابك' });
         }
         return;
       }

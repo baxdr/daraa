@@ -26,6 +26,7 @@
 import { callClaude, MODELS, parseJsonResponse, MissingApiKeyError, hasApiKey } from '@/lib/claude';
 import {
   QUESTIONS,
+  FIRST_QUESTION,
   nextQuestion,
   validateAnswer,
   type Answers,
@@ -210,15 +211,13 @@ async function claudeTurn(session: ChatSession, userInput: string): Promise<Chat
     }
   }
 
-  // Decide next question ourselves — trust Claude's `nextQuestionId` only
-  // if it matches what our deterministic resolver would pick given the new
-  // answer state. Otherwise use the resolver's pick. This prevents Claude
-  // from jumping ahead / skipping fields.
-  const lastAnswered = highestPriorityAnswered(session.answers);
-  const deterministicNext = lastAnswered ? nextQuestion(lastAnswered, session.answers) : 'q0_mode';
-  let nextId: QuestionId | null = deterministicNext;
-
-  // Skip over any already-answered fields (Claude may have filled several).
+  // Decide next question ourselves — walk the scripted flow from the
+  // beginning and stop at the first UNANSWERED field. This is essential
+  // because Claude may fill a late field (e.g. est6_lease_status) while
+  // leaving an earlier one blank (e.g. q_company_name) — if we walked
+  // forward from the last-answered field we'd miss the gap and end the
+  // chat prematurely.
+  let nextId: QuestionId | null = FIRST_QUESTION;
   while (nextId && session.answers[nextId] !== undefined) {
     nextId = nextQuestion(nextId, session.answers);
   }
@@ -373,19 +372,6 @@ const QUESTION_IDS: readonly QuestionId[] = [
 
 function isQuestionId(s: string): s is QuestionId {
   return (QUESTION_IDS as readonly string[]).includes(s);
-}
-
-/**
- * Find the most-downstream question that's already been answered — used as a
- * seed for the deterministic next-question resolver so we pick up wherever
- * Claude's extractions ended.
- */
-function highestPriorityAnswered(answers: Answers): QuestionId | null {
-  let last: QuestionId | null = null;
-  for (const id of QUESTION_IDS) {
-    if ((answers as Record<string, unknown>)[id] !== undefined) last = id;
-  }
-  return last;
 }
 
 function inputAffordanceFor(q: Question): InputAffordance | undefined {
