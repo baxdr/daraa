@@ -42,6 +42,9 @@ export interface GovEntity {
   /** Checklist of what the user needs to gather/have in place for this entity.
    *  Populated by each specialist agent (class-based runtime). */
   requirements?: string[];
+  /** Trade-name availability finding. Currently only populated by the MCI
+   *  specialist in establishment mode. */
+  nameCheck?: import('@/agents/runtime/types').NameCheckResult;
 }
 
 export interface Vertical {

@@ -1,6 +1,7 @@
 import type { GovEntity } from '@/knowledge/entities';
 import type { AgentMessage } from '@/agents/types';
 import { AGENT_LABELS_AR } from '@/agents/types';
+import type { NameCheckResult } from '@/agents/runtime/types';
 
 /**
  * Editorial entity card — numbered step, hairline rules, RTL-correct arrows.
@@ -52,6 +53,13 @@ export function EntityCard({
         <div className="col-span-2">
           <p className="text-sm leading-relaxed text-ink-2">{entity.explainAr}</p>
         </div>
+
+        {/* Name-check result — only MCI populates this, only in establishment mode. */}
+        {entity.nameCheck && entity.nameCheck.status !== 'skipped' && (
+          <div className="col-span-2">
+            <NameCheckPanel check={entity.nameCheck} />
+          </div>
+        )}
 
         {/* Metadata grid — tighter gutters on mobile so long cost strings don't overflow. */}
         <dl className="col-span-2 mt-2 grid grid-cols-2 gap-x-3 gap-y-4 border-t border-rule pt-4 md:grid-cols-4 md:gap-x-6">
@@ -124,6 +132,88 @@ export function EntityCard({
         )}
       </div>
     </article>
+  );
+}
+
+function NameCheckPanel({ check }: { check: NameCheckResult }) {
+  const palette = check.status === 'likely_available'
+    ? {
+        wrap: 'border-accent/40 bg-accent-soft',
+        label: 'text-accent-strong',
+        icon: '✓',
+        heading: 'الاسم متاح — على الأرجح',
+      }
+    : check.status === 'likely_taken'
+    ? {
+        wrap: 'border-danger/40 bg-danger/5',
+        label: 'text-danger',
+        icon: '⚠',
+        heading: 'الاسم يبدو محجوزاً',
+      }
+    : {
+        wrap: 'border-rule bg-paper-2',
+        label: 'text-ink-2',
+        icon: '?',
+        heading: 'الفحص غير حاسم',
+      };
+
+  return (
+    <div className={`border-s-2 px-4 py-3 ${palette.wrap}`}>
+      <div className="flex items-baseline gap-2">
+        <span aria-hidden className={`font-mono text-xs tracking-widest ${palette.label}`}>
+          {palette.icon}
+        </span>
+        <span className={`font-display text-sm font-extrabold tracking-tight ${palette.label}`}>
+          {palette.heading}
+        </span>
+      </div>
+      <p className="mt-1.5 text-[13px] leading-relaxed text-ink">{check.summaryAr}</p>
+
+      {check.evidence && check.evidence.length > 0 && (
+        <ul className="mt-3 space-y-1 text-[12px] leading-relaxed text-ink-2">
+          {check.evidence.map((e, i) => (
+            <li key={i} className="flex items-start gap-1.5">
+              <span aria-hidden className="mt-0.5 text-muted">›</span>
+              <span className="min-w-0 break-words">{e}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {check.alternatives && check.alternatives.length > 0 && (
+        <div className="mt-3 border-t border-rule/70 pt-3">
+          <div className="eyebrow !text-[10px]">بدائل مقترحة</div>
+          <ul className="mt-1.5 flex flex-wrap gap-2">
+            {check.alternatives.map((alt, i) => (
+              <li
+                key={i}
+                className="border border-ink/20 bg-white px-2.5 py-1 text-[12px] font-semibold text-ink"
+              >
+                {alt}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="mt-3 flex items-center gap-2 text-[11px] text-muted">
+        <span className="font-mono tracking-widest">المصدر</span>
+        <span>·</span>
+        <span>
+          {check.source === 'claude_web_search'
+            ? 'بحث ويب (استرشادي — راجع منصة الأعمال للقرار النهائي)'
+            : 'fallback — راجع منصة الأعمال يدوياً'}
+        </span>
+        <a
+          href="https://mc.gov.sa"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ms-auto font-semibold text-accent hover:text-accent-strong"
+        >
+          افتح mc.gov.sa ↗
+        </a>
+      </div>
+    </div>
   );
 }
 

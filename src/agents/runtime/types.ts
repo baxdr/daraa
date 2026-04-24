@@ -54,6 +54,22 @@ export interface AgentMessage {
 
 /* ─── Agent's produced entity info ─────────────────────────────────────── */
 
+export interface NameCheckResult {
+  /** likely_available = searched and found no registrations;
+   *  likely_taken     = found one or more registrations with the same name;
+   *  inconclusive     = search ran but evidence isn't decisive;
+   *  skipped          = we deliberately didn't check (no key + no fallback worth surfacing,
+   *                     or this is a compliance-mode run where the company already exists). */
+  status: 'likely_available' | 'likely_taken' | 'inconclusive' | 'skipped';
+  summaryAr: string;
+  /** Short evidence snippets (search hits, URLs, quotes). */
+  evidence?: string[];
+  /** Suggested alternative names — populated when the original looks taken. */
+  alternatives?: string[];
+  checkedAt: string;
+  source: 'claude_web_search' | 'fallback';
+}
+
 export interface EntityInfo {
   entityId: string;
   nameAr: string;
@@ -66,6 +82,9 @@ export interface EntityInfo {
   criticalWarningAr?: string;
   commonMistakeAr?: string;
   requirements?: string[];
+  /** Trade-name availability check — currently only populated by the MCI
+   *  specialist in establishment mode. */
+  nameCheck?: NameCheckResult;
 }
 
 /* ─── Run outcome ──────────────────────────────────────────────────────── */

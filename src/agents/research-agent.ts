@@ -10,7 +10,7 @@
  * it targets — e.g. research → sfda for an SFDA rule change.
  */
 
-import { anthropic, hasApiKey } from '@/lib/claude';
+import { anthropic, hasApiKey, MODELS } from '@/lib/claude';
 import { send, type RunRef } from '@/lib/agent-bus';
 import { AGENT_LABELS_AR, type AgentId } from '@/agents/types';
 
@@ -141,7 +141,7 @@ async function fetchWithClaudeWebSearch(activeAgents: AgentId[]): Promise<Regula
     typeof anthropic.messages.create
   >[0]['tools'];
   const res = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: MODELS.sonnet,
     max_tokens: 2000,
     tools,
     messages: [

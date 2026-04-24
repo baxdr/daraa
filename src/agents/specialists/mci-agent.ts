@@ -1,10 +1,15 @@
-import type { Agent, AgentContext, AgentId, AgentResult } from '../runtime/types';
+import type { Agent, AgentContext, AgentId, AgentResult, NameCheckResult } from '../runtime/types';
+import { checkTradeName } from '../name-check';
 
 /**
  * MCI — وزارة التجارة.
  * First in every establishment path. No dependencies; no inbox to read.
  * Decides the appropriate entity type from the user's capital + partners +
  * foreign-partner flag, and broadcasts the entity type + CR-ready signal.
+ *
+ * In establishment mode we also attempt a trade-name availability check
+ * against the web — advisory only, since mc.gov.sa doesn't expose a public
+ * availability API. Results surface on the MCI entity card.
  */
 export class MciAgent implements Agent {
   readonly id: AgentId = 'mci';
@@ -17,6 +22,15 @@ export class MciAgent implements Agent {
 
     const entityType = this.recommendEntityType(partners, capital, foreign);
     const cost = this.estimateCost(partners, capital, foreign);
+
+    // Trade-name check — only for establishment mode (new project). In
+    // compliance mode the company already exists, so a name check would
+    // mislead.
+    let nameCheck: NameCheckResult | undefined;
+    const requestedName = context.answers.q_company_name?.trim();
+    if (context.mode === 'establishment' && requestedName) {
+      nameCheck = await checkTradeName(requestedName);
+    }
 
     // Foreign partner adds a pre-step (MISA investment licence); we don't
     // model it as a separate agent yet, but we flag it in the warning.
@@ -43,6 +57,7 @@ export class MciAgent implements Agent {
           'اسم تجاري مقترح (٣ خيارات احتياطية)',
           'عقد تأسيس (يولّده درع تلقائياً)',
         ],
+        nameCheck,
       },
       outbox: [
         {

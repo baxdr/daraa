@@ -271,6 +271,7 @@ function buildEntitiesFromAgents(
       renewalPeriodAr: d.renewalPeriodAr,
       officialUrl: d.officialUrl,
       requirements: d.requirements ? [...d.requirements] : undefined,
+      nameCheck: d.nameCheck,
     });
   }
   return entities;
