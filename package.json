@@ -1,14 +1,18 @@
 {
   "name": "daraa",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Saudi Business Formation & Compliance Intelligence",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3333",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "precompute": "npx tsx scripts/precompute-nova-stats.ts"
+    "lint": "next lint",
+    "precompute": "npx tsx scripts/precompute-nova-stats.ts",
+    "test:agents": "npx tsx scripts/test-agent-runtime.ts",
+    "test:forms": "npx tsx scripts/test-form-scanner.ts",
+    "test:smoke": "bash scripts/smoke.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
