@@ -1,5 +1,11 @@
 import Link from 'next/link';
 import { HeroAgentsMockup } from '@/components/landing/hero-agents-mockup';
+import novaStats from '@/data/nova-tech-stats.json';
+
+/** Convert Latin digits in a string to Arabic-Indic digits (٠١٢٣٤٥٦٧٨٩). */
+function toArabicDigits(input: string): string {
+  return input.replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
+}
 
 export default function LandingPage() {
   return (
@@ -207,31 +213,41 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 divide-y divide-rule sm:grid-cols-3 sm:divide-y-0 sm:divide-s sm:divide-rule">
             <ProofCell
-              number="٢٧٪"
+              number={`${toArabicDigits(String(novaStats.complianceScore))}٪`}
               label="نسبة الامتثال"
               numberClass="text-danger"
             />
             <ProofCell
-              number="١٤,٠٠٠,٠٠٠"
+              number={toArabicDigits(novaStats.totalFineCeilingSar.toLocaleString('en-US'))}
               unit="ريال"
               label="غرامات محتملة"
               numberClass="text-danger"
             />
             <ProofCell
-              number="٠٧"
+              number={toArabicDigits(String(novaStats.gapCount).padStart(2, '0'))}
               label="فجوات مكتشفة"
             />
           </div>
           <div className="border-t border-rule px-6 py-5 md:px-10 md:py-6">
-            <a
-              href="/demo/novatech/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-sm font-bold text-accent hover:text-accent-strong"
-            >
-              <span>شوف التقرير الكامل على الموقع التجريبي</span>
-              <span aria-hidden>←</span>
-            </a>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <a
+                href="/demo/novatech/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm font-bold text-accent hover:text-accent-strong"
+              >
+                <span>شوف التقرير الكامل على الموقع التجريبي</span>
+                <span aria-hidden>←</span>
+              </a>
+              <span className="text-[11px] text-muted">
+                من فحص تم في{' '}
+                <time dateTime={novaStats.computedAt}>
+                  {new Date(novaStats.computedAt).toLocaleDateString('ar-SA', {
+                    year: 'numeric', month: 'long', day: 'numeric',
+                  })}
+                </time>
+              </span>
+            </div>
           </div>
         </div>
       </section>

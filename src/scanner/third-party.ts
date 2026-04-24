@@ -70,6 +70,21 @@ export async function scanThirdParty(url: string): Promise<ThirdPartyCheck> {
     };
   }
 
+  return analyseThirdParty(html);
+}
+
+/**
+ * Pure HTML analyser — detects trackers from a page's static source. Used by
+ * the `scanThirdParty` live path above AND by offline tooling (precompute
+ * scripts) that already has the HTML in hand and doesn't need SSRF fetch.
+ */
+export function analyseThirdParty(html: string): ThirdPartyCheck {
+  const empty: ThirdPartyCheck = {
+    detected: [],
+    crossBorderCount: 0,
+    categories: { analytics: 0, advertising: 0, chat: 0, marketing: 0, session_replay: 0, other: 0 },
+  };
+
   const $ = cheerio.load(html);
   const haystack = [
     html,
