@@ -22,6 +22,13 @@ const Schema = z.object({
     .min(1)
     .regex(/^sk-ant-/, 'ANTHROPIC_API_KEY must start with "sk-ant-"')
     .optional(),
+  // Optional second key — used automatically as a failover when the
+  // primary hits 429 (rate limit). Fine to leave empty for dev.
+  ANTHROPIC_API_KEY_BACKUP: z
+    .string()
+    .min(1)
+    .regex(/^sk-ant-/, 'ANTHROPIC_API_KEY_BACKUP must start with "sk-ant-"')
+    .optional(),
 
   // Supabase — reserved.
   NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),

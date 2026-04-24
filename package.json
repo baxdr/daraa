@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "next lint",
     "precompute": "npx tsx scripts/precompute-nova-stats.ts",
+    "seed-demo": "npx tsx scripts/seed-demo-projects.ts",
     "test:agents": "npx tsx scripts/test-agent-runtime.ts",
     "test:forms": "npx tsx scripts/test-form-scanner.ts",
     "test:operational": "npx tsx scripts/test-operational-analysis.ts",

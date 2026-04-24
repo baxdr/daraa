@@ -123,9 +123,9 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     id: 'q0_mode',
     text: 'أهلاً! أنا درع — مستشار ذكي للتأسيس والامتثال في السعودية. وش تبي تسوي اليوم؟',
     options: [
-      { value: 'establishment', label: 'أبي أفتح مشروع جديد' },
-      { value: 'compliance',    label: 'عندي نشاط رقمي وأبي أتأكد من امتثال PDPL' },
-      { value: 'operational_compliance', label: 'عندي محل/مطعم وأبي أتتبّع رخصي وتجديداتي' },
+      { value: 'establishment',          label: '🏢 أبي أفتح مشروع جديد' },
+      { value: 'compliance',             label: '💻 شركة تقنية — امتثال PDPL' },
+      { value: 'operational_compliance', label: '🍽️ محل/مطعم — تتبّع رخصي' },
     ],
   },
 

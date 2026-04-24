@@ -11,14 +11,35 @@ import { getEnv, hasAnthropicKey } from './env';
  * no key is configured — callers are expected to guard with `hasApiKey()`.
  */
 
-let _client: Anthropic | null = null;
+let _primary: Anthropic | null = null;
+let _backup: Anthropic | null = null;
 
 function getClient(): Anthropic {
-  if (_client) return _client;
+  if (_primary) return _primary;
   const key = getEnv().ANTHROPIC_API_KEY;
   if (!key) throw new MissingApiKeyError();
-  _client = new Anthropic({ apiKey: key });
-  return _client;
+  _primary = new Anthropic({ apiKey: key });
+  return _primary;
+}
+
+function getBackupClient(): Anthropic | null {
+  if (_backup) return _backup;
+  const key = getEnv().ANTHROPIC_API_KEY_BACKUP;
+  if (!key) return null;
+  _backup = new Anthropic({ apiKey: key });
+  return _backup;
+}
+
+/**
+ * A 429 or "rate_limit_error" from the primary key means we've exhausted
+ * our per-minute budget. If a backup key is configured, failover to it
+ * for this single request. The caller sees a normal successful response.
+ */
+function isRateLimitError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const e = err as { status?: number; message?: string };
+  if (e.status === 429) return true;
+  return typeof e.message === 'string' && /rate_limit/i.test(e.message);
 }
 
 /** Proxy that defers construction until first use. Back-compat for callers that
@@ -56,15 +77,30 @@ export async function callClaude(opts: {
   maxTokens?: number;
 }): Promise<string> {
   if (!hasApiKey()) throw new MissingApiKeyError();
-  const res = await getClient().messages.create({
+  const payload = {
     model: opts.model,
     max_tokens: opts.maxTokens ?? 4096,
     system: opts.system,
-    messages: [{ role: 'user', content: opts.user }],
-  });
-  const first = res.content.find((b) => b.type === 'text');
-  if (!first || first.type !== 'text') throw new Error('Claude returned no text block');
-  return first.text;
+    messages: [{ role: 'user' as const, content: opts.user }],
+  };
+  try {
+    const res = await getClient().messages.create(payload);
+    const first = res.content.find((b) => b.type === 'text');
+    if (!first || first.type !== 'text') throw new Error('Claude returned no text block');
+    return first.text;
+  } catch (err) {
+    if (isRateLimitError(err)) {
+      const backup = getBackupClient();
+      if (backup) {
+        console.warn('[claude] primary key 429 — failing over to backup');
+        const res = await backup.messages.create(payload);
+        const first = res.content.find((b) => b.type === 'text');
+        if (!first || first.type !== 'text') throw new Error('Claude returned no text block');
+        return first.text;
+      }
+    }
+    throw err;
+  }
 }
 
 /**

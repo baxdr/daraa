@@ -27,6 +27,7 @@ export default function LandingPage() {
         <nav className="hidden gap-6 text-sm text-ink-2 md:flex">
           <a href="#how" className="hover:text-ink">كيف يشتغل</a>
           <a href="#agents" className="hover:text-ink">الوكلاء</a>
+          <Link href="/demo" className="hover:text-ink">سيناريوهات جاهزة</Link>
           <Link href="/return" className="hover:text-ink">مشاريعي</Link>
           <a href="/demo/novatech/" target="_blank" rel="noopener noreferrer" className="hover:text-ink">
             موقع تجريبي <span aria-hidden>↗</span>
