@@ -304,6 +304,11 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
 
     updateProject(projectId, {
       status: 'complete',
+      // Auto-transition: every completed project enters active_monitoring.
+      // From here on, the dashboard shows the renewal-schedule view built
+      // from entities + renewalPeriodAr, same for establishment and
+      // compliance modes.
+      phase: 'active_monitoring',
       entities,
       roadmap,
       costSummary,

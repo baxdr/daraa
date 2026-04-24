@@ -20,7 +20,13 @@ export interface RenewalEntry {
   renewalPeriodAr: string;
   nextDueAt: Date;
   daysRemaining: number;
-  urgency: 'ok' | 'soon' | 'urgent';
+  /** 'ok'       = > 60 days  (green)
+   *  'notice'   = 30–60 days (medium — start preparing)
+   *  'soon'     = 7–30 days  (amber — act now)
+   *  'urgent'   = < 7 days   (red — critical)
+   *  'overdue'  = < 0 days   (red — overdue) */
+  urgency: 'ok' | 'notice' | 'soon' | 'urgent' | 'overdue';
+  officialUrl?: string;
 }
 
 /**
@@ -59,9 +65,13 @@ export function computeRenewals(
     const nextDue = new Date(fromDate);
     nextDue.setMonth(nextDue.getMonth() + months);
     const diffMs = nextDue.getTime() - now;
-    const daysRemaining = Math.max(0, Math.floor(diffMs / 86_400_000));
+    const daysRemaining = Math.floor(diffMs / 86_400_000);
     const urgency: RenewalEntry['urgency'] =
-      daysRemaining <= 10 ? 'urgent' : daysRemaining <= 30 ? 'soon' : 'ok';
+      daysRemaining < 0   ? 'overdue' :
+      daysRemaining < 7   ? 'urgent'  :
+      daysRemaining <= 30 ? 'soon'    :
+      daysRemaining <= 60 ? 'notice'  :
+                            'ok';
 
     out.push({
       entityId: e.id,
@@ -70,6 +80,7 @@ export function computeRenewals(
       nextDueAt: nextDue,
       daysRemaining,
       urgency,
+      officialUrl: e.officialUrl,
     });
   }
 

@@ -37,6 +37,11 @@ import {
 
 export type ProjectMode = 'establishment' | 'compliance' | 'operational_compliance';
 export type ProjectStatus = 'pending' | 'running' | 'complete' | 'error';
+/** After the initial pipeline completes, every project enters the
+ *  `active_monitoring` phase — a continuous view of license renewals and
+ *  alerts. `roadmap` is the initial construction phase; `active_monitoring`
+ *  is the ongoing steady state that starts automatically. */
+export type ProjectPhase = 'roadmap' | 'active_monitoring';
 
 export interface RegulatoryUpdateRecord {
   forAgent: AgentId;
@@ -50,6 +55,10 @@ export interface ProjectRecord {
   createdAt: number;
   mode: ProjectMode;
   status: ProjectStatus;
+  /** Lifecycle phase — 'roadmap' during initial construction, flips to
+   *  'active_monitoring' once the orchestrator finishes. Compliance and
+   *  operational-compliance projects skip straight to active_monitoring. */
+  phase: ProjectPhase;
 
   /** User email for return-experience lookup. Optional. */
   email?: string;
@@ -122,6 +131,7 @@ export function createProject(params: {
     createdAt: Date.now(),
     mode: params.mode,
     status: 'pending',
+    phase: 'roadmap',
     email: params.email,
     companyName: params.companyName,
     vertical: params.vertical,

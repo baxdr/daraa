@@ -9,6 +9,7 @@ import { DocumentsSection } from '@/components/documents-section';
 import { LegalDisclaimer } from '@/components/legal-disclaimer';
 import { SaveProjectBanner } from '@/components/save-project-banner';
 import { OperationalDashboard } from '@/components/operational-dashboard';
+import { ActiveMonitoringPanel } from '@/components/active-monitoring-panel';
 import { computeRenewals } from '@/lib/renewals';
 import type { DocumentKind } from '@/agents/document-agent';
 import type { Gap } from '@/agents/analysis-agent';
@@ -262,52 +263,16 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
         </section>
       )}
 
-      {/* Renewals — operational mode already shows a richer timeline above,
-          so we suppress the legacy section there to avoid duplication. */}
-      {!isOperational && (() => {
-        const renewals = computeRenewals(entities);
-        if (renewals.length === 0) return null;
+      {/* Active monitoring — the "ongoing operation" phase for every project
+          once the pipeline completes. Operational mode shows its own richer
+          timeline above, so we suppress this panel there. */}
+      {!isOperational && project.phase === 'active_monitoring' && (() => {
+        const renewals = computeRenewals(entities, new Date(project.createdAt));
         return (
-          <section className="mb-12">
-            <div className="mb-6 flex items-baseline justify-between">
-              <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">
-                التجديدات القادمة
-              </h2>
-              <span className="font-mono text-xs tabular-nums text-muted">
-                {renewals.length.toString().padStart(2, '0')} تجديد
-              </span>
-            </div>
-            <div className="rule mb-6" />
-            <p className="mb-5 max-w-2xl text-xs leading-relaxed text-muted">
-              محسوبة من تاريخ إنشاء هذه الخطة كافتراض لتاريخ بدء النشاط.
-            </p>
-            <ul className="grid gap-3 sm:grid-cols-2">
-              {renewals.map((r) => {
-                const dueLabel = r.nextDueAt.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
-                const urgencyStyle =
-                  r.urgency === 'urgent' ? 'border-danger/40 bg-danger/5 text-danger' :
-                  r.urgency === 'soon'   ? 'border-warn/40 bg-warn-soft/50 text-warn-strong' :
-                                            'border-rule bg-white text-ink-2';
-                return (
-                  <li key={r.entityId} className={`flex items-start gap-3 border px-4 py-3 ${urgencyStyle}`}>
-                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-current" aria-hidden />
-                    <div className="min-w-0 flex-1">
-                      <div className="font-display text-sm font-extrabold leading-tight tracking-tight text-ink">
-                        {r.nameSimpleAr}
-                      </div>
-                      <div className="mt-1 text-xs text-ink-2">
-                        {dueLabel}
-                        <span className="mx-2 text-rule">·</span>
-                        <span className="font-mono tabular-nums">{r.daysRemaining}</span>
-                        <span> يوم متبقي</span>
-                      </div>
-                      <div className="mt-1 text-xs text-muted">دورة: {r.renewalPeriodAr}</div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
+          <ActiveMonitoringPanel
+            renewals={renewals}
+            totalEntities={entities.length}
+          />
         );
       })()}
 

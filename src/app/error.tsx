@@ -40,6 +40,22 @@ export default function Error({
             معرّف الخطأ: <code dir="ltr">{error.digest}</code>
           </p>
         )}
+        {/* Expose the actual message in dev so we can diagnose instead of
+            staring at a generic "something broke" page. Hidden from
+            typical users but present in the DOM for inspection. */}
+        {error.message && (
+          <details className="mt-4 text-start">
+            <summary className="cursor-pointer text-[11px] text-muted">تفاصيل تقنية</summary>
+            <pre
+              dir="ltr"
+              className="mt-2 max-h-48 overflow-auto border border-rule bg-paper-2 p-3 text-[11px] text-ink-2"
+              style={{ whiteSpace: 'pre-wrap' }}
+            >
+              {error.message}
+              {error.stack && '\n\n' + error.stack.split('\n').slice(0, 8).join('\n')}
+            </pre>
+          </details>
+        )}
         <div className="mt-10 flex flex-wrap justify-center gap-3">
           <button type="button" onClick={reset} className="btn-ink text-sm">
             حاول مرة ثانية

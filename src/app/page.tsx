@@ -243,7 +243,7 @@ export default function LandingPage() {
               <span className="text-[11px] text-muted">
                 من فحص تم في{' '}
                 <time dateTime={novaStats.computedAt}>
-                  {new Date(novaStats.computedAt).toLocaleDateString('ar-SA', {
+                  {new Date(novaStats.computedAt).toLocaleDateString('ar-SA-u-ca-gregory', {
                     year: 'numeric', month: 'long', day: 'numeric',
                   })}
                 </time>
