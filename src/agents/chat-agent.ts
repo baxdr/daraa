@@ -82,6 +82,15 @@ export async function advanceChat(params: {
   const trimmed = userInput.trim();
   if (!trimmed) return { error: 'اكتب شي أو اختر من الاقتراحات' };
 
+  // Short-circuit: the explicit "__skip__" sentinel (only sent by the skip
+  // button on url_or_skip / date_or_skip questions). Claude doesn't know
+  // this token and would write a completion message without actually
+  // clearing the field — leaving the flow stuck. Route straight to the
+  // scripted validator which maps __skip__ → null correctly.
+  if (trimmed === '__skip__') {
+    return scriptedFallback(session, trimmed);
+  }
+
   // Fast path — exact match on the CURRENT question's options. Typical
   // button click. Short-circuits the LLM for deterministic inputs.
   const fastPath = tryFastPath(session, trimmed);
