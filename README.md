@@ -19,6 +19,8 @@
 
 **Built for Agenticthon 2026** — covering all three tracks: Process Automation · Multi-Agent Systems · Agent-to-Agent (A2A) Communication.
 
+**Team**: بدر العمري · سفر الدوسري
+
 ---
 
 ## Architecture
@@ -306,6 +308,8 @@ MIT — see [LICENSE](./LICENSE).
 <div align="center">
 
 **درع** · Built for Agenticthon 2026 · Saudi Arabia 🇸🇦
+
+بدر العمري · سفر الدوسري
 
 *أداة استرشادية — لا تغني عن الاستشارة القانونية*
 

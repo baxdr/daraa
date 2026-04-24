@@ -33,5 +33,5 @@ coverage/
 # File-backed persistence — live user projects, never committed.
 data/
 
-# Local Claude Code permissions (per-developer)
-.claude/settings.local.json
+# Claude Code tooling — never committed.
+.claude/
