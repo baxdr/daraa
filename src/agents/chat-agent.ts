@@ -207,11 +207,16 @@ async function claudeTurn(session: ChatSession, userInput: string): Promise<Chat
   const parsed = parseJsonResponse<ClaudeResponse>(raw);
   const extracted: QuestionId[] = [];
 
-  // Validate + apply each extraction.
+  // Validate + apply each extraction. CRITICAL: never overwrite a field
+  // that's already been answered. Without this guard, Claude can re-extract
+  // q_company_name from some later sentence ("...عندنا ثاوي جاهزين...")
+  // and silently rewrite the user's original name mid-flow. Fields are
+  // one-shot-write only.
   if (parsed.extractions && typeof parsed.extractions === 'object') {
     for (const [rawKey, rawValue] of Object.entries(parsed.extractions)) {
       if (!isQuestionId(rawKey)) continue;
       if (rawValue === undefined || rawValue === null) continue;
+      if ((session.answers as Record<string, unknown>)[rawKey] !== undefined) continue;
       const str = typeof rawValue === 'number' ? String(rawValue) : String(rawValue);
       const validated = validateAnswer(rawKey, str);
       if (!validated.ok) continue;
@@ -447,18 +452,18 @@ function computeSuggestions(
   fromClaude?: QuickReply[],
 ): QuickReply[] {
   const q = QUESTIONS[nextId];
+  // For free-input questions (text/number/url/date), never accept Claude's
+  // invented suggestion chips — they produced a stray "ما أتذكر / ما عندي"
+  // button for a date field in an earlier bug. The only clickable option
+  // on input-kind questions is the scripted skip button handled separately.
+  if (!q.options) return [];
+
   if (fromClaude && Array.isArray(fromClaude) && fromClaude.length > 0) {
-    // Filter to valid values when the question has a fixed option set.
-    if (q.options) {
-      const validValues = new Set(q.options.map((o) => o.value));
-      const filtered = fromClaude.filter((s) => s && s.value && validValues.has(s.value));
-      if (filtered.length > 0) return filtered;
-    } else {
-      return fromClaude.filter((s) => s && s.label && s.value);
-    }
+    const validValues = new Set(q.options.map((o) => o.value));
+    const filtered = fromClaude.filter((s) => s && s.value && validValues.has(s.value));
+    if (filtered.length > 0) return filtered;
   }
-  if (q.options) return q.options.map((o) => ({ label: o.label, value: o.value }));
-  return [];
+  return q.options.map((o) => ({ label: o.label, value: o.value }));
 }
 
 function compilationMessage(answers: Answers): string {

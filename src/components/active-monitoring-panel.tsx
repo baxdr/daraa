@@ -72,13 +72,12 @@ export function ActiveMonitoringPanel({ renewals, totalEntities }: ActiveMonitor
       </ul>
 
       <p className="mt-4 text-[11px] text-muted">
-        التنبيهات مبنية على تاريخ إنشاء المشروع ({ /* placeholder — page passes in createdAt in copy */ }
-        <span>الافتراض: كل الرخص أُصدرت اليوم).</span>{' '}
-        لو عندك تواريخ دقيقة، استخدم مسار{' '}
-        <a href="/chat?mode=operational" className="font-semibold text-accent hover:text-accent-strong">
-          الامتثال التشغيلي
+        التنبيهات محسوبة على افتراض أن كل الرخص أُصدرت يوم إنشاء المشروع.
+        لو عندك تواريخ دقيقة،{' '}
+        <a href="/chat" className="font-semibold text-accent hover:text-accent-strong">
+          ابدأ مساراً تشغيلياً جديداً
         </a>{' '}
-        للحصول على تنبيهات أدق.
+        للحصول على تنبيهات بتواريخ حقيقية.
       </p>
     </section>
   );

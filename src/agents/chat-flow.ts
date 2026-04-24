@@ -314,19 +314,19 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     id: 'op4_municipal_last_renewed',
     text: 'متى آخر تجديد لرخصة البلدية؟',
     hint: 'لو ما عندك تاريخ بالضبط، تقدر تتخطى وراح نفترض أنها جديدة مع السجل التجاري.',
-    input: { kind: 'date_or_skip', placeholder: 'YYYY-MM-DD', skipLabel: 'تخطى — ما أدري بالضبط' },
+    input: { kind: 'date_or_skip', placeholder: 'مثال: 2024-03-15 (يوم-شهر-سنة بصيغة ISO)', skipLabel: 'تخطى — ما أدري بالضبط' },
   },
   op5_civil_defense_last: {
     id: 'op5_civil_defense_last',
     text: 'متى آخر شهادة سلامة من الدفاع المدني؟',
     hint: 'شهادة السلامة (الطفايات، مخارج الطوارئ، كواشف الدخان) تُجدَّد سنوياً. لو عندك تاريخ قريب عطنا إياه.',
-    input: { kind: 'date_or_skip', placeholder: 'YYYY-MM-DD', skipLabel: 'تخطى — ما عندنا تاريخ' },
+    input: { kind: 'date_or_skip', placeholder: 'مثال: 2024-03-15 (يوم-شهر-سنة بصيغة ISO)', skipLabel: 'تخطى — ما عندنا تاريخ' },
   },
   op6_sfda_cert_date: {
     id: 'op6_sfda_cert_date',
     text: 'متى آخر ترخيص من هيئة الغذاء والدواء (SFDA)؟',
     hint: 'فقط للمطاعم والكوفي شوب — يُجدَّد سنوياً وإلا تُوقف الخدمة.',
-    input: { kind: 'date_or_skip', placeholder: 'YYYY-MM-DD', skipLabel: 'تخطى' },
+    input: { kind: 'date_or_skip', placeholder: 'مثال: 2024-03-15 (يوم-شهر-سنة بصيغة ISO)', skipLabel: 'تخطى' },
   },
   op7_employee_count: {
     id: 'op7_employee_count',
@@ -338,7 +338,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     id: 'op8_lease_expiry',
     text: 'متى ينتهي عقد الإيجار؟',
     hint: 'لو الإيجار قارب الانتهاء بنذكّرك قبل ما تصير أزمة — تقدر تتخطى لو ما عندك التاريخ.',
-    input: { kind: 'date_or_skip', placeholder: 'YYYY-MM-DD', skipLabel: 'تخطى' },
+    input: { kind: 'date_or_skip', placeholder: 'مثال: 2024-03-15 (يوم-شهر-سنة بصيغة ISO)', skipLabel: 'تخطى' },
   },
   op9_has_website: {
     id: 'op9_has_website',

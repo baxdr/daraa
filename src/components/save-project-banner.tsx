@@ -44,27 +44,11 @@ export function SaveProjectBanner({
     }
   }
 
-  if (savedEmail) {
-    return (
-      <section className="mb-10 border-s-2 border-accent bg-accent-soft/60 px-6 py-5">
-        <div className="flex flex-wrap items-center gap-3">
-          <span aria-hidden className="text-base">✓</span>
-          <div className="flex-1">
-            <div className="font-display text-sm font-extrabold tracking-tight text-accent-strong">
-              المشروع محفوظ على
-            </div>
-            <div className="mt-0.5 font-mono text-xs text-ink-2" dir="ltr">{savedEmail}</div>
-          </div>
-          <a
-            href="/return"
-            className="text-xs font-semibold text-accent underline decoration-rule decoration-2 underline-offset-4 hover:decoration-accent"
-          >
-            مشاريعي ←
-          </a>
-        </div>
-      </section>
-    );
-  }
+  // Banner only appears to CAPTURE an email. Once one exists (either
+  // because the user just saved it, or because the project loaded with
+  // email already attached), there's no banner — confirmation lives in
+  // the masthead / nav, not duplicated above the dashboard.
+  if (savedEmail) return null;
 
   return (
     <section className="mb-10 border border-rule bg-paper-2/60 px-6 py-5">

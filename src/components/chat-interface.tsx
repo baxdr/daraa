@@ -215,7 +215,11 @@ export function ChatInterface() {
     submitAnswer(freeText, freeText);
   }
   function handleSkipInput() {
-    submitAnswer('__skip__', 'تخطى');
+    // Show the same label the user actually clicked — not a generic "تخطى".
+    // Makes the chat log match their action instead of showing a short "تخطى"
+    // bubble after clicking "تخطى — أبي التقرير بدون فحص الموقع".
+    const label = input?.skipLabel?.trim() || 'تخطى';
+    submitAnswer('__skip__', label);
   }
 
   const progress = computeProgress(turns);
@@ -360,9 +364,13 @@ function FreeInput({
     <form onSubmit={onSubmit} className="flex flex-col gap-2">
       <div className="flex gap-2">
         <input
-          type={isDate ? 'date' : isUrl ? 'url' : 'text'}
-          inputMode={isNumber ? 'text' : 'text'}
-          dir={isUrl || isDate ? 'ltr' : 'rtl'}
+          // type=text for dates — native type=date would force a
+          // browser-locale dd/mm/yyyy picker that contradicts our ISO
+          // validator. Keep the user typing the format we actually accept.
+          type={isUrl ? 'url' : 'text'}
+          inputMode={isNumber ? 'numeric' : isDate ? 'numeric' : 'text'}
+          pattern={isDate ? '\\d{4}-\\d{2}-\\d{2}' : undefined}
+          dir={isUrl || isDate || isNumber ? 'ltr' : 'rtl'}
           aria-label="اكتب ردك"
           className={`flex-1 border border-ink bg-paper px-4 py-3 text-ink placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent ${
             isUrl || isDate ? 'font-mono' : ''
@@ -387,14 +395,31 @@ function FreeInput({
           disabled={submitting}
           className="self-start text-xs text-muted underline decoration-rule decoration-2 underline-offset-4 hover:text-ink hover:decoration-accent disabled:opacity-40"
         >
-          {input.skipLabel} ←
+          {input.skipLabel ?? 'تخطى'} ←
         </button>
       )}
     </form>
   );
 }
 
+/** Expected question count per mode — used for a mode-aware progress bar.
+ *  Establishment: q0 + q_company_name + est1..est6 = 8
+ *  Digital compliance: q0 + q_company_name + q1..q8 (conditional) = up to 10
+ *  Operational: q0 + q_company_name + op1..op10 (conditional) = up to 12
+ *  We take the max for the branch the user is on; fallback = 8 before mode
+ *  is selected. */
+function expectedTurnsForMode(turns: Turn[]): number {
+  // Inspect the earliest user turn — whichever mode button they picked.
+  const first = turns.find((t) => t.role === 'user' && typeof (t as { text: string }).text === 'string');
+  const label = first && 'text' in first ? first.text : '';
+  if (label.includes('شغّال رقمي') || label.includes('PDPL')) return 10;
+  if (label.includes('محل') || label.includes('مطعم') || label.includes('رخصي')) return 12;
+  if (label.includes('مشروع جديد')) return 8;
+  return 8;
+}
+
 function computeProgress(turns: Turn[]): number {
   const userTurns = turns.filter((t) => t.role === 'user').length;
-  return Math.min(100, Math.round((userTurns / 8) * 100));
+  const expected = expectedTurnsForMode(turns);
+  return Math.min(100, Math.round((userTurns / expected) * 100));
 }
