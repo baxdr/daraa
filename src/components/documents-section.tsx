@@ -57,17 +57,30 @@ function DocumentTile({ scanId, rec }: { scanId: string; rec: DocSpec }) {
     if (generating) return;
     setError(null);
     setGenerating(true);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60_000);
     try {
       const res = await fetch('/api/documents/generate', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ scanId, docType: rec.kind }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        setError(`تعذّر توليد المستند (${res.status}) — حاول مجدداً`);
+        return;
+      }
       const data = (await res.json()) as { docId?: string; error?: string };
       if (data.docId) router.push(`/documents/${data.docId}`);
       else setError(data.error ?? 'تعذّر توليد المستند');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'خطأ غير متوقع');
+      clearTimeout(timeoutId);
+      setError(
+        e instanceof Error && e.name === 'AbortError'
+          ? 'انتهت المهلة — خدمة التوليد بطيئة. حاول مجدداً.'
+          : e instanceof Error ? e.message : 'خطأ غير متوقع',
+      );
     } finally {
       setGenerating(false);
     }

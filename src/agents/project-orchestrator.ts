@@ -130,12 +130,20 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
       emit(run, 'scan', 'started', `جاري زيارة ${project.url}…`);
       emit(run, 'scan', 'working', '↳ فحص سياسة الخصوصية + رؤوس الأمان + أدوات التتبع + الفورمز');
 
-      const [privacyPolicy, securityHeaders, thirdParty, dataForms] = await Promise.all([
+      // Promise.allSettled so one scanner's implementation error (not its
+      // own caught errors — those already surface as `{error: ...}`) can't
+      // collapse the whole phase. Each scanner has an empty-result contract
+      // we fall back to if it rejects at the JS level.
+      const [ppRes, shRes, tpRes, fRes] = await Promise.allSettled([
         scanPrivacyPolicy(project.url),
         scanSecurityHeaders(project.url),
         scanThirdParty(project.url),
         scanForms(project.url),
       ]);
+      const privacyPolicy   = ppRes.status === 'fulfilled' ? ppRes.value : { found: false, error: 'scanner_crashed' };
+      const securityHeaders = shRes.status === 'fulfilled' ? shRes.value : { httpsEnforced: false, hsts: false, contentSecurityPolicy: false, xFrameOptions: false, xContentTypeOptionsNoSniff: false, referrerPolicy: false, permissionsPolicy: false, score: 0, finalUrl: project.url, error: 'scanner_crashed' };
+      const thirdParty      = tpRes.status === 'fulfilled' ? tpRes.value : { detected: [], crossBorderCount: 0, categories: { analytics: 0, advertising: 0, chat: 0, marketing: 0, session_replay: 0, other: 0 }, error: 'scanner_crashed' };
+      const dataForms       = fRes.status  === 'fulfilled' ? fRes.value  : { formsFound: 0, results: [], error: 'scanner_crashed' };
       scanResult = {
         url: project.url,
         scannedAt: new Date().toISOString(),
@@ -171,42 +179,60 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
 
     if (mode === 'compliance') {
       emit(run, 'analysis', 'started', 'جاري مقارنة وضع شركتك مع القواعد…');
-      const baseAnalysis = runAnalysis({ answers, scan: scanResult });
-      emit(
-        run,
-        'analysis',
-        'completed',
-        `اكتمل التحليل — نسبة الامتثال ${baseAnalysis.complianceScore}٪، وعدد الفجوات ${baseAnalysis.gaps.length}.`,
-      );
+      try {
+        const baseAnalysis = runAnalysis({ answers, scan: scanResult });
+        emit(
+          run,
+          'analysis',
+          'completed',
+          `اكتمل التحليل — نسبة الامتثال ${baseAnalysis.complianceScore}٪، وعدد الفجوات ${baseAnalysis.gaps.length}.`,
+        );
 
-      let analysis = baseAnalysis;
-      if (baseAnalysis.gaps.length > 0) {
-        emit(run, 'analysis', 'working', 'جاري تخصيص شرح الفجوات ببيانات شركتكم…');
-        const personalizedGaps = await personalizeGaps(answers, baseAnalysis.gaps);
-        analysis = { ...baseAnalysis, gaps: personalizedGaps };
-      }
+        let analysis = baseAnalysis;
+        if (baseAnalysis.gaps.length > 0) {
+          emit(run, 'analysis', 'working', 'جاري تخصيص شرح الفجوات ببيانات شركتكم…');
+          try {
+            analysis = { ...baseAnalysis, gaps: await personalizeGaps(answers, baseAnalysis.gaps) };
+          } catch (err) {
+            // Personalisation is pure polish — failure here should not lose
+            // the underlying analysis. Keep the base-rule copy.
+            console.warn('[orchestrator] personalizeGaps failed:', err instanceof Error ? err.message : err);
+          }
+        }
 
-      send(run, {
-        from: 'analysis',
-        to: 'report',
-        type: 'data_share',
-        messageAr:
-          `نتيجة نهائية — ${analysis.complianceScore}٪ التزام، ${analysis.gaps.length} فجوات، ` +
-          `${analysis.totalFineCeilingSar.toLocaleString('en-US')} ريال سقف غرامات.`,
-        payload: {
+        send(run, {
+          from: 'analysis',
+          to: 'report',
+          type: 'data_share',
+          messageAr:
+            `نتيجة نهائية — ${analysis.complianceScore}٪ التزام، ${analysis.gaps.length} فجوات، ` +
+            `${analysis.totalFineCeilingSar.toLocaleString('en-US')} ريال سقف غرامات.`,
+          payload: {
+            complianceScore: analysis.complianceScore,
+            gapCount: analysis.gaps.length,
+            fineCeiling: analysis.totalFineCeilingSar,
+          },
+        });
+
+        updateProject(projectId, {
+          scanResult: scanResult ?? undefined,
+          analysis,
           complianceScore: analysis.complianceScore,
-          gapCount: analysis.gaps.length,
-          fineCeiling: analysis.totalFineCeilingSar,
-        },
-      });
-
-      updateProject(projectId, {
-        scanResult: scanResult ?? undefined,
-        analysis,
-        complianceScore: analysis.complianceScore,
-        totalFineCeilingSar: analysis.totalFineCeilingSar,
-        gaps: analysis.gaps,
-      });
+          totalFineCeilingSar: analysis.totalFineCeilingSar,
+          gaps: analysis.gaps,
+        });
+      } catch (err) {
+        // Analysis blew up — surface the failure on the timeline but keep
+        // going so the user still gets the entities + roadmap below.
+        console.error('[orchestrator] runAnalysis failed:', err instanceof Error ? err.message : err);
+        emit(run, 'analysis', 'error', 'تعذّر إجراء تحليل الامتثال — عرضنا باقي النتائج.');
+        updateProject(projectId, {
+          scanResult: scanResult ?? undefined,
+          complianceScore: 0,
+          totalFineCeilingSar: 0,
+          gaps: [],
+        });
+      }
     }
 
     /* ---------------------------------------------------------------

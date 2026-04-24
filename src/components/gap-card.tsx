@@ -48,17 +48,31 @@ export function GapCard({ gap, scanId, index }: { gap: Gap; scanId: string; inde
     if (!docType || generating) return;
     setGenError(null);
     setGenerating(true);
+    const controller = new AbortController();
+    // 60s — Claude document generation is the slowest call in the app.
+    const timeoutId = setTimeout(() => controller.abort(), 60_000);
     try {
       const res = await fetch('/api/documents/generate', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ scanId, docType }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        setGenError(`تعذّر توليد المستند (${res.status}) — حاول مجدداً`);
+        return;
+      }
       const data = (await res.json()) as { docId?: string; error?: string };
       if (data.docId) router.push(`/documents/${data.docId}`);
       else setGenError(data.error ?? 'تعذّر توليد المستند');
     } catch (e) {
-      setGenError(e instanceof Error ? e.message : 'خطأ غير متوقع');
+      clearTimeout(timeoutId);
+      setGenError(
+        e instanceof Error && e.name === 'AbortError'
+          ? 'انتهت المهلة — خدمة التوليد بطيئة. حاول مجدداً.'
+          : e instanceof Error ? e.message : 'خطأ غير متوقع',
+      );
     } finally {
       setGenerating(false);
     }

@@ -63,31 +63,43 @@ export function ChatInterface() {
   const [done, setDone] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  const [startRetry, setStartRetry] = useState(0);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15_000);
       try {
         const body = continueFrom ? { continueFromProjectId: continueFrom } : {};
         const res = await fetch('/api/chat/start', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify(body),
+          signal: controller.signal,
         });
-        if (!res.ok) throw new Error('تعذّر بدء المحادثة');
+        clearTimeout(timeoutId);
+        if (!res.ok) throw new Error('تعذّر بدء المحادثة — تحقّق من الخادم');
         const data = (await res.json()) as StartResponse;
         if (cancelled) return;
         setSessionId(data.sessionId);
         setTurns([{ role: 'agent', message: data.agentMessage }]);
         setSuggestions(data.suggestions ?? []);
         setInput(data.input);
+        setError(null);
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'خطأ غير متوقع');
+        clearTimeout(timeoutId);
+        if (cancelled) return;
+        const msg = e instanceof Error && e.name === 'AbortError'
+          ? 'انتهت المهلة — الخادم بطيء، حاول مجدداً'
+          : e instanceof Error ? e.message : 'خطأ غير متوقع';
+        setError(msg);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [continueFrom]);
+  }, [continueFrom, startRetry]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -97,23 +109,51 @@ export function ChatInterface() {
     if (!sessionId || submitting) return;
     const trimmed = rawAnswer.trim();
     if (!trimmed) return;
+    const snapshotSuggestions = suggestions;
+    const snapshotInput = input;
     setError(null);
     setSubmitting(true);
     setTurns((t) => [...t, { role: 'user', text: displayText }]);
     setFreeText('');
     setSuggestions([]);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
     try {
       const res = await fetch('/api/chat/message', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ sessionId, answer: trimmed }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        // Server error (500, 429, etc.) — surface a friendly message AND
+        // restore the user's turn + typed text so they can retry without
+        // retyping. The server's own error JSON (if any) takes priority.
+        let serverMsg: string | undefined;
+        try {
+          const body = await res.json() as { error?: string };
+          serverMsg = body.error;
+        } catch { /* non-JSON body */ }
+        setError(serverMsg ?? `تعذّر الاتصال (${res.status}) — حاول مرة أخرى`);
+        setTurns((t) => t.slice(0, -1));
+        setFreeText(displayText);
+        setSuggestions(snapshotSuggestions);
+        setInput(snapshotInput);
+        return;
+      }
+
       const data = (await res.json()) as MessageResponse;
 
       if (data.error) {
         setError(data.error);
         setTurns((t) => t.slice(0, -1));
+        setFreeText(displayText);
+        setSuggestions(snapshotSuggestions);
+        setInput(snapshotInput);
         return;
       }
 
@@ -129,12 +169,19 @@ export function ChatInterface() {
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ sessionId }),
         });
+        if (!res2.ok) {
+          const msg = res2.status === 429
+            ? 'تجاوزت الحد المسموح — انتظر دقيقة وحاول.'
+            : `تعذّر بدء المشروع (${res2.status})`;
+          setError(msg);
+          setDone(false);
+          setInput({ kind: 'text', placeholder: 'اكتب جوابك' });
+          return;
+        }
         const body = (await res2.json()) as { projectId?: string; error?: string };
         if (body.projectId) {
           router.push(`/project/${body.projectId}/agents`);
         } else {
-          // Project creation refused — surface the reason and re-enable the
-          // chat input so the user can answer the still-missing field.
           setError(body.error ?? 'تعذّر بدء الخطوة التالية');
           setDone(false);
           setInput({ kind: 'text', placeholder: 'اكتب جوابك' });
@@ -145,8 +192,15 @@ export function ChatInterface() {
       setSuggestions(data.suggestions ?? []);
       setInput(data.input ?? { kind: 'text', placeholder: 'اكتب جوابك' });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'خطأ غير متوقع');
+      clearTimeout(timeoutId);
+      const msg = e instanceof Error && e.name === 'AbortError'
+        ? 'انتهت المهلة — الخادم بطيء. حاول مجدداً.'
+        : e instanceof Error ? e.message : 'خطأ غير متوقع';
+      setError(msg);
       setTurns((t) => t.slice(0, -1));
+      setFreeText(displayText);
+      setSuggestions(snapshotSuggestions);
+      setInput(snapshotInput);
     } finally {
       setSubmitting(false);
     }
@@ -225,9 +279,18 @@ export function ChatInterface() {
           <div
             role="alert"
             aria-live="assertive"
-            className="mb-3 flex items-start gap-2 border-s-2 border-danger bg-danger/5 px-3 py-2 text-sm text-danger"
+            className="mb-3 flex items-start justify-between gap-3 border-s-2 border-danger bg-danger/5 px-3 py-2 text-sm text-danger"
           >
-            <span>{error}</span>
+            <span className="flex-1">{error}</span>
+            {!sessionId && (
+              <button
+                type="button"
+                onClick={() => { setError(null); setStartRetry((n) => n + 1); }}
+                className="shrink-0 border border-danger px-2 py-0.5 text-xs font-semibold text-danger hover:bg-danger hover:text-paper"
+              >
+                حاول مجدداً
+              </button>
+            )}
           </div>
         )}
 

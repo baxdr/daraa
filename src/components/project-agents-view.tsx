@@ -49,25 +49,37 @@ export function ProjectAgentsView({ projectId }: { projectId: string }) {
     return () => clearInterval(id);
   }, [status]);
 
+  const [stalled, setStalled] = useState(false);
+
   useEffect(() => {
     cancelledRef.current = false;
     startedAtRef.current = Date.now();
     let attempts = 0;
+    let consecutiveFailures = 0;
     const MAX_ATTEMPTS = 180;
+    const MAX_CONSECUTIVE_FAILURES = 5;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     async function poll() {
       if (cancelledRef.current) return;
       attempts += 1;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8_000);
       try {
-        const res = await fetch(`/api/project/${projectId}`, { cache: 'no-store' });
-        if (!res.ok) throw new Error('فشل التواصل مع الخادم');
+        const res = await fetch(`/api/project/${projectId}`, {
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = (await res.json()) as {
           status: string; mode: string; companyName?: string;
           activities: AgentActivity[]; messages: AgentMessage[];
           errorMessage?: string | null;
         };
         if (cancelledRef.current) return;
+        consecutiveFailures = 0;
+        setError(null);
         setActivities(data.activities ?? []);
         setMessages(data.messages ?? []);
         setStatus(data.status);
@@ -85,13 +97,25 @@ export function ProjectAgentsView({ projectId }: { projectId: string }) {
           return;
         }
         if (attempts >= MAX_ATTEMPTS) {
-          setError('استغرق التحضير وقت أطول من اللازم.');
+          setStalled(true);
           return;
         }
         timer = setTimeout(poll, 500);
       } catch (e) {
+        clearTimeout(timeoutId);
         if (cancelledRef.current) return;
-        setError(e instanceof Error ? e.message : 'خطأ غير متوقع');
+        consecutiveFailures += 1;
+        if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+          setError(
+            e instanceof Error && e.name === 'AbortError'
+              ? 'انقطاع اتصال — الخادم لا يستجيب.'
+              : 'تعذّر الاتصال بالخادم بعد عدة محاولات.',
+          );
+          return;
+        }
+        // Transient failure — retry with exponential backoff (1s, 2s, 4s, ...).
+        const delay = Math.min(8_000, 1_000 * 2 ** (consecutiveFailures - 1));
+        timer = setTimeout(poll, delay);
       }
     }
 
@@ -196,8 +220,49 @@ export function ProjectAgentsView({ projectId }: { projectId: string }) {
       </section>
 
       {error && (
-        <div className="mt-8 border-s-2 border-danger bg-danger/5 px-4 py-3 text-sm text-danger">
-          {error}
+        <div className="mt-8 border-s-2 border-danger bg-danger/5 px-4 py-4">
+          <p className="text-sm text-danger">{error}</p>
+          <div className="mt-3 flex flex-wrap gap-3 text-xs">
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="border border-ink bg-paper px-3 py-1.5 font-semibold text-ink hover:bg-ink hover:text-paper"
+            >
+              حاول مجدداً
+            </button>
+            <Link
+              href={`/project/${projectId}`}
+              className="border border-rule bg-white px-3 py-1.5 font-semibold text-ink-2 hover:border-ink hover:text-ink"
+            >
+              اذهب للتقرير كما هو
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {stalled && !error && (
+        <div className="mt-8 border-s-2 border-warn bg-warn-soft/70 px-4 py-4">
+          <p className="text-sm text-ink">
+            استغرق التحضير وقتاً أطول من المعتاد. غالباً التقرير جاهز — جرّب تفتحه مباشرة.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-3 text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setStalled(false);
+                window.location.reload();
+              }}
+              className="border border-ink bg-paper px-3 py-1.5 font-semibold text-ink hover:bg-ink hover:text-paper"
+            >
+              تحقق من الحالة
+            </button>
+            <Link
+              href={`/project/${projectId}`}
+              className="border border-rule bg-white px-3 py-1.5 font-semibold text-ink-2 hover:border-ink hover:text-ink"
+            >
+              افتح التقرير ←
+            </Link>
+          </div>
         </div>
       )}
 
