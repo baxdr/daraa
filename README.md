@@ -1,132 +1,312 @@
-# درع — Daraa
+# درع — DARAA
+### Saudi Business Formation & Compliance Intelligence
 
-Saudi establishment and compliance advisor. Next.js 14 App Router, full RTL Arabic.
+<div dir="rtl">
 
-Full architecture: [DESIGN.md](./DESIGN.md).
+> مستشار ذكاء اصطناعي متعدد الوكلاء يرتّب لك الجهات الحكومية بالتسلسل الصحيح، يفحص موقعك ضد أنظمة حماية البيانات، ويُجهّز مستنداتك الرسمية — من أول فكرة لآخر تجديد.
 
----
-
-## Quick start
-
-```bash
-cp .env.example .env.local   # fill in ANTHROPIC_API_KEY
-npm install
-npm run dev
-```
-
-Without `ANTHROPIC_API_KEY` the app still runs — scanners fall back to surface-level signals, document generation falls back to local templates.
+</div>
 
 ---
 
-## Environment
+## Overview
 
-| Var | Required | Purpose |
-|-----|----------|---------|
-| `ANTHROPIC_API_KEY` | recommended | Claude-powered paths: privacy-policy deep analysis, document generation, research agent |
-| `NEXT_PUBLIC_SUPABASE_URL` / `_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` | no | Reserved for persistence. MVP uses in-process stores |
-| `BROWSERLESS_URL` | no | Reserved for cookie-consent scanner |
+**DARAA** is an Arabic-first, multi-agent AI platform built for the Saudi market. It solves two problems that every Saudi business owner faces:
 
----
+1. **Formation** — Navigating 7–15 government entities (Ministry of Commerce, Civil Defense, Municipality, SFDA, ZATCA, MOHR, GOSI...) in the correct sequence, with the right documents, without missing critical dependencies.
 
-## Deploy to Vercel
+2. **Compliance** — Understanding and fixing gaps against Saudi PDPL (Personal Data Protection Law), NCA ECC cybersecurity controls, and ZATCA e-invoicing requirements — before inspectors arrive.
 
-```bash
-npm install -g vercel
-vercel login
-vercel --prod
-```
-
-In Vercel → Project → Settings → Environment Variables, add `ANTHROPIC_API_KEY`, then redeploy.
-
-Vercel Pro (60s function timeout) is required — Hobby tier's 10s limit truncates scans mid-pipeline. For production, replace fire-and-forget with a queue (Inngest or Supabase Edge Functions).
-
----
-
-## Demo
-
-### Nova Tech (prepared scenario)
-
-Fictional site at `/demo/novatech/` with deliberate gaps: trackers loaded pre-consent, English-only policy, no security headers. Expected result: ~7 gaps, ~2 M SAR fine ceiling, 4 trackers detected.
-
-### Live-test backup URLs
-
-| URL | Vertical | Signal |
-|-----|----------|--------|
-| `https://jahez.net` | Food delivery | No privacy page, ~2 M SAR |
-| `https://tamara.co` | Fintech BNPL | English-only policy |
-| `https://stc.com.sa` | Telecom | English-only policy |
-| `https://hungerstation.com` | Food delivery | ~81% score (passing path) |
-
-Skip `noon.com` — rate-limits the scanner.
-
-### Establishment path (restaurant)
-
-Pick "أبي أفتح مشروع جديد" → مطعم → الرياض → 2 → 80000 → لا → لقينا محل ولم نوقّع العقد. The result page renders the "احذر قبل التوقيع" banner with a link to `balady.gov.sa`.
-
-Full runbook: [docs/DEMO-RUNBOOK.md](./docs/DEMO-RUNBOOK.md).
+**Built for Agenticthon 2026** — covering all three tracks: Process Automation · Multi-Agent Systems · Agent-to-Agent (A2A) Communication.
 
 ---
 
 ## Architecture
 
+### Agent System
+
 ```
-Chat (deterministic state machine, LLM wrapper text only)
-  │
-  ├─ mode = compliance ─▶ POST /api/scan/start ─▶ orchestrator ─▶ /scan/[id]
-  │                          └─ research + 3 scanners + analysis
-  │
-  └─ mode = establishment ─▶ POST /api/establishment/resolve ─▶ /establishment/[id]
-                                └─ research + 7 entity specialists + report
-
-Report ─▶ Documents section ─▶ POST /api/documents/generate ─▶ /documents/[id]
+┌─────────────────────────────────────────────────────────────┐
+│                Coordination Layer (8 agents)                 │
+│                                                              │
+│   Orchestrator · Chat · Research · Scan                      │
+│   Analysis · Report · Document · Regulatory (reserved)       │
+└──────────────────────────┬──────────────────────────────────┘
+                           │  Wave Scheduler + AgentBus
+┌──────────────────────────▼──────────────────────────────────┐
+│                 Specialist Layer (11 agents)                 │
+│                                                              │
+│  MCI · ZATCA · ZATCA E-Invoice · MOHR+GOSI · Civil Defense   │
+│  Municipality · SFDA · MOH · PDPL+NCA · Maroof · Contractor  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-Three LLM agents: chat, research, document.
-Seven deterministic entity specialists on the A2A bus: mci, municipality, civil_defense, sfda, mohr_gosi, zatca, pdpl_nca.
-Two coordination agents: orchestrator, report.
+### True A2A Communication
 
-In-process stores on `globalThis`. Swap in the Supabase schema from [supabase/migrations/](./supabase/migrations/) when persistence is needed.
+Agents communicate via a real message bus — not UI theatre. The wave scheduler runs agents in dependency order; each agent reads its inbox and changes behaviour based on received payloads.
 
----
-
-## What's real vs mocked
-
-| Capability | Status |
-|-----------|--------|
-| Privacy-policy scanning (find, fetch, analyse) | real |
-| Security header check (HEAD request) | real |
-| Third-party tracker detection (22 known domains) | real |
-| Cookie-consent detection | not implemented (needs headless browser) |
-| Live agent timeline + A2A messages | real |
-| PDPL rule evaluation | real (deterministic) |
-| Four generated documents (policy / DPO / register / incident) | real (Claude + local fallback) |
-| Restaurant establishment roadmap | real |
-| Tech / Ecommerce establishment | partial — baseline + PDPL readiness |
-| Salon / Construction verticals | stubbed ("قريباً") |
-| Renewal tracker | UI mockup only ("قريباً") |
-
----
-
-## Security posture
-
-- SSRF guard on every scanner fetch (blocks private ranges, file://, non-80/443 ports, revalidates each redirect hop, 2 MB response cap)
-- Rate limiting on all public POST endpoints (in-memory, IP-bucketed)
-- Security headers via `next.config.mjs`: HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
-- Scan and plan IDs are bearer tokens (no auth in MVP) — treat them as capability URLs, rotate by letting the 1-hour TTL expire
-
----
-
-## Tests
+**Example:** `CivilDefenseAgent` emits `{ hasKitchen: true }` → `MunicipalityAgent` reads this from its inbox and adds "Commercial Kitchen License" to its requirements. Without that message, the requirement never appears.
 
 ```bash
-npm run dev            # in one terminal
-./scripts/smoke.sh     # in another — 28 end-to-end checks
+npm run test:agents
 ```
 
-CI: typecheck + lint + build on push/PR, via [.github/workflows/ci.yml](./.github/workflows/ci.yml).
+Output shows `municipality → blocked (wave 1)` then `municipality → complete (wave 3)` — after receiving the civil_defense message.
+
+### Two Modes, One Platform
+
+```
+User enters chat
+      │
+      ├─ "أبي أفتح مشروع جديد"  ──► Formation Mode
+      │                                 Roadmap · Costs · Documents
+      │                                 ↓
+      └─ "عندي مشروع شغّال"    ──► Compliance Mode
+                                        PDPL Scan · Gap Report · Fixes
+```
+
+The same 11 specialist agents run in both modes — `establishment` mode returns requirements and costs; `compliance` mode returns current status and gaps.
 
 ---
 
-## Legal
+## Key Features
 
-Advisory tool. Regulatory citations, costs, and timelines are approximate. Verify against the official source (SDAIA, MCI, MOL, Balady, SFDA, NCA) before relying on any output.
+### 🧠 Intelligent Arabic Conversation
+Claude Sonnet drives the chat — understands free-form Gulf Arabic input, extracts **up to 10 structured fields (mode-dependent)** from a single sentence, explains every technical term inline with Saudi-specific analogies.
+
+```
+Input:  "ودي أفتح كوفي بجدة أنا وشريك، رأس المال ٨٠ ألف، كلنا سعوديين"
+Output: vertical=restaurant · city=jeddah · partners=2 · capital=80000 · foreignPartner=false
+```
+
+Remaining required fields (company name, lease status) are asked in one or two follow-up turns.
+
+> ⚠️ **Requires `ANTHROPIC_API_KEY` in `.env.local`** for free-text extraction. Without it, the chat falls back to button-only mode — buttons still work but free typing is not parsed.
+
+### 🔍 Live Website Scanner
+Four parallel scanners run against any public URL after the chat completes:
+
+| Scanner | What it checks |
+|---------|---------------|
+| Privacy Policy | Existence · Arabic version · PDPL signals (8 checks) |
+| Security Headers | HSTS · CSP · X-Frame-Options · Referrer-Policy |
+| Third-Party Trackers | 21 known domains (Google Analytics, FB Pixel, Hotjar...) |
+| Data Forms | PII fields without consent checkbox or privacy link |
+
+All requests go through an SSRF guard — private IPs, metadata endpoints, and redirect chains are rejected.
+
+### 📋 Auto-Generated Legal Documents
+Four document types, generated by Claude Sonnet with company-specific context:
+
+- **سياسة الخصوصية** — Privacy Policy (11 sections, PDPL-compliant, Arabic)
+- **تعيين DPO** — Data Protection Officer Appointment Letter
+- **سجل المعالجة** — Data Processing Register
+- **خطة الاستجابة** — Incident Response Plan
+
+All documents render as A4 print-ready pages. `window.print()` → correct Arabic PDF shaping.
+
+### 🔄 Formation → Compliance Transition
+After completing the formation roadmap, a single CTA carries the user into compliance mode — company name, city, and activity type are preserved. No re-entry.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 14 (App Router) + TypeScript strict |
+| UI | Tailwind CSS — Modernist Arabic Editorial system |
+| Fonts | Almarai (headings) · IBM Plex Sans Arabic (body) · JetBrains Mono (numerals) |
+| AI | Anthropic SDK — `claude-sonnet-4-6` |
+| HTML Parsing | Cheerio |
+| Validation | Zod on every API endpoint |
+| State | In-memory Maps (globalThis) · 1-hour TTL |
+| PDF | `window.print()` + print CSS |
+| Deploy | Vercel |
+
+---
+
+## What Uses Claude vs What Doesn't
+
+| Uses Claude | Deterministic |
+|------------|---------------|
+| Free-form Arabic chat extraction | All 11 specialist agents |
+| Question bridge sentences | AgentBus + wave scheduler |
+| Web search for regulatory updates | PDPL rule evaluation |
+| Privacy policy text analysis | Security/tracker/form scanners |
+| Document generation (with fallback) | Fine ceiling calculations |
+| Gap explanation personalisation | Roadmap & renewal scheduling |
+| Trade-name availability check (web search) | |
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+
+- An Anthropic API key ([console.anthropic.com](https://console.anthropic.com))
+
+### Installation
+
+```bash
+git clone https://github.com/your-username/daraa
+cd daraa
+npm install
+```
+
+### Configuration
+
+```bash
+cp .env.example .env.local
+# Add your ANTHROPIC_API_KEY to .env.local
+```
+
+### Build & Run
+
+```bash
+npm run precompute     # compute Nova Tech stats for the landing page
+npm run dev            # opens at http://localhost:3333
+```
+
+For production:
+```bash
+npm run precompute
+npm run build
+npm run start
+```
+
+### Testing
+
+```bash
+# Agent runtime (A2A proof-of-blocking)
+npm run test:agents
+
+# Form scanner (runs against bundled Nova Tech HTML)
+npm run test:forms
+
+# Full end-to-end (28 assertions — needs server running)
+npm run test:smoke
+
+# TypeScript
+npm run typecheck
+```
+
+---
+
+## Demo
+
+> Set `ANTHROPIC_API_KEY` in `.env.local` before the demo. The free-text
+> extraction below doesn't work without it.
+
+### Try the Formation Flow
+1. Click "ابدأ الاستشارة المجانية"
+2. Type in Arabic: `"ودي أفتح كوفي بجدة أنا وشريك رأس مال ٨٠ ألف"`
+3. Watch Claude extract 5 fields from one sentence
+4. Answer the follow-up for company name and lease status
+5. See agents run in waves with live A2A messages
+6. Get a full roadmap with costs, requirements, and smart warnings
+
+### Try the Compliance Flow
+1. Select "عندي مشروع شغّال"
+2. Answer questions about your company
+3. Provide a website URL (or use a public one from the list below)
+4. Get a compliance score, gap analysis, and ready-to-use documents
+
+### Demo Site
+`/demo/novatech/` — a deliberately flawed Saudi tech company website with:
+- Privacy policy in English only (missing PDPL signals)
+- 3 third-party trackers loading without consent
+- Contact form with no consent checkbox
+- Missing security headers
+
+**Expected baseline:** ~32% compliance · 6 gaps · 2 M SAR fine ceiling.
+
+> *Numbers come from `npm run precompute` — it simulates a "bare static
+> hosting" security-header profile. A live scan of `/demo/novatech/` on
+> localhost would score higher because the Next.js dev server attaches
+> strict CSP/HSTS on every response, which Nova Tech wouldn't have in a
+> realistic shared-hosting deployment. The precompute reflects the
+> latter.*
+
+---
+
+## Project Structure
+
+```
+daraa/
+├── src/
+│   ├── agents/
+│   │   ├── runtime/
+│   │   │   ├── agent-bus.ts           # Real A2A message bus
+│   │   │   └── orchestrator-runtime.ts # Wave scheduler
+│   │   ├── specialists/               # 11 entity agents
+│   │   │   ├── mci-agent.ts
+│   │   │   ├── municipality-agent.ts
+│   │   │   ├── civil-defense-agent.ts
+│   │   │   └── ...
+│   │   ├── chat-agent.ts              # Claude-driven conversation
+│   │   ├── research-agent.ts          # Web search for updates
+│   │   ├── name-check.ts              # Trade-name web search
+│   │   ├── document-agent.ts          # Document generation
+│   │   └── analysis-agent.ts          # PDPL rule evaluator
+│   ├── scanner/
+│   │   ├── privacy-policy.ts          # Claude + Cheerio
+│   │   ├── security-headers.ts        # HTTP HEAD analysis
+│   │   ├── third-party.ts             # 21 tracker domains
+│   │   └── forms.ts                   # PII form detection
+│   ├── knowledge/
+│   │   ├── entities.ts                # Government entity database
+│   │   ├── pdpl.ts                    # PDPL rules + fine ceilings
+│   │   └── terms.ts                   # Arabic term explanations
+│   ├── data/
+│   │   └── nova-tech-stats.json       # Precomputed demo numbers
+│   └── app/
+│       ├── chat/                      # Conversation interface
+│       ├── project/[projectId]/       # Unified dashboard
+│       └── documents/[docId]/         # Document viewer
+├── public/
+│   └── demo/novatech/                 # Deliberately flawed demo site
+└── scripts/
+    ├── test-agent-runtime.ts          # A2A proof of concept
+    ├── test-form-scanner.ts           # Form scanner unit test
+    ├── precompute-nova-stats.ts       # Pre-compute demo stats
+    └── smoke.sh                       # 28 E2E assertions
+```
+
+---
+
+## Honest Limitations
+
+This is a hackathon MVP. Before production:
+
+- **No persistence** — sessions expire after 1 hour. Supabase schema is written (`supabase/migrations/`) but not connected.
+- **No authentication** — anyone with a project URL can view it.
+- **Regulatory figures** — fine ceiling numbers are conservative placeholders sourced from published PDPL text. They need legal review before being presented as definitive.
+- **Form scanner** — Cheerio-only; dynamically rendered React forms (client-side JS) are not detected.
+- **No government APIs** — `mc.gov.sa` and `maroof.sa` don't offer public APIs. Trade-name checks use Claude `web_search` with an "استرشادية" disclaimer; the real definitive check still happens on the official portal at submission time.
+
+---
+
+## Tracks Covered
+
+| Track | How |
+|-------|-----|
+| **Process Automation** | Full government formation pipeline — 7–15 entities, correct sequence, dependencies enforced |
+| **Multi-Agent Systems** | 11 specialist agents + 8 coordination agents, wave scheduler, inbox-based routing |
+| **Agent-to-Agent (A2A)** | Real AgentBus — messages carry payloads that change receiving agent behaviour at runtime |
+
+---
+
+## License
+
+MIT — see [LICENSE](./LICENSE).
+
+---
+
+<div align="center">
+
+**درع** · Built for Agenticthon 2026 · Saudi Arabia 🇸🇦
+
+*أداة استرشادية — لا تغني عن الاستشارة القانونية*
+
+</div>
