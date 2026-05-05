@@ -31,9 +31,15 @@ export function ActiveMonitoringPanel({ renewals, totalEntities }: ActiveMonitor
           </h2>
         </div>
         <div className="rule mb-6" />
-        <p className="border border-rule bg-paper-2 px-6 py-6 text-sm text-ink-2">
-          ما فيه رخص تتطلب تجديداً دورياً لهذا المشروع.
-        </p>
+        <div className="border border-accent/20 bg-accent-soft px-6 py-10 text-center rounded-md">
+          <div className="text-4xl mb-3" aria-hidden>✓</div>
+          <h3 className="font-display text-lg font-extrabold text-accent-strong">
+            لا توجد رخص تحتاج تجديد دوري
+          </h3>
+          <p className="mt-3 text-sm text-ink-2">
+            جميع الجهات اللي تحتاج رخص دورية — ما فيه إجراءات عاجلة حالياً.
+          </p>
+        </div>
       </section>
     );
   }
@@ -117,15 +123,34 @@ function RenewalRow({ renewal: r }: { renewal: RenewalEntry }) {
   });
 
   return (
-    <li className="grid grid-cols-[6px_1fr] overflow-hidden border border-rule bg-white">
-      <div className={style.bar} aria-hidden />
+    <li
+      className="grid grid-cols-[6px_1fr] overflow-hidden border border-rule bg-white"
+      role="region"
+      aria-label={`${r.nameSimpleAr} - ${style.label}`}
+    >
+      <div
+        className={style.bar}
+        aria-hidden
+        title={style.label}
+      />
       <div className="px-5 py-4">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className={`shrink-0 font-mono text-[10px] font-bold tracking-widest ${style.label}`}>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold tracking-widest border ${
+                  r.urgency === 'overdue' || r.urgency === 'urgent' ? 'bg-danger/10 border-danger/40 text-danger' :
+                  r.urgency === 'soon' ? 'bg-warn-soft border-warn/40 text-warn-strong' :
+                  r.urgency === 'notice' ? 'bg-warn/10 border-warn/30 text-warn-strong' :
+                  'bg-accent-soft border-accent/30 text-accent-strong'
+                }`}
+                role="status"
+                aria-label={style.label}
+                title={r.urgency === 'overdue' ? 'متأخر عن موعد التجديد — جدّد فوراً' : r.urgency === 'urgent' ? 'عاجل جداً — ابدأ الإجراءات الآن' : r.urgency === 'soon' ? 'سيأتي قريباً — خطّط الآن' : r.urgency === 'notice' ? 'للتذكير — خطّط مبكراً' : 'سارية وآمنة'}
+              >
+                <span aria-hidden className="w-2 h-2 rounded-full bg-current" />
                 {style.icon}
-              </span>
+              </div>
               <h3 className="font-display text-lg font-extrabold leading-tight tracking-tight text-ink">
                 {r.nameSimpleAr}
               </h3>
@@ -140,7 +165,7 @@ function RenewalRow({ renewal: r }: { renewal: RenewalEntry }) {
             <div className={`font-display text-2xl font-extrabold tabular-nums leading-none ${style.numColor}`}>
               {r.daysRemaining < 0 ? `-${Math.abs(r.daysRemaining)}` : r.daysRemaining}
             </div>
-            <div className="mt-0.5 text-[11px] text-muted">يوم</div>
+            <div className="mt-0.5 text-[11px] text-muted">يوم متبقي</div>
           </div>
         </div>
         {r.urgency !== 'ok' && r.officialUrl && (

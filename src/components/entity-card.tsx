@@ -226,7 +226,12 @@ function NameCheckPanel({ check }: { check: NameCheckResult }) {
 function EntityStatusPill({ entity }: { entity: import('@/knowledge/entities').GovEntity }) {
   if (entity.criticalWarningAr) {
     return (
-      <span className="inline-flex items-center gap-1 border border-warn/40 bg-warn-soft px-2 py-0.5 text-[11px] font-bold text-warn-strong">
+      <span
+        className="inline-flex items-center gap-1 border border-warn/40 bg-warn-soft px-2 py-0.5 text-[11px] font-bold text-warn-strong"
+        role="status"
+        aria-label="تحذير مهم"
+        title={entity.criticalWarningAr}
+      >
         <span aria-hidden>⚠</span>
         <span>تحذير — اقرأ قبل التقديم</span>
       </span>
@@ -234,14 +239,23 @@ function EntityStatusPill({ entity }: { entity: import('@/knowledge/entities').G
   }
   if (entity.commonMistakeAr) {
     return (
-      <span className="inline-flex items-center gap-1 border border-rule bg-paper-2 px-2 py-0.5 text-[11px] font-semibold text-ink-2">
+      <span
+        className="inline-flex items-center gap-1 border border-rule bg-paper-2 px-2 py-0.5 text-[11px] font-semibold text-ink-2"
+        role="status"
+        aria-label="نقطة شائعة للخطأ"
+        title={entity.commonMistakeAr}
+      >
         <span aria-hidden>ℹ</span>
         <span>نقطة شائعة للخطأ</span>
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 border border-accent/30 bg-accent-soft px-2 py-0.5 text-[11px] font-bold text-accent-strong">
+    <span
+      className="inline-flex items-center gap-1 border border-accent/30 bg-accent-soft px-2 py-0.5 text-[11px] font-bold text-accent-strong"
+      role="status"
+      aria-label="جاهزة للبدء"
+    >
       <span aria-hidden>✓</span>
       <span>جاهزة للبدء</span>
     </span>

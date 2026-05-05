@@ -82,22 +82,43 @@ export function GapCard({ gap, scanId, index }: { gap: Gap; scanId: string; inde
     <article
       className="grid grid-cols-[6px_1fr] overflow-hidden border border-rule bg-white animate-fade-rise"
       style={{ animationDelay: `${Math.min(index, 6) * 80}ms` }}
+      role="region"
+      aria-label={`فجوة ${index + 1}: ${gap.titleAr}`}
     >
       {/* Severity bar — full-height, unmissable */}
-      <div className={`${style.bar}`} aria-hidden />
+      <div
+        className={`${style.bar}`}
+        aria-hidden
+        title={`الشدة: ${style.labelAr}`}
+      />
 
       <div className="px-5 py-5 md:px-6">
         {/* Metadata row: index, severity label, confidence tag */}
         <div className="flex items-baseline justify-between gap-4">
-          <div className="flex items-baseline gap-3">
+          <div className="flex items-baseline gap-3 flex-wrap">
             <span className="font-mono text-xs tabular-nums text-muted">
               {String(index + 1).padStart(2, '0')}
             </span>
-            <span className={`text-[11px] font-bold tracking-widest ${style.labelColor}`}>
-              · {style.labelAr}
-            </span>
+            <div
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold tracking-widest border ${
+                gap.severity === 'critical' ? 'bg-danger/10 border-danger/40 text-danger' :
+                gap.severity === 'medium' ? 'bg-warn-soft border-warn/40 text-warn-strong' :
+                'bg-paper-2 border-rule text-ink-2'
+              }`}
+              role="status"
+              aria-label={`الشدة: ${style.labelAr}`}
+              title={gap.severity === 'critical' ? 'فجوة حرجة تحتاج تصحيح فوري' : gap.severity === 'medium' ? 'فجوة متوسطة الأهمية' : 'فجوة منخفضة الأهمية'}
+            >
+              <span aria-hidden className="w-2 h-2 rounded-full bg-current" />
+              {style.labelAr}
+            </div>
             {gap.confidence === 'low' && (
-              <span className="pill text-[11px]">غير مؤكد</span>
+              <span
+                className="pill text-[11px]"
+                title="هذه الفجوة قد لا تنطبق على وضعك — راجع التفاصيل للتأكد"
+              >
+                <span aria-hidden>?</span> غير مؤكد
+              </span>
             )}
           </div>
           {gap.fineCeilingSar > 0 && (
@@ -107,7 +128,7 @@ export function GapCard({ gap, scanId, index }: { gap: Gap; scanId: string; inde
               aria-label={`سقف الغرامة: ${gap.fineCeilingSar.toLocaleString('en-US')} ريال`}
             >
               <div className="font-mono text-xs uppercase tracking-widest text-muted" aria-hidden="true">
-                سقف الغرامة
+                الحد الأقصى
               </div>
               <div className="font-display text-lg font-extrabold tabular-nums text-danger" aria-hidden="true">
                 {fineLabel}

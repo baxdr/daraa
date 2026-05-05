@@ -151,10 +151,31 @@ function TimelineRow({ gap }: { gap: OperationalGap }) {
     gap.severity === 'medium'   ? 'bg-warn'     :
                                   'bg-accent';
 
+  const statusLabel = isOverdue ? 'متأخر' : gap.severity === 'critical' ? 'حرج' : gap.severity === 'medium' ? 'متوسط' : 'منخفض';
+  const statusBgColor =
+    isOverdue || gap.severity === 'critical' ? 'bg-danger/10 border-danger/40 text-danger' :
+    gap.severity === 'medium' ? 'bg-warn-soft border-warn/40 text-warn-strong' :
+    'bg-accent-soft border-accent/30 text-accent-strong';
+
   return (
-    <div className="border border-rule bg-white px-4 py-3">
+    <div
+      className="border border-rule bg-white px-4 py-3"
+      role="region"
+      aria-label={`${gap.titleAr} - ${statusLabel}`}
+    >
       <div className="flex items-baseline justify-between gap-4">
         <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <div
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold tracking-widest border ${statusBgColor}`}
+              role="status"
+              aria-label={statusLabel}
+              title={isOverdue ? 'متأخر عن الموعد' : gap.severity === 'critical' ? 'حرج — تحرّك الآن' : gap.severity === 'medium' ? 'متوسط — هذا الشهر' : 'منخفض — للعلم'}
+            >
+              <span aria-hidden className="w-2 h-2 rounded-full bg-current" />
+              {statusLabel}
+            </div>
+          </div>
           <div className="font-display text-sm font-extrabold text-ink">
             {gap.titleAr}
           </div>
@@ -246,21 +267,44 @@ function AlertGroup({
   tone: 'danger' | 'warn' | 'info';
 }) {
   const style =
-    tone === 'danger' ? { bar: 'bg-danger',       label: 'text-danger'      } :
-    tone === 'warn'   ? { bar: 'bg-warn',         label: 'text-warn-strong' } :
-                        { bar: 'bg-ink-2/30',     label: 'text-ink-2'       };
+    tone === 'danger' ? { bar: 'bg-danger',       label: 'text-danger',      bgColor: 'bg-danger/10 border-danger/40' } :
+    tone === 'warn'   ? { bar: 'bg-warn',         label: 'text-warn-strong', bgColor: 'bg-warn-soft border-warn/40'   } :
+                        { bar: 'bg-ink-2/30',     label: 'text-ink-2',       bgColor: 'bg-paper-2 border-rule'        };
+  const severityMap = {
+    'danger': 'حرج',
+    'warn': 'متوسط',
+    'info': 'منخفض',
+  };
   return (
     <div>
       <div className={`eyebrow mb-2 ${style.label}`}>{title}</div>
       <ul className="space-y-3">
         {items.map((g) => (
-          <li key={g.id} className="grid grid-cols-[6px_1fr] overflow-hidden border border-rule bg-white">
-            <div className={style.bar} aria-hidden />
+          <li
+            key={g.id}
+            className="grid grid-cols-[6px_1fr] overflow-hidden border border-rule bg-white"
+            role="region"
+            aria-label={`${g.titleAr} - ${severityMap[tone]}`}
+          >
+            <div className={style.bar} aria-hidden title={severityMap[tone]} />
             <div className="px-5 py-4">
-              <div className="flex items-baseline justify-between gap-3">
-                <h3 className="font-display text-lg font-extrabold leading-tight tracking-tight text-ink">
-                  {g.titleAr}
-                </h3>
+              <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                <div>
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <div
+                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold tracking-widest border ${style.bgColor} ${style.label}`}
+                      role="status"
+                      aria-label={severityMap[tone]}
+                      title={tone === 'danger' ? 'حرج — تحرّك الآن' : tone === 'warn' ? 'متوسط — هذا الشهر' : 'منخفض — للعلم'}
+                    >
+                      <span aria-hidden className="w-2 h-2 rounded-full bg-current" />
+                      {severityMap[tone]}
+                    </div>
+                  </div>
+                  <h3 className="font-display text-lg font-extrabold leading-tight tracking-tight text-ink">
+                    {g.titleAr}
+                  </h3>
+                </div>
                 <span className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-muted">
                   {CATEGORY_LABEL[g.category]}
                 </span>

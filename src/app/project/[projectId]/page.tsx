@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getProject } from '@/lib/project-store';
@@ -11,6 +12,7 @@ import { SaveProjectBanner } from '@/components/save-project-banner';
 import { OperationalDashboard } from '@/components/operational-dashboard';
 import { ActiveMonitoringPanel } from '@/components/active-monitoring-panel';
 import { computeRenewals } from '@/lib/renewals';
+import { DashboardSkeleton } from '@/components/dashboard-skeleton';
 import type { DocumentKind } from '@/agents/document-agent';
 import type { Gap } from '@/agents/analysis-agent';
 import type { Answers } from '@/agents/chat-flow';
@@ -60,39 +62,46 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
       </nav>
 
       {/* Masthead */}
-      <header className="mb-10 flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <span className="pill mb-3 text-[11px] font-bold tracking-widest text-accent-strong border-accent/30 bg-accent-soft">
-            {isOperational ? '◉ الامتثال التشغيلي' : isCompliance ? '◉ تقرير الامتثال' : '◉ خريطة التأسيس'}
-          </span>
-          <h1 className="font-display text-4xl font-extrabold leading-[1.08] tracking-tighter md:text-6xl">
-            {companyName}
-          </h1>
-          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-2">
-            <span>{verticalLabel}</span>
-            {cityLabel && (<><span className="text-rule">·</span><span>{cityLabel}</span></>)}
-            {url && (
-              <>
-                <span className="text-rule">·</span>
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  dir="ltr"
-                  className="font-mono text-xs border-b border-rule pb-0.5 hover:border-accent hover:text-accent"
-                >
-                  {url}
-                </a>
-              </>
-            )}
+      <header className="mb-10">
+        <div className="flex flex-wrap items-end justify-between gap-4 mb-4">
+          <div className="min-w-0 flex-1">
+            <div className="mb-3 flex items-center gap-2 flex-wrap">
+              <span className="pill text-[11px] font-bold tracking-widest text-accent-strong border-accent/30 bg-accent-soft">
+                {isOperational ? '◉ الامتثال التشغيلي' : isCompliance ? '◉ تقرير الامتثال' : '◉ خريطة التأسيس'}
+              </span>
+              <StatusModeIndicator
+                mode={isOperational ? 'operational' : isCompliance ? 'compliance' : 'establishment'}
+              />
+            </div>
+            <h1 className="font-display text-4xl font-extrabold leading-[1.08] tracking-tighter md:text-6xl">
+              {companyName}
+            </h1>
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-2">
+              <span>{verticalLabel}</span>
+              {cityLabel && (<><span className="text-rule">·</span><span>{cityLabel}</span></>)}
+              {url && (
+                <>
+                  <span className="text-rule">·</span>
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    dir="ltr"
+                    className="font-mono text-xs border-b border-rule pb-0.5 hover:border-accent hover:text-accent"
+                  >
+                    {url}
+                  </a>
+                </>
+              )}
+            </div>
           </div>
+          <Link
+            href="/"
+            className="shrink-0 border border-rule bg-white px-4 py-2 text-xs font-semibold text-ink-2 hover:border-ink hover:text-ink"
+          >
+            مشروع جديد +
+          </Link>
         </div>
-        <Link
-          href="/"
-          className="shrink-0 border border-rule bg-white px-4 py-2 text-xs font-semibold text-ink-2 hover:border-ink hover:text-ink"
-        >
-          مشروع جديد +
-        </Link>
       </header>
 
       <div className="rule-ink mb-10" />
@@ -203,40 +212,85 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
         </section>
       )}
       {isCompliance && (!gaps || gaps.length === 0) && analysis && (
-        <section className="mb-12 border border-accent/20 bg-accent-soft px-6 py-8 text-center">
-          <h3 className="font-display text-2xl font-extrabold text-accent-strong">ما لقينا فجوات.</h3>
-          <p className="mt-3 text-sm text-ink-2">
-            استمر في مراجعة التحديثات التنظيمية — سنُشعرك بأي جديد من الجهات.
-          </p>
+        <section className="mb-12">
+          <div className="mb-6 flex items-baseline justify-between">
+            <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">
+              الفجوات المكتشفة
+            </h2>
+            <span className="font-mono text-xs tabular-nums text-muted">
+              00 / {analysis?.applicableRuleCount.toString().padStart(2, '0') ?? '—'}
+            </span>
+          </div>
+          <div className="rule mb-6" />
+          <div className="border border-accent/20 bg-accent-soft px-6 py-10 text-center rounded-md">
+            <div className="text-4xl mb-3" aria-hidden>✓</div>
+            <h3 className="font-display text-2xl font-extrabold text-accent-strong">
+              امتثال كامل
+            </h3>
+            <p className="mt-4 text-sm leading-relaxed text-ink-2 max-w-md mx-auto">
+              ما لقينا أي فجوات في الفحص الحالي. استمر في مراجعة التحديثات التنظيمية — سنُشعرك إذا صدرت متطلبات جديدة من الجهات.
+            </p>
+            <Link
+              href="/chat"
+              className="btn-outline mt-5 inline-flex text-sm"
+            >
+              أعد الفحص
+              <span aria-hidden className="ms-2">←</span>
+            </Link>
+          </div>
         </section>
       )}
 
       {/* Roadmap */}
       {roadmap.length > 0 && (
         <section className="mb-12">
-          <div className="mb-6 flex items-baseline justify-between">
-            <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">
-              {isCompliance ? 'الجهات المُطابَقة' : 'خريطة الطريق'}
-            </h2>
-            <span className="font-mono text-xs tabular-nums text-muted">{isCompliance ? 'بالترتيب الزمني' : 'بالترتيب الصحيح'}</span>
+          <div className="mb-6 flex items-baseline justify-between flex-wrap gap-2">
+            <div>
+              <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">
+                {isCompliance ? 'الجهات المُطابَقة' : 'خريطة الطريق'}
+              </h2>
+              <div className="mt-2 flex items-center gap-3 text-xs text-ink-2">
+                <span>{isCompliance ? 'بالترتيب الزمني' : 'بالترتيب الصحيح'}</span>
+                {!isCompliance && (
+                  <>
+                    <span className="text-rule">·</span>
+                    <span className="font-semibold">
+                      إجمالي الرسوم: <span className="text-ink font-display">{costSummary.minSar.toLocaleString('en-US')}–{costSummary.maxSar.toLocaleString('en-US')}</span> ريال
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+            <span className="font-mono text-xs tabular-nums text-muted">{roadmap.length.toString().padStart(2, '0')} مرحلة</span>
           </div>
           <div className="rule mb-8" />
           <div className="space-y-10">
             {roadmap.map((week, wi) => {
               let running = 0;
-              // derive running step counter ignoring earlier weeks
               for (let j = 0; j < wi; j++) running += roadmap[j].entities.length;
+              const weekTotalMin = week.entities.reduce((sum, e) => sum + e.estimatedCostSar.min, 0);
+              const weekTotalMax = week.entities.reduce((sum, e) => sum + e.estimatedCostSar.max, 0);
+              const weekTotalCost = weekTotalMax === 0 ? 'مجاني' : `${weekTotalMin.toLocaleString('en-US')}–${weekTotalMax.toLocaleString('en-US')}`;
               return (
                 <div key={week.label}>
                   <div className="mb-4 flex items-baseline gap-4">
-                    <span className="font-display text-3xl font-extrabold tabular-nums leading-none text-ink md:text-4xl">
-                      {String(wi + 1).padStart(2, '0')}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="font-display text-3xl font-extrabold tabular-nums leading-none text-ink md:text-4xl">
+                        {String(wi + 1).padStart(2, '0')}
+                      </span>
+                      <div className="h-6 w-1 bg-accent rounded-full" aria-hidden />
+                    </div>
                     <div className="flex-1">
                       <div className="eyebrow">المرحلة</div>
                       <div className="font-display text-lg font-extrabold tracking-tight">
                         {week.label}
                       </div>
+                      {!isCompliance && (
+                        <div className="mt-1 text-xs text-ink-2">
+                          <span className="font-semibold text-ink">{week.entities.length}</span> {week.entities.length === 1 ? 'جهة' : 'جهات'} ·
+                          <span className="mx-1">الرسوم: {weekTotalCost} ريال</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="space-y-4">
@@ -338,6 +392,41 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
 
       <LegalDisclaimer />
     </main>
+  );
+}
+
+/* Status mode indicator — clear visual signal for project lifecycle state */
+function StatusModeIndicator({ mode }: { mode: 'establishment' | 'compliance' | 'operational' }) {
+  const config = {
+    establishment: {
+      label: 'مرحلة التأسيس',
+      bg: 'bg-accent-soft',
+      text: 'text-accent-strong',
+      border: 'border-accent/30',
+    },
+    compliance: {
+      label: 'فحص الامتثال',
+      bg: 'bg-warn-soft',
+      text: 'text-warn-strong',
+      border: 'border-warn/30',
+    },
+    operational: {
+      label: 'مراقبة تشغيلية',
+      bg: 'bg-danger/10',
+      text: 'text-danger',
+      border: 'border-danger/30',
+    },
+  }[mode];
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 border px-2 py-1 text-[11px] font-bold tracking-widest rounded ${config.bg} ${config.text} ${config.border}`}
+      role="status"
+      aria-label={`الحالة: ${config.label}`}
+    >
+      <span aria-hidden className="w-2 h-2 rounded-full bg-current" />
+      {config.label}
+    </span>
   );
 }
 
