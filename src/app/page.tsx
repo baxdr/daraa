@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { HeroAgentsMockup } from '@/components/landing/hero-agents-mockup';
 import novaStats from '@/data/nova-tech-stats.json';
 
 /** Convert Latin digits in a string to Arabic-Indic digits (٠١٢٣٤٥٦٧٨٩). */
@@ -26,255 +25,279 @@ export default function LandingPage() {
         </div>
         <nav className="hidden gap-6 text-sm text-ink-2 md:flex">
           <a href="#how" className="hover:text-ink">كيف يشتغل</a>
-          <a href="#agents" className="hover:text-ink">الوكلاء</a>
-          <Link href="/demo" className="hover:text-ink">سيناريوهات جاهزة</Link>
+          <a href="#scenarios" className="hover:text-ink">السيناريوهات</a>
           <Link href="/return" className="hover:text-ink">مشاريعي</Link>
-          <a href="/demo/novatech/" target="_blank" rel="noopener noreferrer" className="hover:text-ink">
-            موقع تجريبي <span aria-hidden>↗</span>
-          </a>
         </nav>
       </header>
       <div className="mx-auto mt-6 max-w-6xl px-6 md:px-10">
         <div className="rule animate-rule-draw" />
       </div>
 
-      {/* ── 1. Hero ──────────────────────────────────────────── */}
-      <section className="relative mx-auto max-w-6xl px-6 pb-14 pt-14 md:px-10 md:pb-20 md:pt-20">
-        <div className="grid items-center gap-10 md:grid-cols-12 md:gap-12">
+      {/* ── 1. HERO SECTION ──────────────────────────────────── */}
+      <section className="relative mx-auto max-w-6xl px-6 pb-16 pt-16 md:px-10 md:pb-24 md:pt-24">
+        <div className="grid items-center gap-12 md:grid-cols-12">
           <div className="md:col-span-7">
-            <h1 className="font-display text-5xl font-extrabold leading-[1.05] tracking-tighter text-ink md:text-7xl lg:text-[5.25rem]">
-              <span className="block animate-fade-rise">قول لنا وش مشروعك</span>
+            {/* Hero headline */}
+            <h1 className="font-display text-5xl font-extrabold leading-[1.05] tracking-tighter text-ink md:text-6xl lg:text-7xl">
+              <span className="block animate-fade-rise">أسّس شركتك بثقة،</span>
               <span
                 className="block animate-fade-rise text-accent"
                 style={{ animationDelay: '160ms' }}
               >
-                ونتكفّل بالباقي.
+                وامتثل بذكاء
               </span>
             </h1>
 
+            {/* Subheadline */}
             <div
-              className="mt-7 max-w-xl animate-fade-rise"
+              className="mt-8 max-w-xl animate-fade-rise"
               style={{ animationDelay: '320ms' }}
             >
               <div className="rule-accent mb-5 w-16" />
               <p className="text-lg leading-relaxed text-ink-2 md:text-xl">
-                من التأسيس للامتثال — مستشار ذكي يعرف كل جهة حكومية
-                بالسعودية ويجهّز لك كل شي.
+                مستشار AI يرتّب لك ١١ جهة حكومية بالتسلسل الصحيح، ويفحص امتثالك لـ
+                {' '}
+                <span className="font-bold">PDPL</span>
+                {' '}
+                و
+                {' '}
+                <span className="font-bold">NCA</span>
+                {' '}
+                في ثوانٍ
               </p>
             </div>
 
+            {/* CTA Buttons */}
             <div
-              className="mt-9 flex items-center gap-4 animate-fade-rise"
+              className="mt-10 flex flex-col gap-3 animate-fade-rise sm:flex-row sm:gap-4"
               style={{ animationDelay: '480ms' }}
             >
               <Link href="/chat" className="btn-ink text-base">
-                ابدأ الاستشارة المجانية
+                أفتح شركة جديدة
+                <ArrowLeft />
+              </Link>
+              <Link href="/chat?mode=compliance" className="btn-outline text-base">
+                أفحص امتثال شركتي
                 <ArrowLeft />
               </Link>
             </div>
 
+            {/* Social proof */}
             <p
-              className="mt-4 text-xs text-muted animate-fade-rise"
+              className="mt-6 text-xs text-muted animate-fade-rise"
               style={{ animationDelay: '600ms' }}
             >
-              بدون تسجيل · بدون بطاقة ائتمان · النتائج خلال دقائق
+              <span className="font-mono font-bold text-ink">١٩</span> وكيل AI · يفهم العربي الخليجي · مجاني للتجربة
             </p>
           </div>
 
-          {/* Live mockup */}
-          <aside
-            className="relative md:col-span-5 animate-fade-rise"
-            style={{ animationDelay: '700ms' }}
-          >
-            <HeroAgentsMockup />
+          {/* Hero visual indicator */}
+          <aside className="relative md:col-span-5 animate-fade-rise" style={{ animationDelay: '700ms' }}>
+            <div className="relative rounded-lg border border-rule bg-gradient-to-b from-white to-paper-2 p-8 md:p-10">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-3 w-3 rounded-full bg-accent animate-pulse" />
+                  <span className="text-sm text-ink-2">تحليل فوري</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-2 w-3/4 rounded bg-rule" />
+                  <div className="h-2 w-1/2 rounded bg-rule" />
+                </div>
+                <div className="mt-6 flex items-center gap-3">
+                  <div className="h-3 w-3 rounded-full bg-accent/50" />
+                  <span className="text-sm text-ink-2">١١ جهة حكومية</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-2 w-full rounded bg-rule" />
+                  <div className="h-2 w-4/5 rounded bg-rule" />
+                </div>
+              </div>
+            </div>
             <p className="mt-3 text-[11px] text-muted">
-              عرض توضيحي — الوكلاء في الإنتاج يشتغلون بنفس الترتيب
+              الوكلاء يعملون بالتوازي — تسلسل ذكي لأولويات جهاتك
             </p>
           </aside>
         </div>
       </section>
 
-      {/* ── 2. Agents grid — replaces "مساران، منصة واحدة" ──── */}
-      <section id="agents" className="relative mx-auto max-w-6xl px-6 pb-16 md:px-10 md:pb-24">
-        <div className="mb-10">
+      {/* ── 2. PROBLEM SECTION ────────────────────────────────── */}
+      <section className="relative mx-auto max-w-6xl px-6 pb-16 md:px-10 md:pb-24">
+        <div className="mb-12">
           <h2 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">
-            كل جهة حكومية — وكيل متخصص
+            الفرق واضح
           </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2 md:text-base">
-            بدل ما تتنقل بين ٧ منصات حكومية، درع يشغّل وكيل لكل جهة. كل
-            وكيل يعرف متطلبات جهته، يتواصل مع الباقين، ويسلّمك النتيجة.
-          </p>
         </div>
-        <div className="rule mb-8" />
+        <div className="rule mb-12" />
 
-        <div className="grid gap-0 overflow-hidden border border-rule sm:grid-cols-2 lg:grid-cols-4">
-          <AgentTile
-            name="التجارة"
-            deliverable="سجل تجاري"
-            detail="نوع الكيان المناسب + اسم تجاري + عقد تأسيس"
-            letter="ت"
-          />
-          <AgentTile
-            name="البلدية"
-            deliverable="رخصة بلدية"
-            detail="رخصة الموقع + اشتراطات حيّك على منصة بلدي"
-            letter="ب"
-          />
-          <AgentTile
-            name="الدفاع المدني"
-            deliverable="شهادة سلامة"
-            detail="طفايات، مخارج طوارئ، كواشف دخان — حسب النشاط"
-            letter="س"
-          />
-          <AgentTile
-            name="الغذاء والدواء"
-            deliverable="ترخيص SFDA"
-            detail="للمطاعم والكوفي — شرط قبل فتح الأبواب"
-            letter="غ"
-          />
-          <AgentTile
-            name="الموارد البشرية"
-            deliverable="ملف منشأة + نطاقات"
-            detail="ملف MOHR + التأمينات + تقدير نطاقات"
-            letter="م"
-          />
-          <AgentTile
-            name="الزكاة والضريبة"
-            deliverable="ZATCA + فوترة"
-            detail="تسجيل ضريبي + VAT + الفوترة الإلكترونية"
-            letter="ز"
-          />
-          <AgentTile
-            name="حماية البيانات"
-            deliverable="PDPL + NCA ECC"
-            detail="سياسة خصوصية، DPO، نقل بيانات، أمن سيبراني"
-            letter="ح"
-          />
-          <AgentTile
-            name="المنسّق"
-            deliverable="يوزّع الشغل"
-            detail="يحدد وش الوكلاء اللي يحتاجهم مشروعك فقط"
-            letter="◈"
-            muted
-          />
+        <div className="grid gap-8 md:grid-cols-2">
+          {/* Without DARAA */}
+          <div className="rounded-lg border border-rule bg-white p-8 md:p-10">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-paper-2 px-4 py-2">
+              <span aria-hidden className="text-lg">✗</span>
+              <span className="text-sm font-bold text-ink-2">بدون درع</span>
+            </div>
+            <h3 className="font-display text-2xl font-extrabold text-ink">المشاكل</h3>
+            <ul className="mt-6 space-y-4">
+              <li className="flex items-start gap-3">
+                <span className="mt-1 text-lg text-warn" aria-hidden>⚠</span>
+                <span className="text-sm text-ink-2">جهات حكومية كثيرة ومُربكة</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 text-lg text-warn" aria-hidden>⚠</span>
+                <span className="text-sm text-ink-2">ترتيب خاطئ يؤدي لرفض الطلب</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 text-lg text-warn" aria-hidden>⚠</span>
+                <span className="text-sm text-ink-2">وثائق مرفوضة وطلبات متكررة</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 text-lg text-warn" aria-hidden>⚠</span>
+                <span className="text-sm text-ink-2">غرامات غير متوقعة</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 text-lg text-warn" aria-hidden>⚠</span>
+                <span className="text-sm text-ink-2">شهور من التأخير والتعقيد</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* With DARAA */}
+          <div className="rounded-lg border border-accent bg-gradient-to-b from-white to-paper-2/50 p-8 md:p-10">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-2">
+              <span aria-hidden className="text-lg">✓</span>
+              <span className="text-sm font-bold text-accent">مع درع</span>
+            </div>
+            <h3 className="font-display text-2xl font-extrabold text-ink">الحلول</h3>
+            <ul className="mt-6 space-y-4">
+              <li className="flex items-start gap-3">
+                <span className="mt-1 text-lg text-accent" aria-hidden>✓</span>
+                <span className="text-sm text-ink-2">تسلسل صحيح مخصص لنشاطك</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 text-lg text-accent" aria-hidden>✓</span>
+                <span className="text-sm text-ink-2">وثائق جاهزة بالكامل</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 text-lg text-accent" aria-hidden>✓</span>
+                <span className="text-sm text-ink-2">تحذيرات مسبقة من الغرامات</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 text-lg text-accent" aria-hidden>✓</span>
+                <span className="text-sm text-ink-2">خريطة طريق كاملة</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 text-lg text-accent" aria-hidden>✓</span>
+                <span className="text-sm text-ink-2">أيام بدلاً من أشهر</span>
+              </li>
+            </ul>
+          </div>
         </div>
-
-        <p className="mt-6 max-w-2xl text-sm text-ink-2">
-          <span className="font-display font-extrabold">درع يشغّل بس الوكلاء اللي يحتاجهم مشروعك.</span>{' '}
-          مطعم؟ <span className="font-mono font-bold tabular-nums text-ink">٦</span> وكلاء. شركة
-          تقنية؟ <span className="font-mono font-bold tabular-nums text-ink">٤</span> وكلاء. متجر
-          إلكتروني؟ <span className="font-mono font-bold tabular-nums text-ink">٥</span> وكلاء.
-        </p>
       </section>
 
-      {/* ── 3. How it works ─────────────────────────────────── */}
+      {/* ── 3. HOW IT WORKS ──────────────────────────────────── */}
       <section id="how" className="relative mx-auto max-w-6xl px-6 pb-16 md:px-10 md:pb-24">
-        <div className="mb-10">
+        <div className="mb-12">
           <h2 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">
-            من السؤال الأول للنتيجة — ٣ دقائق
+            كيف يشتغل
           </h2>
         </div>
-        <div className="rule mb-10" />
+        <div className="rule mb-12" />
 
         <ol className="grid gap-10 md:grid-cols-3">
           <Step
             num="١"
-            title="تكلّم"
-            body="قول لدرع وش مشروعك بالعربي العادي. يفهمك ويسألك بس اللي يحتاجه."
+            icon="💬"
+            title="تكلّم بالعربي"
+            body="قل ودي أفتح كوفي بجدة — Claude يفهم قصدك ويسألك بس اللي يحتاجه."
           />
           <Step
             num="٢"
+            icon="⚙️"
             title="الوكلاء يشتغلون"
-            body="كل وكيل يجهّز متطلبات جهته، ويتواصل مع الباقين تلقائياً — تشوف المحادثة بينهم مباشرة."
+            body="١٩ وكيل متخصص يحلل وضعك بالتوازي — تشوف الحوار بينهم مباشرة."
           />
           <Step
             num="٣"
-            title="النتيجة جاهزة"
-            body="خريطة طريق كاملة + مستندات + تنبيهات ذكية. أو تقرير امتثال بالفجوات والغرامات."
+            icon="📋"
+            title="خارطة طريق جاهزة"
+            body="تسلسل · تكاليف · وثائق · تحذيرات — كل شي في مكان واحد."
           />
         </ol>
       </section>
 
-      {/* ── 4. Proof — Nova Tech live scan ──────────────────── */}
-      <section className="relative mx-auto max-w-6xl px-6 pb-16 md:px-10 md:pb-24">
-        <div className="mb-10">
+      {/* ── 4. DEMO SCENARIOS ─────────────────────────────────── */}
+      <section id="scenarios" className="relative mx-auto max-w-6xl px-6 pb-16 md:px-10 md:pb-24">
+        <div className="mb-12">
           <h2 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">
-            جرّب بنفسك
+            جرّب السيناريوهات الجاهزة
           </h2>
         </div>
-        <div className="rule mb-10" />
+        <div className="rule mb-12" />
 
-        <div className="border border-ink bg-white">
-          <div className="border-b border-rule px-6 py-5 md:px-10 md:py-6">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-accent">
-              Nova Tech — SaaS سعودية
-            </span>
-            <p className="mt-2 max-w-2xl text-base leading-relaxed text-ink-2">
-              فحصنا شركة تقنية سعودية — هذي النتيجة:
-            </p>
-          </div>
-          <div className="grid grid-cols-1 divide-y divide-rule sm:grid-cols-3 sm:divide-y-0 sm:divide-s sm:divide-rule">
-            <ProofCell
-              number={`${toArabicDigits(String(novaStats.complianceScore))}٪`}
-              label="نسبة الامتثال"
-              numberClass="text-danger"
-            />
-            <ProofCell
-              number={toArabicDigits(novaStats.totalFineCeilingSar.toLocaleString('en-US'))}
-              unit="ريال"
-              label="غرامات محتملة"
-              numberClass="text-danger"
-            />
-            <ProofCell
-              number={toArabicDigits(String(novaStats.gapCount).padStart(2, '0'))}
-              label="فجوات مكتشفة"
-            />
-          </div>
-          <div className="border-t border-rule px-6 py-5 md:px-10 md:py-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <a
-                href="/demo/novatech/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm font-bold text-accent hover:text-accent-strong"
-              >
-                <span>شوف التقرير الكامل على الموقع التجريبي</span>
-                <span aria-hidden>←</span>
-              </a>
-              <span className="text-[11px] text-muted">
-                من فحص تم في{' '}
-                <time dateTime={novaStats.computedAt}>
-                  {new Date(novaStats.computedAt).toLocaleDateString('ar-SA-u-ca-gregory', {
-                    year: 'numeric', month: 'long', day: 'numeric',
-                  })}
-                </time>
-              </span>
+        <div className="grid gap-8 md:grid-cols-2">
+          {/* Kafe Rafeh */}
+          <Link
+            href="/project/demo-kafe-rafeh-op"
+            className="group rounded-lg border border-rule bg-white p-8 transition-all hover:border-accent hover:shadow-lg md:p-10"
+          >
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1">
+              <span className="text-xs font-bold text-accent">تطبيقي</span>
             </div>
-          </div>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="font-display text-2xl font-extrabold text-ink">
+                  مقهى رافعة
+                </h3>
+                <p className="mt-2 text-sm text-ink-2">
+                  وضع تشغيلي فعلي — رخص قريبة من الانتهاء
+                </p>
+              </div>
+              <div className="text-3xl">☕</div>
+            </div>
+            <div className="mt-6 inline-flex items-center gap-2 text-accent transition-all group-hover:gap-3">
+              <span className="text-sm font-bold">شاهد الديمو</span>
+              <ArrowLeft />
+            </div>
+          </Link>
+
+          {/* Nova Tech */}
+          <Link
+            href="/project/demo-nova-tech-dig"
+            className="group rounded-lg border border-rule bg-white p-8 transition-all hover:border-accent hover:shadow-lg md:p-10"
+          >
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-warn/10 px-3 py-1">
+              <span className="text-xs font-bold text-warn">امتثال رقمي</span>
+            </div>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="font-display text-2xl font-extrabold text-ink">
+                  Nova Tech
+                </h3>
+                <p className="mt-2 text-sm text-ink-2">
+                  تحليل امتثال شامل — نسبة {toArabicDigits(String(novaStats.complianceScore))}٪
+                </p>
+              </div>
+              <div className="text-3xl">💻</div>
+            </div>
+            <div className="mt-6 inline-flex items-center gap-2 text-accent transition-all group-hover:gap-3">
+              <span className="text-sm font-bold">شاهد الديمو</span>
+              <ArrowLeft />
+            </div>
+          </Link>
         </div>
       </section>
 
-      {/* ── 5. Numbers ──────────────────────────────────────── */}
+      {/* ── 5. STATS BAR ──────────────────────────────────────── */}
       <section className="relative mx-auto max-w-6xl px-6 pb-16 md:px-10 md:pb-24">
-        <div className="grid gap-0 border-y-2 border-ink sm:grid-cols-3">
-          <StatCell
-            number="٩٠٪"
-            label="من الشركات السعودية ما تعرف وضعها الامتثالي"
-          />
-          <StatCell
-            number="٥ مليون ريال"
-            label="سقف الغرامة على مخالفة واحدة في PDPL"
-            numberClass="text-warn"
-          />
-          <StatCell
-            number="٧ – ١٥ جهة"
-            label="حكومية لكل مشروع سعودي جديد"
-            last
-          />
+        <div className="grid gap-0 border-y-2 border-ink sm:grid-cols-2 lg:grid-cols-4">
+          <StatBar number="١٩" label="وكيل AI متخصص" />
+          <StatBar number="١٤" label="قاعدة PDPL" />
+          <StatBar number="١١" label="جهة حكومية" />
+          <StatBar number="٤" label="وثائق قانونية" />
         </div>
       </section>
 
-      {/* ── 6. Footer ───────────────────────────────────────── */}
+      {/* ── 6. FOOTER ──────────────────────────────────────── */}
       <footer className="relative border-t border-rule bg-paper-2/60">
         <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-6 py-8 text-xs text-muted md:flex-row md:items-center md:px-10">
           <div>
@@ -322,60 +345,26 @@ function ArrowLeft() {
   );
 }
 
-function AgentTile({
-  name,
-  deliverable,
-  detail,
-  letter,
-  muted,
+function Step({
+  num,
+  icon,
+  title,
+  body,
 }: {
-  name: string;
-  deliverable: string;
-  detail: string;
-  letter: string;
-  muted?: boolean;
+  num: string;
+  icon: string;
+  title: string;
+  body: string;
 }) {
-  return (
-    <div
-      className={`group relative flex min-h-[180px] flex-col justify-between border-rule p-5 transition-colors md:p-6 ${
-        muted
-          ? 'bg-paper-2/50 [&]:hover:bg-paper-2'
-          : 'bg-white hover:bg-paper-2/40'
-      } border-b border-s-0 sm:border-s ltr:first:border-s-0 rtl:first:border-s-0`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="eyebrow !text-[10px]">وكيل</div>
-          <div className="mt-1 font-display text-xl font-extrabold tracking-tight text-ink">
-            {name}
-          </div>
-        </div>
-        <div
-          aria-hidden
-          className={`font-display text-4xl font-extrabold leading-none tracking-tighter ${
-            muted ? 'text-rule' : 'text-accent/30 group-hover:text-accent/60'
-          }`}
-        >
-          {letter}
-        </div>
-      </div>
-      <div className="mt-4">
-        <div className="font-display text-sm font-extrabold tracking-tight text-ink">
-          {deliverable}
-        </div>
-        <p className="mt-1 text-[12.5px] leading-relaxed text-ink-2">{detail}</p>
-      </div>
-    </div>
-  );
-}
-
-function Step({ num, title, body }: { num: string; title: string; body: string }) {
   return (
     <li className="relative">
       <div className="flex items-baseline gap-3">
-        <span className="font-display text-5xl font-extrabold leading-none text-accent md:text-6xl">
-          {num}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-display text-5xl font-extrabold leading-none text-accent md:text-6xl">
+            {num}
+          </span>
+          <span className="text-3xl" aria-hidden>{icon}</span>
+        </div>
         <h3 className="font-display text-xl font-extrabold tracking-tight">{title}</h3>
       </div>
       <p className="mt-4 border-t border-rule pt-4 text-sm leading-relaxed text-ink-2">
@@ -385,56 +374,16 @@ function Step({ num, title, body }: { num: string; title: string; body: string }
   );
 }
 
-function ProofCell({
-  number,
-  unit,
-  label,
-  numberClass,
-}: {
-  number: string;
-  unit?: string;
-  label: string;
-  numberClass?: string;
-}) {
-  return (
-    <div className="px-6 py-7 md:px-10 md:py-9">
-      <div
-        className={`font-display text-4xl font-extrabold leading-none tabular-nums tracking-tighter md:text-5xl ${
-          numberClass ?? 'text-ink'
-        }`}
-      >
-        {number}
-        {unit && (
-          <span className="ms-2 text-base font-medium text-muted md:text-lg">{unit}</span>
-        )}
-      </div>
-      <div className="mt-3 text-[13px] text-ink-2">{label}</div>
-    </div>
-  );
-}
-
-function StatCell({
+function StatBar({
   number,
   label,
-  numberClass,
-  last,
 }: {
   number: string;
   label: string;
-  numberClass?: string;
-  last?: boolean;
 }) {
   return (
-    <div
-      className={`px-6 py-8 md:px-8 md:py-10 ${
-        last ? '' : 'border-b border-rule sm:border-b-0 sm:border-s'
-      }`}
-    >
-      <div
-        className={`font-display text-3xl font-extrabold leading-none tracking-tighter md:text-4xl ${
-          numberClass ?? 'text-ink'
-        }`}
-      >
+    <div className="px-6 py-8 md:px-8 md:py-10 border-b border-rule sm:border-b-0 sm:border-s sm:border-rule last:border-b-0 last:border-s-0">
+      <div className="font-display text-3xl font-extrabold leading-none tracking-tighter md:text-4xl text-ink">
         {number}
       </div>
       <p className="mt-3 text-[13px] leading-relaxed text-ink-2">{label}</p>
