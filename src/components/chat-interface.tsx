@@ -240,10 +240,9 @@ export function ChatInterface() {
             درع
           </span>
         </Link>
-        <div className="flex items-center gap-3 text-xs text-muted">
+        <div className="flex flex-col items-end gap-0.5 text-xs text-muted">
           <span>استشارة مباشرة</span>
-          <span>·</span>
-          <span className="font-mono tabular-nums">{progress}٪</span>
+          <span className="font-mono tabular-nums">السؤال {computeQuestionCount(turns)}/{expectedTurnsForMode(turns)}</span>
         </div>
       </header>
 
@@ -279,22 +278,46 @@ export function ChatInterface() {
       </div>
 
       <footer className="border-t border-rule px-5 py-4 md:px-8">
+        {turns.length > 1 && (
+          <div className="mb-3 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="text-xs text-muted hover:text-ink transition-colors underline decoration-rule decoration-1 underline-offset-2 hover:decoration-ink"
+              title="ابدأ محادثة جديدة"
+            >
+              ← ابدأ محادثة جديدة
+            </button>
+          </div>
+        )}
+
         {error && (
           <div
             role="alert"
             aria-live="assertive"
-            className="mb-3 flex items-start justify-between gap-3 border-s-2 border-danger bg-danger/5 px-3 py-2 text-sm text-danger"
+            className="mb-3 flex flex-col gap-2 border-s-2 border-danger bg-danger/5 px-3 py-2"
           >
-            <span className="flex-1">{error}</span>
-            {!sessionId && (
-              <button
-                type="button"
-                onClick={() => { setError(null); setStartRetry((n) => n + 1); }}
-                className="shrink-0 border border-danger px-2 py-0.5 text-xs font-semibold text-danger hover:bg-danger hover:text-paper"
-              >
-                حاول مجدداً
-              </button>
-            )}
+            <span className="text-sm text-danger">{error}</span>
+            <div className="flex gap-2">
+              {!sessionId && (
+                <button
+                  type="button"
+                  onClick={() => { setError(null); setStartRetry((n) => n + 1); }}
+                  className="shrink-0 border border-danger px-2 py-1 text-xs font-semibold text-danger hover:bg-danger hover:text-paper transition-colors"
+                >
+                  أعد المحاولة
+                </button>
+              )}
+              {sessionId && (
+                <button
+                  type="button"
+                  onClick={() => setError(null)}
+                  className="shrink-0 border border-danger px-2 py-1 text-xs font-semibold text-danger hover:bg-danger hover:text-paper transition-colors"
+                >
+                  تجاهل التنبيه
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -422,4 +445,8 @@ function computeProgress(turns: Turn[]): number {
   const userTurns = turns.filter((t) => t.role === 'user').length;
   const expected = expectedTurnsForMode(turns);
   return Math.min(100, Math.round((userTurns / expected) * 100));
+}
+
+function computeQuestionCount(turns: Turn[]): number {
+  return turns.filter((t) => t.role === 'user').length;
 }

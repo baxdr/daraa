@@ -68,7 +68,7 @@ function InlineTerm({ termId }: { termId: TermId }) {
 export function UserMessage({ text }: { text: string }) {
   return (
     <div className="flex justify-end animate-fade-rise">
-      <div className="max-w-[78%] bg-ink px-5 py-3.5 text-paper">
+      <div className="max-w-[78%] bg-ink px-5 py-3.5 text-paper" dir="auto">
         <p className="text-[15px] leading-relaxed">{text}</p>
       </div>
     </div>

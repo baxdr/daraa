@@ -122,18 +122,19 @@ export const QUESTIONS: Record<QuestionId, Question> = {
   q0_mode: {
     id: 'q0_mode',
     text: 'أهلاً! أنا درع — مستشار ذكي للتأسيس والامتثال في السعودية. وش تبي تسوي اليوم؟',
+    hint: 'اختر الأنسب لوضعك — تقدر تغيّر لاحقاً إذا احتجت.',
     options: [
-      { value: 'establishment',          label: '🏢 أبي أفتح مشروع جديد' },
-      { value: 'compliance',             label: '💻 شركة تقنية — امتثال PDPL' },
-      { value: 'operational_compliance', label: '🍽️ محل/مطعم — تتبّع رخصي' },
+      { value: 'establishment',          label: '🏢 أبدأ مشروع جديد — تأسيس وتسجيل الشركة' },
+      { value: 'compliance',             label: '🔍 عندي شركة شغّالة — أفحص امتثالها الرقمي (PDPL, NCA)' },
+      { value: 'operational_compliance', label: '📋 عندي محل أو مطعم — أتابع رخصي وتجديداتي' },
     ],
   },
 
   q_company_name: {
     id: 'q_company_name',
     text: 'تمام. وش اسم المشروع أو الشركة اللي في بالك؟',
-    hint: 'الاسم بيطلع في عقد التأسيس، التقرير، والمستندات اللي بنجهّزها لك — خلّيه الاسم التجاري اللي تبغى يُسجَّل به.',
-    input: { kind: 'text', placeholder: 'مثال: كوفي الأصالة' },
+    hint: 'الاسم بيطلع في عقد التأسيس، التقرير، والمستندات اللي بنجهّزها لك — خلّيه الاسم التجاري اللي تبغى يُسجَّل به. مثال: شركة النخيل للتجارة أو كوفي الأصالة.',
+    input: { kind: 'text', placeholder: 'اكتب اسم الشركة — مثال: شركة النخيل' },
   },
 
   /* ---------------- Establishment branch ---------------- */
@@ -141,6 +142,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
   est1_vertical: {
     id: 'est1_vertical',
     text: 'ممتاز! وش نوع المشروع اللي تفكّر فيه؟',
+    hint: 'مثال: مطعم، تطبيق، متجر إلكتروني، صالون تجميل، أو مقاولات.',
     options: [
       { value: 'restaurant',   label: 'مطعم / كوفي شوب' },
       { value: 'tech',         label: 'شركة تقنية / تطبيق' },
@@ -152,6 +154,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
   est2_city: {
     id: 'est2_city',
     text: 'في أي مدينة؟',
+    hint: 'مثال: الرياض، جدة، الدمام، مكة المكرمة، أبها أو مدينة أخرى.',
     options: [
       { value: 'riyadh',  label: 'الرياض' },
       { value: 'jeddah',  label: 'جدة' },
@@ -165,13 +168,14 @@ export const QUESTIONS: Record<QuestionId, Question> = {
   est3_partner_count: {
     id: 'est3_partner_count',
     text: 'كم عدد الشركاء المؤسسين؟ (عدّ نفسك ضمنهم)',
-    input: { kind: 'number', placeholder: 'مثال: 2' },
+    hint: 'مثال: ١ إذا أنت لوحدك، ٢ إذا أنت وشريك واحد.',
+    input: { kind: 'number', placeholder: 'اكتب الرقم فقط — مثال: 2' },
   },
   est4_capital_sar: {
     id: 'est4_capital_sar',
     text: 'كم رأس المال التقريبي اللي ناويين تبدأون فيه (بالريال)؟',
-    hint: 'رقم تقريبي يكفي — نبي نحدد نوع الكيان المناسب (مؤسسة فردية، شركة ذات مسؤولية محدودة، إلخ).',
-    input: { kind: 'number', placeholder: 'مثال: 80000' },
+    hint: 'رقم تقريبي يكفي — مثال: ٥٠،٠٠٠ ريال أو اكتب الرقم فقط مثل 50000. نبي نحدد نوع الكيان المناسب (مؤسسة فردية، شركة ذات مسؤولية محدودة، إلخ).',
+    input: { kind: 'number', placeholder: 'اكتب الرقم فقط — مثال: 50000' },
   },
   est5_foreign_partner: {
     id: 'est5_foreign_partner',
@@ -210,6 +214,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
   q2_employee_count: {
     id: 'q2_employee_count',
     text: 'ممتاز. كم عدد موظفينكم تقريباً؟',
+    hint: 'اكتب الرقم فقط — تقريبي يكفي.',
     input: { kind: 'number', placeholder: 'مثال: 25' },
   },
 
@@ -272,10 +277,11 @@ export const QUESTIONS: Record<QuestionId, Question> = {
   q8_website_url: {
     id: 'q8_website_url',
     text: 'ممتاز — جمعت صورة واضحة عن شركتك. لو عطيتني رابط موقعكم بقدر أفحصه وأعطيك تقرير أدق. تقدر تتخطى لو ما عندك موقع جاهز.',
+    hint: 'إذا ما عندك موقع الحين، اضغط "تخطى" — تقدر تضيفه لاحقاً.',
     input: {
       kind: 'url_or_skip',
       placeholder: 'https://yourcompany.sa',
-      skipLabel: 'تخطى — أبي التقرير بدون فحص الموقع',
+      skipLabel: 'تخطى — ما عندي موقع حالياً',
     },
   },
 
@@ -284,6 +290,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
   op1_vertical: {
     id: 'op1_vertical',
     text: 'ممتاز. وش نوع نشاطكم؟',
+    hint: 'مثال: مطعم، صالون تجميل، مقاولات أو محل تجزئة.',
     options: [
       { value: 'restaurant',   label: 'مطعم / كوفي شوب' },
       { value: 'salon',        label: 'صالون / مركز تجميل' },
@@ -294,6 +301,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
   op2_city: {
     id: 'op2_city',
     text: 'في أي مدينة؟',
+    hint: 'مثال: الرياض، جدة، الدمام، مكة المكرمة أو أبها.',
     options: [
       { value: 'riyadh', label: 'الرياض' },
       { value: 'jeddah', label: 'جدة' },
@@ -307,7 +315,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
   op3_cr_issue_date: {
     id: 'op3_cr_issue_date',
     text: 'متى أصدرتم السجل التجاري؟',
-    hint: 'نحتاج التاريخ عشان نحسب موعد التجديد القادم — السجل التجاري يُجدَّد سنوياً.',
+    hint: 'صيغة: YYYY-MM-DD مثال: 2024-03-15. نحتاج التاريخ عشان نحسب موعد التجديد القادم — السجل التجاري يُجدَّد سنوياً.',
     input: { kind: 'date', placeholder: 'مثال: 2024-03-15' },
   },
   op4_municipal_last_renewed: {
@@ -331,7 +339,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
   op7_employee_count: {
     id: 'op7_employee_count',
     text: 'كم عدد موظفينكم الحالي؟',
-    hint: 'نحتاج الرقم لتقدير وضعكم في نطاقات — ١٠ موظفين فأكثر تستوجب نسبة توطين معيّنة.',
+    hint: 'اكتب الرقم فقط. نحتاج الرقم لتقدير وضعكم في نطاقات — ١٠ موظفين فأكثر تستوجب نسبة توطين معيّنة.',
     input: { kind: 'number', placeholder: 'مثال: 6' },
   },
   op8_lease_expiry: {
