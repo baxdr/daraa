@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>درع — Agentic Solution</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{ --paper:#F7F3EB; --accent:#1E4D3B; --muted:#635A4E; --ink:#14110F; --mono:'JetBrains Mono', monospace; --font:'IBM Plex Sans Arabic', system-ui, sans-serif }
+*{box-sizing:border-box}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--paper);padding:2.5rem; color:var(--ink);}
+.container{max-width:900px;margin:0 auto;background:#fff;border:1px solid #E6DFCE;border-radius:6px;padding:2rem}
+.header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.2rem}
+.h-title{font-size:1.2rem;font-weight:700}
+.h-sub{font-family:var(--mono);font-size:0.78rem;color:var(--muted)}
+.section{margin-top:1rem;padding-top:0.6rem;border-top:1px dashed #E6DFCE}
+.section h2{font-size:1rem;margin-bottom:0.4rem;color:var(--accent)}
+.section p, .section ul{font-size:0.95rem;line-height:1.6;color:var(--ink)}
+ul{padding-inline-start:1.2rem}
+.kv{background:#F0F5F0;border-radius:6px;padding:0.6rem;margin:0.6rem 0;border:1px solid #E8EDE8}
+.note{font-size:0.88rem;color:var(--muted);margin-top:0.6rem}
+/* Print rules for PDF export */
+@media print{
+  @page{size:A4 portrait; margin:12mm}
+  html,body{background:var(--paper);padding:0}
+  body{transform:none}
+  .container{border:none;border-radius:0;padding:14mm;margin:0}
+  .header{margin-bottom:8mm}
+  .h-title{font-size:18pt}
+  .h-sub{font-size:9pt}
+  .section h2{font-size:13pt}
+  .section p, .section ul{font-size:11pt}
+  .kv{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div>
+      <div class="h-title">درع — Agentic Solution (موجز)</div>
+      <div class="h-sub">Agenticthon 2026 · DARAA</div>
+    </div>
+    <div style="text-align:left">
+      <div style="font-size:0.9rem;font-weight:700">بدر العمري · سفر الدوسري</div>
+      <div style="font-size:0.78rem;color:var(--muted);font-family:var(--mono)">Next.js · Claude Sonnet 4.6 · TypeScript</div>
+    </div>
+  </div>
+
+  <div class="section" id="what">
+    <h2>ما الذي يقوم به الوكيل</h2>
+    <p>DARAA هو منصة متعددة الوكلاء تركز على العربية وتقدّم مسارين رئيسيين لصاحب العمل السعودي:</p>
+    <ul>
+      <li><strong>تأسيس الشركة</strong> — توجيه عبر 7–15 جهة حكومية بالترتيب الصحيح، مع المستندات والمتطلبات، وتقدير التكاليف ومواعيد التجديد.</li>
+      <li><strong>الامتثال التنظيمي</strong> — فحص الامتثال الرقمي ضد PDPL وNCA وZATCA، واقتراح إصلاحات وجاهزة للاستخدام قبل التفتيش.</li>
+    </ul>
+    <p>المستخدم يتحدّث بلهجة خليجية حرة عبر واجهة دردشة؛ يقوم عامل المحادثة (Claude Sonnet 4.6) باستخراج ما يصل إلى 10 حقول من جملة واحدة، ثم تُشغّل سلسلة من الوكلاء المتخصّصين لإنتاج خريطة طريق أو تقرير فجوات ومجموعة مستندات قانونية باللغة العربية.</p>
+  </div>
+
+  <div class="section" id="decisions">
+    <h2>ما هي القرارات التي يتخذها الوكيل</h2>
+    <p>كل وكيل في النظام يتخذ قرارات واضحة مبنية على دوره وبيانات سياق الوكيل (`AgentContext`). أمثلة بارزة:</p>
+    <div class="kv">
+      <strong>Chat Agent (Claude 4.6)</strong>
+      <div class="note">يقرّر أي الحقول يطلبها لاحقاً، متى يثق باستخراج نص حرّ، ومتى يطلب تأكيداً من المستخدم.</div>
+    </div>
+    <div class="kv">
+      <strong>Wave Scheduler (Orchestrator)</strong>
+      <div class="note">يقرّر أي العوامل تنفّذ بالتوازي وأيها يجب أن تنتظر نتائج سابقة، يكتشف حالات التعطّل ويعيد المحاولة (×3).</div>
+    </div>
+    <div class="kv">
+      <strong>Research Agent</strong>
+      <div class="note">يقرّر أي تحديثات تنظيمية حية مهمة لهذه الحالة ويقرر لأي وكلاء يبث النتائج.</div>
+    </div>
+    <div class="kv">
+      <strong>Specialist Agents (مثال: CivilDefense, Municipality)</strong>
+      <div class="note">يتخذون قرارات نطاقية؛ مثال: `CivilDefenseAgent` يصدر `{ hasKitchen: true }` → عندها `MunicipalityAgent` يضيف رخصة المطبخ التجاري إلى المتطلبات.</div>
+    </div>
+    <div class="kv">
+      <strong>Analysis Agent</strong>
+      <div class="note">يقيّم 14 قاعدة PDPL حتمية، يحسب سقف الغرامة، ويصنّف شدّة كل فجوة.</div>
+    </div>
+  </div>
+
+  <div class="section" id="single-or-multi">
+    <h2>هل هو نظام وكيل واحد أم متعدد الوكلاء؟</h2>
+    <p>نظام DARAA هو نظام متعدد الوكلاء — تصميم من 19 وكيل عبر طبقتين:</p>
+    <ul>
+      <li><strong>طبقة التنسيق (8 وكلاء)</strong> — Orchestrator, Chat, Research, Scan, Analysis, Report, Document, Regulatory.</li>
+      <li><strong>طبقة المتخصّصين (11 وكيل)</strong> — MCI, ZATCA, ZATCA E-Invoice, MOHR+GOSI, Civil Defense, Municipality, SFDA, MOH, PDPL+NCA, Maroof, Contractor Classification.</li>
+    </ul>
+    <p>التواصل بين الوكلاء يتم عبر <strong>AgentBus</strong> مع صناديق وارد معزولة لكل وكيل، ورسائل تحمل حمولة مُعرّفة تغيّر سلوك المستلم في الزمن الحقيقي. الجدولة الموجية (Wave Scheduler) تحكم التسلسل والتوازيات وتمنع حالات السباق.</p>
+  </div>
+
+  <div class="section" id="notes">
+    <h2>ملاحظات سريعة</h2>
+    <p class="note">ملاحظة: لا يتضمن MVP تكاملات حكومية مباشرة لأن معظم الجهات لا تتيح واجهات برمجة تطبيقات عامة. المستندات الناتجة تُولَّد كقوالب عربية جاهزة للطباعة (A4) — هذه الصفحة مُصمَّمة أيضاً للطباعة إلى PDF بنفس الهوية البصرية.</p>
+  </div>
+
+</div>
+</body>
+</html>

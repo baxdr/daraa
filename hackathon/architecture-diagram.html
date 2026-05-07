@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DARAA — Architecture Diagram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --paper:    #F7F3EB;
+  --paper2:   #EFE9DB;
+  --paper3:   #E6DFCE;
+  --ink:      #14110F;
+  --ink2:     #3A342E;
+  --muted:    #635A4E;
+  --rule:     #D9D1C3;
+  --white:    #FFFFFF;
+  --accent:   #1E4D3B;
+  --asoft:    #E8EDE8;
+  --warn:     #B8571E;
+  --wsoft:    #F6E9DE;
+  --success:  #166534;
+  --ssoft:    #F0F5F0;
+  --danger:   #9B2C2C;
+  --font:     'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --mono:     'JetBrains Mono', monospace;
+}
+
+body {
+  background: var(--paper);
+  font-family: var(--font);
+  padding: 2.5rem 2rem 4rem;
+  direction: ltr;
+}
+
+@media print {
+  @page { size: A3 portrait; margin: 8mm 10mm; }
+  * { margin: 0 !important; padding: 0 !important; }
+  body { 
+    background: var(--paper) !important; 
+    padding: 0 !important;
+    transform: scale(0.92);
+    transform-origin: top center;
+    font-size: 13px;
+  }
+  html { overflow: hidden; }
+  body::before { display: none; }
+  .page { max-width: 100%; }
+  .card { padding: 1.6rem 1.2rem !important; }
+  .hdr { padding-bottom: 0.7rem; margin-bottom: 1.2rem; gap: 0.5rem; }
+  .hdr-ar { font-size: 2.2rem; }
+  .hdr-title { font-size: 0.88rem; }
+  .flow { gap: 0 !important; }
+  .group { padding: 0.7rem 0.8rem 0.8rem !important; gap: 0.5rem !important; margin-bottom: 0.6rem; }
+  .group-title { font-size: 0.55rem; margin-bottom: 0.15rem; }
+  .node { padding: 0.4rem 0.75rem !important; font-size: 0.65rem; min-height: auto; }
+  .node-label { font-size: 0.65rem; }
+  .node-sub { font-size: 0.53rem; margin-top: 0.1rem; }
+  .arrow-down { height: 24px; }
+  .arrow-down::before { height: 16px; }
+  .arrow-down::after { font-size: 0.45rem; }
+  .split { gap: 0.7rem !important; }
+  .wave-wrap { gap: 0 !important; margin-bottom: 0.4rem; }
+  .wave-body { padding: 0.5rem 0.6rem !important; gap: 0.5rem !important; }
+  .msg-arrow { margin: 0.25rem auto !important; padding: 0 !important; }
+  .msg-pill { font-size: 0.53rem; padding: 0.08rem 0.4rem; }
+  .legend { gap: 0.6rem 1.2rem; margin-top: 1rem; padding-top: 0.8rem; font-size: 0.6rem; }
+  .footer { margin-top: 0.6rem; font-size: 0.6rem; }
+  .wave-title { font-size: 0.53rem; padding: 0.2rem 0.5rem; }
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, rgba(20,17,15,0.04) 1px, transparent 0);
+  background-size: 20px 20px;
+  pointer-events: none; z-index: 0;
+}
+
+.page { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; }
+
+/* ── Header ─────────────────────────────────────────────────────── */
+.hdr {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  padding-bottom: 1rem; border-bottom: 2px solid var(--ink); margin-bottom: 2rem;
+}
+.hdr-logo { display: flex; flex-direction: column; gap: 0.15rem; }
+.hdr-ar { font-size: 2.8rem; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; line-height: 1; direction: rtl; }
+.hdr-en { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); letter-spacing: 0.2em; }
+.hdr-meta { text-align: right; }
+.eyebrow { display: block; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.16em; color: var(--accent); margin-bottom: 0.3rem; }
+.hdr-title { font-size: 1rem; font-weight: 700; color: var(--ink); letter-spacing: -0.015em; }
+
+/* ── Diagram card ────────────────────────────────────────────────── */
+.card { background: var(--white); border: 1px solid var(--rule); padding: 2.5rem 2rem; }
+
+/* ── Flow layout ─────────────────────────────────────────────────── */
+.flow { display: flex; flex-direction: column; align-items: center; gap: 0; }
+
+/* ── Nodes ───────────────────────────────────────────────────────── */
+.node {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 0.55rem 1rem;
+  border: 1.5px solid var(--rule); background: var(--white);
+  border-radius: 3px;
+}
+.node-label { font-size: 0.72rem; font-weight: 700; color: var(--ink); line-height: 1.3; }
+.node-sub   { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); margin-top: 0.2rem; line-height: 1.3; }
+
+/* Node variants */
+.n-user    { background: var(--accent); border-color: var(--accent); border-radius: 999px; padding: 0.6rem 1.8rem; }
+.n-user .node-label { color: var(--paper); font-size: 0.8rem; }
+.n-user .node-sub   { color: rgba(240,238,232,0.7); }
+
+.n-claude  { background: var(--asoft); border-color: var(--accent); border-width: 2px; }
+.n-scanner { background: var(--wsoft); border-color: var(--warn);   border-width: 2px; }
+.n-bus     { background: var(--asoft); border-color: var(--accent); border-width: 2.5px; border-radius: 4px; }
+.n-bus .node-label { color: var(--accent); }
+.n-sched   { background: var(--asoft); border-color: var(--accent); border-width: 2px; }
+
+.n-w1 { background: var(--ssoft); border-color: var(--accent); }
+.n-w2 { background: var(--wsoft); border-color: var(--warn); }
+.n-w3 { background: #FFF8F0;      border-color: var(--warn); }
+
+.n-output  { background: var(--white); border-color: var(--muted); }
+.n-store   { background: var(--paper2); border-color: var(--ink2); border-width: 2px; border-radius: 999px; }
+.n-store .node-label { color: var(--ink); }
+
+.n-dash    { background: var(--ink); border-color: var(--ink); }
+.n-dash .node-label { color: var(--paper); font-size: 0.78rem; }
+.n-dash .node-sub   { color: rgba(240,238,232,0.6); }
+
+/* ── Rows ────────────────────────────────────────────────────────── */
+.row       { display: flex; justify-content: center; align-items: stretch; gap: 1rem; width: 100%; }
+.row-wide  { width: 100%; max-width: 780px; }
+
+/* ── Arrows ──────────────────────────────────────────────────────── */
+.arrow-down {
+  display: flex; flex-direction: column; align-items: center;
+  height: 36px; justify-content: center; gap: 0;
+}
+.arrow-down::before {
+  content: ''; display: block;
+  width: 1.5px; height: 24px;
+  background: var(--muted);
+}
+.arrow-down::after {
+  content: '▼'; font-size: 0.55rem; color: var(--muted); line-height: 1;
+}
+.arrow-label {
+  font-family: var(--mono); font-size: 0.6rem; color: var(--accent);
+  background: var(--paper); border: 1px solid var(--rule);
+  padding: 0.12rem 0.4rem; border-radius: 3px; margin: 0.15rem 0;
+}
+
+/* ── Section groups ──────────────────────────────────────────────── */
+.group {
+  width: 100%; border: 1px solid var(--rule); background: var(--paper);
+  padding: 1rem 1.2rem 1.2rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.8rem;
+}
+.group-title {
+  font-family: var(--mono); font-size: 0.62rem; font-weight: 600;
+  letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase;
+  align-self: flex-start; padding: 0.15rem 0.5rem;
+  border-left: 2px solid var(--rule); margin-bottom: 0.2rem;
+}
+.group-accent > .group-title { border-left-color: var(--accent); color: var(--accent); }
+.group-warn   > .group-title { border-left-color: var(--warn);   color: var(--warn); }
+
+/* ── Split row (2 equal columns) ─────────────────────────────────── */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; }
+.split-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.7rem; width: 100%; }
+.split-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.7rem; width: 100%; }
+
+/* ── Wave label ──────────────────────────────────────────────────── */
+.wave-wrap { width: 100%; display: flex; flex-direction: column; gap: 0; }
+.wave-title {
+  font-family: var(--mono); font-size: 0.6rem; font-weight: 600;
+  color: var(--white); padding: 0.25rem 0.7rem; align-self: flex-start;
+  border-radius: 2px 2px 0 0; letter-spacing: 0.06em;
+}
+.wt-1 { background: var(--accent); }
+.wt-2 { background: var(--warn); }
+.wt-3 { background: var(--warn); }
+
+.wave-body {
+  border: 1.5px solid; border-top: none;
+  padding: 0.6rem 0.8rem;
+  display: flex; gap: 0.6rem; align-items: stretch;
+}
+.wb-1 { border-color: var(--accent); background: var(--ssoft); }
+.wb-2 { border-color: var(--warn);   background: var(--wsoft); }
+.wb-3 { border-color: var(--warn);   background: #FFF8F0; }
+
+.msg-arrow {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.2rem 0.7rem; margin: 0 auto;
+}
+.msg-arrow::before, .msg-arrow::after {
+  content: ''; display: block; width: 1.5px; height: 20px;
+  background: var(--muted);
+}
+.msg-pill {
+  font-family: var(--mono); font-size: 0.6rem; color: var(--accent);
+  background: var(--asoft); border: 1px solid var(--accent);
+  padding: 0.12rem 0.5rem; border-radius: 2px; white-space: nowrap;
+}
+
+/* ── Legend ──────────────────────────────────────────────────────── */
+.legend {
+  display: flex; flex-wrap: wrap; gap: 0.8rem 1.8rem;
+  margin-top: 1.8rem; padding-top: 1.2rem;
+  border-top: 1px solid var(--rule);
+}
+.li { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; color: var(--ink2); }
+.ld { width: 14px; height: 14px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── Footer ──────────────────────────────────────────────────────── */
+.footer {
+  margin-top: 1.4rem; display: flex; justify-content: space-between;
+  font-size: 0.7rem; color: var(--muted);
+}
+.footer strong { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-logo">
+      <span class="hdr-ar">درع</span>
+      <span class="hdr-en">DARAA · SYSTEM ARCHITECTURE</span>
+    </div>
+    <div class="hdr-meta">
+      <span class="eyebrow">AGENTICTHON 2026 · ARCHITECTURE DIAGRAM</span>
+      <div class="hdr-title">Saudi Multi-Agent AI Platform — 19 Agents · Real A2A</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="flow">
+
+      <!-- USER -->
+      <div class="node n-user">
+        <span class="node-label">👤 المستخدم — User</span>
+        <span class="node-sub">Gulf Arabic · free-form input</span>
+      </div>
+
+      <div class="arrow-down"></div>
+
+      <!-- INPUT LAYER -->
+      <div class="group group-accent" style="max-width:780px;">
+        <div class="group-title">Input Layer · طبقة المدخلات</div>
+        <div class="split" style="max-width:580px;">
+          <div class="node n-claude" style="min-height:60px;">
+            <span class="node-label">💬 Arabic Chat</span>
+            <span class="node-sub">Free-form Gulf Arabic text</span>
+          </div>
+          <div class="node n-scanner" style="min-height:60px;">
+            <span class="node-label">🌐 Website URL</span>
+            <span class="node-sub">Public URL for compliance scan</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-down"></div>
+
+      <!-- AI LAYER -->
+      <div class="group group-accent" style="max-width:780px;">
+        <div class="group-title">AI Intelligence Layer · طبقة الذكاء</div>
+        <div class="split" style="max-width:680px;">
+          <div class="node n-claude">
+            <span class="node-label">🤖 Chat Agent</span>
+            <span class="node-sub">Claude Sonnet 4.6<br>10-field extraction · Gulf Arabic NLU<br>builds AgentContext</span>
+          </div>
+          <div class="node n-scanner">
+            <span class="node-label">🔍 4 Web Scanners</span>
+            <span class="node-sub">Privacy Policy · Security Headers<br>Third-Party Trackers · Data Forms<br>Parallel execution</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-down"></div>
+
+      <!-- AGENTBUS -->
+      <div class="group group-accent" style="max-width:780px;">
+        <div class="group-title">A2A Layer · تواصل حقيقي بين الوكلاء</div>
+        <div class="split" style="max-width:680px;">
+          <div class="node n-bus">
+            <span class="node-label">📡 AgentBus</span>
+            <span class="node-sub">Isolated inbox per agent<br>Payload-bearing messages<br>Broadcast ALL · Chronological log</span>
+          </div>
+          <div class="node n-claude">
+            <span class="node-label">🔬 Research Agent</span>
+            <span class="node-sub">Claude Sonnet 4.6 + web_search<br>Finds PDPL · ZATCA · NCA updates<br>Broadcasts to relevant agents only</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-down"></div>
+
+      <!-- WAVE SCHEDULER -->
+      <div class="group group-accent" style="max-width:780px; gap:0.5rem;">
+        <div class="group-title">Wave Scheduler · OrchestratorRuntime</div>
+
+        <div class="node n-sched" style="align-self:stretch;">
+          <span class="node-label">⚙️ Wave Scheduler</span>
+          <span class="node-sub">Dependency resolution · Parallel execution · Deadlock detection · MAX 16 waves · Retry ×3</span>
+        </div>
+
+        <!-- Wave 1 -->
+        <div class="wave-wrap" style="width:100%;">
+          <div class="wave-title wt-1">Wave 1 — Independent · Run in Parallel</div>
+          <div class="wave-body wb-1">
+            <div class="node n-w1" style="flex:1;">
+              <span class="node-label">🏛️ MCI</span>
+              <span class="node-sub">Ministry of Commerce<br>CR + Trade Name</span>
+            </div>
+            <div class="node n-w1" style="flex:1;">
+              <span class="node-label">🍽️ SFDA</span>
+              <span class="node-sub">Food &amp; Drug Authority<br>Health Certificate</span>
+            </div>
+            <div class="node n-w1" style="flex:1;">
+              <span class="node-label">🏥 MOH</span>
+              <span class="node-sub">Ministry of Health<br>Medical License</span>
+            </div>
+            <div class="node n-w1" style="flex:1;">
+              <span class="node-label">✅ Maroof</span>
+              <span class="node-sub">Verification Platform<br>Business Profile</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- A2A Message -->
+        <div class="msg-arrow">
+          <span class="msg-pill">📨 crReady: true — MCI → All</span>
+        </div>
+
+        <!-- Wave 2 -->
+        <div class="wave-wrap" style="width:100%;">
+          <div class="wave-title wt-2">Wave 2 — Awaits MCI Signal</div>
+          <div class="wave-body wb-2">
+            <div class="node n-w2" style="flex:1;">
+              <span class="node-label">🔥 Civil Defense</span>
+              <span class="node-sub">Safety Certificate<br>Emits hasKitchen payload</span>
+            </div>
+            <div class="node n-w2" style="flex:1;">
+              <span class="node-label">💰 ZATCA</span>
+              <span class="node-sub">Zakat &amp; Tax Authority<br>VAT Registration</span>
+            </div>
+            <div class="node n-w2" style="flex:1;">
+              <span class="node-label">🧾 ZATCA E-Invoice</span>
+              <span class="node-sub">Phase 2 Integration<br>Electronic Invoicing</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- A2A Message -->
+        <div class="msg-arrow">
+          <span class="msg-pill">📨 hasKitchen: true — Civil Defense → Municipality</span>
+        </div>
+
+        <!-- Wave 3 -->
+        <div class="wave-wrap" style="width:100%;">
+          <div class="wave-title wt-3">Wave 3 — Unblocked by Civil Defense Payload</div>
+          <div class="wave-body wb-3">
+            <div class="node n-w3" style="flex:1;">
+              <span class="node-label">🏙️ Municipality</span>
+              <span class="node-sub">Adds Commercial Kitchen<br>License if hasKitchen</span>
+            </div>
+            <div class="node n-w3" style="flex:1;">
+              <span class="node-label">👷 MOHR + GOSI</span>
+              <span class="node-sub">Labor Ministry<br>Social Insurance</span>
+            </div>
+            <div class="node n-w3" style="flex:1;">
+              <span class="node-label">🔒 PDPL + NCA</span>
+              <span class="node-sub">Data Protection Law<br>Cybersecurity Controls</span>
+            </div>
+            <div class="node n-w3" style="flex:1;">
+              <span class="node-label">🏗️ Contractor</span>
+              <span class="node-sub">Classification<br>Engineering License</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="arrow-down"></div>
+
+      <!-- OUTPUT LAYER -->
+      <div class="group" style="max-width:780px;">
+        <div class="group-title">Output Layer · المخرجات</div>
+        <div class="split" style="max-width:680px;">
+          <div class="node n-output">
+            <span class="node-label">⚖️ Analysis Engine</span>
+            <span class="node-sub">14 deterministic PDPL rules<br>Fine ceiling calculator<br>Sector personalizer</span>
+          </div>
+          <div class="node n-claude">
+            <span class="node-label">📄 Document Agent</span>
+            <span class="node-sub">Claude Sonnet 4.6<br>Privacy Policy · DPO Letter<br>Processing Register · Incident Plan</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-down"></div>
+
+      <!-- PROJECT STORE -->
+      <div class="node n-store" style="max-width:460px; width:100%; padding:0.7rem 1.5rem;">
+        <span class="node-label">🗄️ Project Store · الذاكرة</span>
+        <span class="node-sub" style="font-family:var(--mono);">File-backed JSON · Atomic Writes · SHA-256 Email Index · 1h TTL</span>
+      </div>
+
+      <div class="arrow-down"></div>
+
+      <!-- DASHBOARD -->
+      <div class="node n-dash" style="max-width:560px; width:100%; padding:0.8rem 1.5rem;">
+        <span class="node-label">📊 لوحة المشروع — Project Dashboard</span>
+        <span class="node-sub">Roadmap · Costs · Gap Report · Fine Ceiling · Documents · Active Monitoring</span>
+      </div>
+
+    </div><!-- /flow -->
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="li"><div class="ld" style="background:var(--accent);border-radius:999px;"></div>User / Entry</div>
+      <div class="li"><div class="ld" style="background:var(--asoft);border:2px solid var(--accent);"></div>Claude AI Agents</div>
+      <div class="li"><div class="ld" style="background:var(--wsoft);border:1.5px solid var(--warn);"></div>Web Scanners</div>
+      <div class="li"><div class="ld" style="background:var(--ssoft);border:1.5px solid var(--accent);"></div>Wave 1 — Independent</div>
+      <div class="li"><div class="ld" style="background:var(--wsoft);border:1.5px solid var(--warn);"></div>Wave 2 — Awaits MCI</div>
+      <div class="li"><div class="ld" style="background:#FFF8F0;border:1.5px solid var(--warn);"></div>Wave 3 — Awaits Civil Defense</div>
+      <div class="li"><div class="ld" style="background:var(--paper2);border:2px solid var(--ink2);border-radius:999px;"></div>Memory / Persistence</div>
+      <div class="li"><div class="ld" style="background:var(--ink);"></div>Project Dashboard</div>
+    </div>
+  </div><!-- /card -->
+
+  <div class="footer">
+    <span><strong>بدر العمري · سفر الدوسري</strong> — Agenticthon 2026 🇸🇦</span>
+    <span style="font-family:var(--mono);font-size:0.62rem;">Next.js 14 · Claude Sonnet 4.6 · TypeScript · Custom AgentBus A2A</span>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>درع — DARAA · Agenticthon 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+/* ==============================
+   MANDATORY BASE (STYLE_PRESETS)
+   ============================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow-x: hidden; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+.slide {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ==============================
+   CUSTOM PROPERTIES
+   ============================== */
+:root {
+  --bg:           #05050F;
+  --surface:      #0C0C1E;
+  --card:         #111126;
+  --border:       rgba(212, 160, 23, 0.18);
+  --border-soft:  rgba(212, 160, 23, 0.08);
+  --gold:         #D4A017;
+  --gold-bright:  #F0C842;
+  --gold-dim:     #7A5C0E;
+  --gold-glow:    rgba(212, 160, 23, 0.12);
+  --cyan:         #00D4FF;
+  --cyan-dim:     rgba(0, 212, 255, 0.1);
+  --white:        #EFEDE8;
+  --gray:         #5E5E80;
+  --gray-light:   #9090B8;
+  --green:        #00C853;
+  --green-dim:    rgba(0, 200, 83, 0.08);
+  --red:          #FF4040;
+  --amber:        #FF9800;
+
+  --title-size:   clamp(3rem, 11vw, 8rem);
+  --hero-size:    clamp(1rem, 2.5vw, 1.7rem);
+  --h2-size:      clamp(1.1rem, 2.8vw, 2rem);
+  --h3-size:      clamp(0.85rem, 1.8vw, 1.3rem);
+  --body-size:    clamp(0.7rem, 1.3vw, 0.9rem);
+  --small-size:   clamp(0.6rem, 0.95vw, 0.75rem);
+  --code-size:    clamp(0.58rem, 0.9vw, 0.72rem);
+
+  --pad:          clamp(1.2rem, 3.5vw, 3rem);
+  --gap:          clamp(0.5rem, 1.3vw, 1rem);
+  --gap-sm:       clamp(0.25rem, 0.7vw, 0.5rem);
+
+  --font-ar:      'IBM Plex Sans Arabic', sans-serif;
+  --font-en:      'Space Grotesk', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+}
+
+body {
+  font-family: var(--font-ar);
+  background: var(--bg);
+  color: var(--white);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==============================
+   NAV BAR
+   ============================== */
+.nav {
+  position: fixed;
+  top: clamp(0.6rem, 1.5vh, 1.2rem);
+  left: clamp(0.8rem, 2vw, 1.5rem);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  direction: ltr;
+}
+.nav-counter {
+  font-family: var(--font-mono);
+  font-size: var(--small-size);
+  color: var(--gold);
+  background: var(--gold-glow);
+  border: 1px solid var(--border);
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+}
+.nav-bar {
+  width: clamp(50px, 7vw, 90px);
+  height: 2px;
+  background: var(--border-soft);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.nav-bar-fill {
+  height: 100%;
+  background: var(--gold);
+  transition: width 0.4s ease;
+}
+
+/* ==============================
+   GLOBAL DOT GRID
+   ============================== */
+.slide::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(212,160,23,0.06) 1px, transparent 1px);
+  background-size: 30px 30px;
+  pointer-events: none;
+  z-index: 0;
+}
+.slide > * { position: relative; z-index: 1; }
+
+/* ==============================
+   SHARED ATOMS
+   ============================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-en);
+  font-size: var(--small-size);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border: 1px solid var(--border);
+  background: var(--gold-glow);
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+}
+.slide-num {
+  font-family: var(--font-mono);
+  font-size: var(--small-size);
+  color: var(--gold-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.slide-title {
+  font-size: var(--h2-size);
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.15;
+}
+.slide-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  padding-bottom: var(--gap-sm);
+}
+
+/* ==============================
+   SLIDE 1 — HERO
+   ============================== */
+.s1 {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: var(--bg);
+  padding: var(--pad);
+}
+.s1-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation: ring-pulse 5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+.s1-ring-a { width: clamp(260px,42vw,540px); height: clamp(260px,42vw,540px); }
+.s1-ring-b { width: clamp(360px,58vw,700px); height: clamp(360px,58vw,700px); animation-delay: -2.5s; opacity: 0.35; }
+@keyframes ring-pulse {
+  0%,100% { opacity: 0.2; transform: translate(-50%,-50%) scale(1); }
+  50%      { opacity: 0.55; transform: translate(-50%,-50%) scale(1.018); }
+}
+.s1-content {
+  display: flex; flex-direction: column;
+  align-items: center; gap: var(--gap);
+  max-width: min(90vw, 800px);
+  position: relative; z-index: 1;
+}
+.s1-arabic {
+  font-size: var(--title-size);
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold), #9C6D0A);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.s1-latin {
+  font-family: var(--font-en);
+  font-size: clamp(0.9rem, 2.5vw, 1.8rem);
+  font-weight: 600;
+  color: rgba(239,237,232,0.3);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  direction: ltr;
+}
+.s1-divider {
+  width: clamp(3rem, 8vw, 6rem);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.s1-tagline {
+  font-size: var(--hero-size);
+  color: var(--gray-light);
+  max-width: 52ch;
+  line-height: 1.6;
+}
+.s1-sub {
+  font-family: var(--font-en);
+  font-size: var(--body-size);
+  color: var(--gray);
+  direction: ltr;
+}
+.s1-tracks {
+  display: flex; flex-wrap: wrap; gap: 0.4rem;
+  justify-content: center; direction: ltr;
+}
+.s1-track {
+  font-family: var(--font-en);
+  font-size: var(--small-size);
+  color: var(--white);
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 0.28rem 0.7rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+.s1-team { font-size: var(--body-size); color: var(--gray); margin-top: 0.2rem; }
+
+/* ==============================
+   SLIDE 2 — PROBLEM
+   ============================== */
+.s2 { padding: var(--pad); justify-content: center; gap: var(--gap); }
+.prob-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+  flex: 1;
+  align-items: start;
+  max-height: calc(100vh - 8rem);
+  max-height: calc(100dvh - 8rem);
+  overflow: hidden;
+}
+.prob-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: var(--gap);
+  display: flex; flex-direction: column; gap: var(--gap-sm);
+  overflow: hidden;
+  position: relative;
+}
+.prob-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+.prob-card.danger::before { background: linear-gradient(90deg, var(--red), transparent); }
+.prob-icon { font-size: clamp(1.4rem, 2.5vw, 2rem); }
+.prob-title { font-size: var(--h3-size); font-weight: 600; color: var(--white); }
+.prob-list { list-style: none; display: flex; flex-direction: column; gap: var(--gap-sm); }
+.prob-list li {
+  font-size: var(--body-size); color: var(--gray-light);
+  display: flex; align-items: flex-start; gap: 0.45rem; line-height: 1.4;
+}
+.prob-list li::before { content: '→'; color: var(--gold-dim); flex-shrink: 0; }
+.prob-card.danger .prob-list li::before { color: var(--red); opacity: 0.7; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.15rem; }
+.chip {
+  font-family: var(--font-mono);
+  font-size: var(--small-size);
+  color: var(--gold);
+  background: var(--gold-glow);
+  border: 1px solid var(--border);
+  padding: 0.12rem 0.4rem;
+  border-radius: 3px;
+}
+.fine-box {
+  background: rgba(255,64,64,0.07);
+  border: 1px solid rgba(255,64,64,0.2);
+  border-radius: 4px;
+  padding: 0.45rem 0.7rem;
+  font-size: var(--body-size);
+  color: #FF9090;
+  line-height: 1.4;
+}
+
+/* ==============================
+   SLIDE 3 — ARCHITECTURE
+   ============================== */
+.s3 { padding: var(--pad); justify-content: center; gap: var(--gap-sm); }
+.arch {
+  display: flex; flex-direction: column;
+  gap: 0.32rem; flex: 1; justify-content: center;
+  overflow: hidden;
+}
+.arch-row {
+  display: flex; align-items: center;
+  justify-content: center; gap: 0.4rem;
+}
+.ab {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.35rem 0.7rem;
+  font-size: var(--small-size);
+  text-align: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: var(--font-en);
+}
+.ab-prim { background: var(--card); color: var(--white); }
+.ab-gold  { background: var(--gold-glow); border-color: rgba(212,160,23,0.5); color: var(--gold-bright); font-weight: 600; }
+.ab-cyan  { background: var(--cyan-dim);  border-color: rgba(0,212,255,0.35); color: var(--cyan); }
+.ab-green { background: var(--green-dim); border-color: rgba(0,200,83,0.3);   color: var(--green); }
+.ab-wide  { flex: 1; min-width: 0; max-width: 580px; white-space: normal; }
+.ab-ui    { background: rgba(212,160,23,0.05); border-color: rgba(212,160,23,0.3); }
+.ab-bus   { background: rgba(0,212,255,0.04);  border-color: rgba(0,212,255,0.28); }
+.arch-arr { color: var(--gold-dim); font-size: 0.85rem; flex-shrink: 0; font-family: var(--font-mono); }
+.arch-lbl {
+  font-family: var(--font-mono);
+  font-size: var(--small-size);
+  color: var(--gray);
+  text-align: center; padding: 0.05rem 0;
+}
+.stats-row {
+  display: flex; gap: var(--gap); justify-content: center;
+  padding-top: 0.5rem; flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  margin-top: 0.3rem;
+}
+.stat-item { text-align: center; }
+.stat-num  { font-family: var(--font-mono); font-size: clamp(1rem, 1.8vw, 1.4rem); font-weight: 700; color: var(--gold-bright); display: block; }
+.stat-lbl  { font-size: var(--small-size); color: var(--gray); }
+.stat-div  { width: 1px; background: var(--border); }
+
+/* ==============================
+   SLIDE 4 — A2A
+   ============================== */
+.s4 { padding: var(--pad); justify-content: center; gap: var(--gap-sm); }
+.a2a-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: var(--gap); flex: 1; align-items: center;
+  overflow: hidden;
+}
+.wave-panel { display: flex; flex-direction: column; gap: 0.4rem; overflow: hidden; }
+.wave-head  { font-size: var(--body-size); color: var(--gray-light); font-weight: 500; margin-bottom: 0.15rem; }
+.wave-row-items { display: flex; align-items: center; gap: 0.4rem; }
+.wave-lbl {
+  font-family: var(--font-mono); font-size: var(--small-size);
+  color: var(--gold-dim); width: clamp(3.5rem,5vw,4.5rem); flex-shrink: 0; direction: ltr;
+}
+.wave-agents { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+.wa { font-family: var(--font-mono); font-size: var(--small-size); padding: 0.18rem 0.45rem; border-radius: 3px; border: 1px solid; }
+.wa-active  { background: var(--gold-glow);  border-color: var(--gold);               color: var(--gold-bright); }
+.wa-blocked { background: rgba(94,94,128,0.1); border-color: rgba(94,94,128,0.25);   color: var(--gray); }
+.wa-done    { background: var(--green-dim);  border-color: rgba(0,200,83,0.3);        color: var(--green); }
+.wave-note  { font-size: var(--small-size); color: var(--gray);   padding-right: clamp(3.5rem,5vw,4.5rem); margin-top: 0.1rem; }
+.wave-note.success { color: var(--green); }
+.a2a-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: var(--gap);
+  display: flex; flex-direction: column; gap: 0.35rem; overflow: hidden;
+}
+.a2a-card-title { font-size: var(--body-size); color: var(--gold); font-weight: 600; }
+.a2a-flow  { display: flex; flex-direction: column; gap: 0.28rem; }
+.a2a-node  {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; padding: 0.32rem 0.6rem;
+  font-size: var(--small-size); display: flex; align-items: center; gap: 0.45rem;
+  direction: ltr; overflow: hidden;
+}
+.a2a-node.from-node { border-color: var(--gold);               color: var(--gold-bright); }
+.a2a-node.msg-node  { border-color: rgba(0,212,255,0.4);       color: var(--cyan);   font-family: var(--font-mono); }
+.a2a-node.to-node   { border-color: rgba(0,200,83,0.4);        color: var(--green); }
+.a2a-arr   { text-align: center; color: var(--gold-dim); font-size: 0.85rem; padding: 0.05rem 0; }
+.code-box  {
+  background: #080817; border: 1px solid rgba(0,212,255,0.12);
+  border-radius: 4px; padding: 0.45rem 0.7rem;
+  font-family: var(--font-mono); font-size: var(--code-size);
+  color: var(--gray-light); direction: ltr; line-height: 1.55;
+  overflow: hidden; flex-shrink: 0;
+}
+.kw   { color: var(--cyan); }
+.prop { color: var(--gold-bright); }
+.str  { color: #98C379; }
+.val  { color: #E06C75; }
+.cmt  { color: var(--gray); }
+.a2a-footer {
+  font-size: var(--small-size); color: var(--gray);
+  border-top: 1px solid var(--border); padding-top: 0.4rem; margin-top: 0.1rem; line-height: 1.4;
+}
+
+/* ==============================
+   SLIDE 5 — AGENT DECISIONS
+   ============================== */
+.s5 { padding: var(--pad); justify-content: center; gap: var(--gap-sm); }
+.dec-grid {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: var(--gap-sm); flex: 1; align-items: stretch; overflow: hidden;
+}
+.dec-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 6px; padding: var(--gap-sm);
+  display: flex; flex-direction: column; gap: 0.28rem;
+  transition: border-color 0.2s; overflow: hidden;
+}
+.dec-card:hover { border-color: var(--gold); }
+.dec-icon   { font-size: clamp(1.1rem,1.8vw,1.6rem); }
+.dec-name   { font-family: var(--font-mono); font-size: var(--small-size); color: var(--gold); font-weight: 500; }
+.dec-type   { font-size: var(--small-size); color: var(--gray); font-style: italic; }
+.dec-q      { font-size: var(--body-size); color: var(--white); font-weight: 500; line-height: 1.3; flex: 1; }
+.dec-detail { font-size: var(--small-size); color: var(--gray-light); line-height: 1.4; }
+
+/* ==============================
+   SLIDE 6 — DEMO FLOW
+   ============================== */
+.s6 { padding: var(--pad); justify-content: center; gap: var(--gap-sm); }
+.demo-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: var(--gap); flex: 1; align-items: start; overflow: hidden;
+}
+.demo-col {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: var(--gap);
+  display: flex; flex-direction: column; gap: var(--gap-sm);
+  overflow: hidden; height: 100%;
+}
+.demo-col-title { font-size: var(--h3-size); font-weight: 600; color: var(--gold); }
+.demo-inp {
+  background: var(--surface); border: 1px solid rgba(212,160,23,0.25);
+  border-radius: 4px; padding: 0.45rem 0.7rem;
+  font-size: var(--small-size); color: var(--white);
+  direction: rtl; font-family: var(--font-ar); line-height: 1.45;
+}
+.demo-inp.ltr { font-family: var(--font-mono); direction: ltr; color: var(--cyan); }
+.demo-steps { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; }
+.demo-step  { display: flex; align-items: flex-start; gap: 0.45rem; font-size: var(--small-size); line-height: 1.4; }
+.step-n { font-family: var(--font-mono); color: var(--gold-dim); flex-shrink: 0; width: 1.1rem; }
+.step-t { color: var(--gray-light); flex: 1; }
+.ok   { color: var(--green); }
+.warn { color: var(--amber); }
+.err  { color: var(--red); }
+.demo-result {
+  background: var(--surface); border: 1px solid rgba(0,200,83,0.18);
+  border-radius: 4px; padding: 0.45rem 0.7rem;
+  margin-top: auto; flex-shrink: 0;
+}
+.demo-result.bad { border-color: rgba(255,152,0,0.25); }
+.result-title     { font-size: var(--small-size); color: var(--green); font-weight: 600; margin-bottom: 0.25rem; }
+.result-title.bad { color: var(--amber); }
+.result-tags { display: flex; flex-wrap: wrap; gap: 0.2rem; }
+.rtag {
+  font-family: var(--font-mono); font-size: var(--small-size);
+  color: var(--gray-light); background: var(--card);
+  border: 1px solid var(--border); padding: 0.12rem 0.38rem; border-radius: 3px;
+}
+
+/* ==============================
+   REVEAL ANIMATIONS
+   ============================== */
+.rv {
+  opacity: 0; transform: translateY(14px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.rv.show { opacity: 1; transform: translateY(0); }
+.rv.d1 { transition-delay: 0.1s; }
+.rv.d2 { transition-delay: 0.2s; }
+.rv.d3 { transition-delay: 0.3s; }
+.rv.d4 { transition-delay: 0.4s; }
+.rv.d5 { transition-delay: 0.5s; }
+
+/* ==============================
+   RESPONSIVE BREAKPOINTS
+   ============================== */
+@media (max-height: 700px) {
+  :root {
+    --pad:       clamp(0.9rem, 2.5vw, 1.8rem);
+    --gap:       clamp(0.4rem, 1vw, 0.75rem);
+    --gap-sm:    clamp(0.2rem, 0.5vw, 0.38rem);
+    --h2-size:   clamp(0.95rem, 2.2vw, 1.5rem);
+    --body-size: clamp(0.62rem, 1.1vw, 0.8rem);
+    --title-size:clamp(2.5rem, 8vw, 5rem);
+  }
+}
+@media (max-height: 550px) {
+  :root { --pad: clamp(0.6rem, 2vw, 1.2rem); --title-size: clamp(2rem,7vw,3.5rem); }
+  .s1-ring-b { display: none; }
+  .nav { display: none; }
+}
+@media (max-width: 768px) {
+  .prob-grid, .a2a-grid, .demo-grid { grid-template-columns: 1fr; }
+  .dec-grid { grid-template-columns: repeat(2,1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+  html { scroll-behavior: auto; }
+  .rv { opacity: 1 !important; transform: none !important; }
+  .s1-ring { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-counter" id="nav-c">1 / 6</div>
+  <div class="nav-bar"><div class="nav-bar-fill" id="nav-f" style="width:16.67%"></div></div>
+</nav>
+
+<main>
+
+<!-- ==========================================
+     SLIDE 1 — HERO
+     ========================================== -->
+<section class="slide s1" data-slide="1">
+  <div class="s1-ring s1-ring-a"></div>
+  <div class="s1-ring s1-ring-b"></div>
+  <div class="s1-content">
+    <div class="badge rv">🇸🇦 &nbsp;Agenticthon 2026</div>
+    <div class="s1-arabic rv d1">درع</div>
+    <div class="s1-latin rv d2">DARAA</div>
+    <div class="s1-divider rv d2"></div>
+    <p class="s1-tagline rv d3">مستشار ذكاء اصطناعي متعدد الوكلاء للسوق السعودي</p>
+    <p class="s1-sub rv d3">Saudi Business Formation &amp; Compliance Intelligence</p>
+    <div class="s1-tracks rv d4">
+      <span class="s1-track">⚙️ Process Automation</span>
+      <span class="s1-track">🤖 Multi-Agent Systems</span>
+      <span class="s1-track">🔗 Agent-to-Agent (A2A)</span>
+    </div>
+    <div class="s1-team rv d5">بدر العمري · سفر الدوسري</div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 2 — PROBLEM
+     ========================================== -->
+<section class="slide s2" data-slide="2">
+  <div class="slide-header rv">
+    <div class="slide-num">02 / PROBLEM</div>
+    <div class="slide-title">مشكلة صاحب العمل السعودي</div>
+  </div>
+  <div class="prob-grid">
+    <div class="prob-card rv d1">
+      <div class="prob-icon">🏗️</div>
+      <div class="prob-title">تأسيس الشركة</div>
+      <ul class="prob-list">
+        <li>7–15 جهة حكومية بتسلسل معقد ومتشعّب</li>
+        <li>خطأ في الترتيب = أسابيع ضائعة ووثائق مرفوضة</li>
+        <li>تبعيات خفية — جهة تحجب الأخرى</li>
+        <li>لا دليل موحّد يشمل جميع القطاعات</li>
+      </ul>
+      <div class="chips">
+        <span class="chip">MCI</span><span class="chip">ZATCA</span><span class="chip">SFDA</span>
+        <span class="chip">Civil Defense</span><span class="chip">Municipality</span>
+        <span class="chip">MOHR</span><span class="chip">GOSI</span>
+      </div>
+    </div>
+    <div class="prob-card danger rv d2">
+      <div class="prob-icon">⚠️</div>
+      <div class="prob-title">الامتثال والمخاطر القانونية</div>
+      <ul class="prob-list">
+        <li>PDPL: نظام حماية البيانات الشخصية — جديد وعقوباته صارمة</li>
+        <li>NCA ECC: ضوابط الأمن السيبراني الإلزامية</li>
+        <li>ZATCA: الفاتورة الإلكترونية المرحلة الثانية</li>
+        <li>معظم الشركات لا تعرف وضعها الحقيقي</li>
+      </ul>
+      <div class="fine-box">
+        💰 سقف الغرامات يصل إلى <strong>5,000,000 ريال</strong> بموجب نظام PDPL
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 3 — ARCHITECTURE
+     ========================================== -->
+<section class="slide s3" data-slide="3">
+  <div class="slide-header rv">
+    <div class="slide-num">03 / ARCHITECTURE</div>
+    <div class="slide-title">المعمارية — 7 طبقات · 19 وكيلاً</div>
+  </div>
+
+  <div class="arch rv d1">
+    <!-- L1: UI -->
+    <div class="arch-row">
+      <div class="ab ab-prim ab-wide ab-ui" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap;">
+        <span style="color:var(--gold-bright);font-weight:600;">User Interface</span>
+        <span style="color:var(--gray);">·</span>
+        <span style="color:var(--gray-light);">Next.js 14 · TypeScript · Arabic-first Chat</span>
+        <span style="color:var(--gray);">·</span>
+        <span style="color:var(--gray-light);">Formation Mode &amp; Compliance Mode</span>
+      </div>
+    </div>
+    <div class="arch-row" style="gap:3rem;">
+      <div class="arch-lbl" style="flex:1;">↓ Arabic NLU</div>
+      <div class="arch-lbl" style="flex:1;color:rgba(0,212,255,0.55);">↓ Website URL</div>
+    </div>
+    <!-- L2 -->
+    <div class="arch-row" style="gap:0.6rem;">
+      <div class="ab ab-gold" style="flex:1;">Chat Agent · Claude Sonnet 4.6<span style="font-weight:300;color:var(--gold-dim);"> · extracts 10 fields</span></div>
+      <div class="ab ab-cyan" style="flex:1;">4 Web Scanners<span style="font-weight:300;color:rgba(0,212,255,0.5);"> · Privacy · Security · Trackers · Forms</span></div>
+    </div>
+    <div class="arch-row" style="gap:3rem;">
+      <div class="arch-lbl" style="flex:1;">↓</div>
+      <div class="arch-lbl" style="flex:1;">↓</div>
+    </div>
+    <!-- L3: AgentBus -->
+    <div class="arch-row">
+      <div class="ab ab-prim ab-wide ab-bus" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap;">
+        <span style="color:var(--cyan);font-weight:600;">AgentBus</span>
+        <span style="color:var(--gray);">·</span>
+        <span style="color:var(--gray-light);">Real A2A · Isolated Inboxes · Payload Messages</span>
+        <span style="color:var(--gray);">|</span>
+        <span style="color:var(--gold);">Research Agent (Claude + web_search)</span>
+      </div>
+    </div>
+    <div class="arch-lbl">↓ Wave Scheduler resolves dependencies</div>
+    <!-- L4: Specialists -->
+    <div class="arch-row" style="gap:0.45rem;">
+      <div class="ab ab-gold" style="white-space:nowrap;">Wave Scheduler</div>
+      <div class="arch-arr">→</div>
+      <div class="ab ab-prim" style="flex:1;font-family:var(--font-mono);font-size:var(--small-size);color:var(--gray-light);white-space:normal;text-align:center;">
+        11 Specialist Agents (deterministic) · MCI · ZATCA · E-Invoice · MOHR+GOSI · Civil Defense · Municipality · SFDA · MOH · PDPL+NCA · Maroof · Contractor
+      </div>
+    </div>
+    <div class="arch-lbl">↓</div>
+    <!-- L5: Output -->
+    <div class="arch-row" style="gap:0.6rem;">
+      <div class="ab ab-green" style="flex:1;">Analysis Engine<span style="font-weight:300;color:rgba(0,200,83,0.55);"> · 14 PDPL rules · Fine Calculator · Gap Report</span></div>
+      <div class="ab ab-gold" style="flex:1;">Document Agent · Claude 4.6<span style="font-weight:300;color:var(--gold-dim);"> · 4 Arabic legal docs</span></div>
+    </div>
+  </div>
+
+  <div class="stats-row rv d2">
+    <div class="stat-item"><span class="stat-num">19</span><span class="stat-lbl">Agents</span></div>
+    <div class="stat-div"></div>
+    <div class="stat-item"><span class="stat-num">4</span><span class="stat-lbl">Scanners</span></div>
+    <div class="stat-div"></div>
+    <div class="stat-item"><span class="stat-num">14</span><span class="stat-lbl">PDPL Rules</span></div>
+    <div class="stat-div"></div>
+    <div class="stat-item"><span class="stat-num">3</span><span class="stat-lbl">A2A Tracks</span></div>
+    <div class="stat-div"></div>
+    <div class="stat-item"><span class="stat-num">4</span><span class="stat-lbl">Docs Generated</span></div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 4 — A2A COMMUNICATION
+     ========================================== -->
+<section class="slide s4" data-slide="4">
+  <div class="slide-header rv">
+    <div class="slide-num">04 / A2A COMMUNICATION</div>
+    <div class="slide-title">تواصل حقيقي بين الوكلاء — ليس مسرحاً</div>
+  </div>
+  <div class="a2a-grid">
+    <div class="wave-panel rv d1">
+      <div class="wave-head">Wave Scheduler — ترتيب تنفيذ الوكلاء</div>
+      <div class="wave-row-items">
+        <span class="wave-lbl">Wave 1</span>
+        <div class="wave-agents">
+          <span class="wa wa-active">MCI</span>
+          <span class="wa wa-active">SFDA</span>
+          <span class="wa wa-active">MOH</span>
+          <span class="wa wa-active">Maroof</span>
+          <span class="wa wa-active">Civil Defense</span>
+        </div>
+      </div>
+      <div class="wave-note">↓ يُرسل النتائج عبر AgentBus</div>
+      <div class="wave-row-items">
+        <span class="wave-lbl">Wave 2</span>
+        <div class="wave-agents">
+          <span class="wa wa-done">ZATCA ✓</span>
+          <span class="wa wa-done">E-Invoice ✓</span>
+          <span class="wa wa-blocked">Municipality ⏳</span>
+        </div>
+      </div>
+      <div class="wave-note">↓ Civil Defense → Municipality: { hasKitchen: true }</div>
+      <div class="wave-row-items">
+        <span class="wave-lbl">Wave 3</span>
+        <div class="wave-agents">
+          <span class="wa wa-done">Municipality ✓</span>
+          <span class="wa wa-done">MOHR+GOSI ✓</span>
+        </div>
+      </div>
+      <div class="wave-note success">✓ Municipality أضافت "رخصة المطبخ التجاري"</div>
+      <div style="margin-top:0.4rem;font-size:var(--small-size);color:var(--gray);line-height:1.5;">
+        بدون رسالة Civil Defense، متطلب المطبخ التجاري<br>لا يظهر في القائمة أبداً — هذا هو الـ A2A الحقيقي.
+      </div>
+    </div>
+    <div class="a2a-card rv d2">
+      <div class="a2a-card-title">مثال حقيقي — Civil Defense → Municipality</div>
+      <div class="a2a-flow">
+        <div class="a2a-node from-node">🔥 &nbsp;CivilDefenseAgent — inspection complete</div>
+        <div class="a2a-arr">↓ emits to AgentBus</div>
+        <div class="a2a-node msg-node">{ type: "civil_defense_result", to: "municipality" }</div>
+        <div class="a2a-arr">↓ Municipality reads inbox</div>
+        <div class="a2a-node to-node">🏛️ &nbsp;MunicipalityAgent — adds رخصة المطبخ التجاري</div>
+      </div>
+      <div class="code-box">
+<span class="kw">agentBus</span>.<span class="prop">send</span>({
+  <span class="prop">from</span>:    <span class="str">'civil_defense'</span>,
+  <span class="prop">to</span>:      <span class="str">'municipality'</span>,
+  <span class="prop">payload</span>: { <span class="prop">hasKitchen</span>: <span class="val">true</span> }
+});
+<span class="cmt">// Municipality reads inbox → adds requirement</span>
+      </div>
+      <div class="a2a-footer">
+        نفس النمط: Research Agent يبث تحديثات PDPL/ZATCA/NCA
+        لجميع الوكلاء المعنيين في الوقت الفعلي
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 5 — AGENT DECISIONS
+     ========================================== -->
+<section class="slide s5" data-slide="5">
+  <div class="slide-header rv">
+    <div class="slide-num">05 / AGENT DECISIONS</div>
+    <div class="slide-title">ما الذي يقرره كل وكيل؟</div>
+  </div>
+  <div class="dec-grid">
+    <div class="dec-card rv d1">
+      <div class="dec-icon">💬</div>
+      <div class="dec-name">Chat Agent</div>
+      <div class="dec-type">Claude Sonnet 4.6</div>
+      <div class="dec-q">أي حقل يُسأل عنه بعد؟</div>
+      <div class="dec-detail">يستخرج 10 حقول من جملة واحدة · يحدد مستوى الثقة · يُحوّل للأسلوب الاسترشادي عند الحاجة</div>
+    </div>
+    <div class="dec-card rv d1">
+      <div class="dec-icon">🌊</div>
+      <div class="dec-name">Wave Scheduler</div>
+      <div class="dec-type">Deterministic</div>
+      <div class="dec-q">أي وكيل ينفذ في كل موجة؟</div>
+      <div class="dec-detail">يحل تبعيات الوكلاء · يكشف الحلقات المغلقة · يعيد محاولة المحجوبين ×3</div>
+    </div>
+    <div class="dec-card rv d2">
+      <div class="dec-icon">🔬</div>
+      <div class="dec-name">Research Agent</div>
+      <div class="dec-type">Claude + web_search</div>
+      <div class="dec-q">ما التحديثات التنظيمية ذات الصلة؟</div>
+      <div class="dec-detail">يبحث عن تعديلات PDPL, ZATCA, NCA · يبث للوكلاء المعنيين فقط دون غيرهم</div>
+    </div>
+    <div class="dec-card rv d2">
+      <div class="dec-icon">⚖️</div>
+      <div class="dec-name">Analysis Agent</div>
+      <div class="dec-type">Deterministic · 14 rules</div>
+      <div class="dec-q">أي قواعد PDPL منتهكة؟</div>
+      <div class="dec-detail">يقيّم 14 قاعدة · يحسب سقف الغرامات · يُخصص التفسير لقطاع المستخدم وحجمه</div>
+    </div>
+    <div class="dec-card rv d3">
+      <div class="dec-icon">📄</div>
+      <div class="dec-name">Document Agent</div>
+      <div class="dec-type">Claude Sonnet 4.6</div>
+      <div class="dec-q">كيف يُخصَّص المستند للشركة؟</div>
+      <div class="dec-detail">يولّد 4 وثائق قانونية عربية · يضمّن اسم الشركة والقطاع والمدينة في كل مستند</div>
+    </div>
+    <div class="dec-card rv d3">
+      <div class="dec-icon">🎯</div>
+      <div class="dec-name">Orchestrator</div>
+      <div class="dec-type">Coordination Layer</div>
+      <div class="dec-q">متى تكتمل الجلسة؟</div>
+      <div class="dec-detail">يدير المهل الزمنية · يوزع نتائج الموجات · يُحدّث الواجهة في الوقت الفعلي</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 6 — DEMO FLOW
+     ========================================== -->
+<section class="slide s6" data-slide="6">
+  <div class="slide-header rv">
+    <div class="slide-num">06 / DEMO</div>
+    <div class="slide-title">تجربة المنصة — مسارَان في آنٍ واحد</div>
+  </div>
+  <div class="demo-grid">
+    <div class="demo-col rv d1">
+      <div class="demo-col-title">🏗️ وضع التأسيس</div>
+      <div class="demo-inp">"ودي أفتح كوفي بجدة أنا وشريك رأس مال ٨٠ ألف"</div>
+      <div class="demo-steps">
+        <div class="demo-step">
+          <span class="step-n">①</span>
+          <span class="step-t"><span class="ok">Claude يستخرج 5 حقول</span> من جملة واحدة · vertical=restaurant · city=jeddah · capital=80000 · partners=2</span>
+        </div>
+        <div class="demo-step">
+          <span class="step-n">②</span>
+          <span class="step-t">سؤالان فقط للاستكمال · اسم الشركة + وضع الإيجار</span>
+        </div>
+        <div class="demo-step">
+          <span class="step-n">③</span>
+          <span class="step-t">Wave 1→2→3 · رسائل A2A تُغيّر سلوك الوكلاء في الوقت الفعلي</span>
+        </div>
+        <div class="demo-step">
+          <span class="step-n">④</span>
+          <span class="step-t"><span class="ok">خارطة طريق كاملة</span> · 11 جهة · التكاليف · الوثائق · التحذيرات الذكية</span>
+        </div>
+      </div>
+      <div class="demo-result">
+        <div class="result-title">المخرج</div>
+        <div class="result-tags">
+          <span class="rtag">MCI → ZATCA → Civil Defense → Municipality</span>
+          <span class="rtag">تكلفة تقديرية</span>
+          <span class="rtag">قائمة وثائق</span>
+        </div>
+      </div>
+    </div>
+    <div class="demo-col rv d2">
+      <div class="demo-col-title">🔍 وضع الامتثال</div>
+      <div class="demo-inp ltr">https://novatech.sa — Saudi Tech Company</div>
+      <div class="demo-steps">
+        <div class="demo-step">
+          <span class="step-n">①</span>
+          <span class="step-t">4 فاحصات تعمل بالتوازي · Privacy · Security · Trackers · Forms</span>
+        </div>
+        <div class="demo-step">
+          <span class="step-n">②</span>
+          <span class="step-t"><span class="err">❌ سياسة الخصوصية العربية مفقودة</span> · PDPL #1 منتهكة</span>
+        </div>
+        <div class="demo-step">
+          <span class="step-n">③</span>
+          <span class="step-t"><span class="warn">⚠️ 3 متعقبين بدون موافقة</span> · Google Analytics · FB Pixel · Hotjar</span>
+        </div>
+        <div class="demo-step">
+          <span class="step-n">④</span>
+          <span class="step-t"><span class="err">❌ HSTS · CSP مفقودتان</span> · NCA ECC 2.3 منتهكة</span>
+        </div>
+      </div>
+      <div class="demo-result bad">
+        <div class="result-title bad">النتيجة</div>
+        <div class="result-tags">
+          <span class="rtag">32% امتثال</span>
+          <span class="rtag">6 ثغرات</span>
+          <span class="rtag">سقف غرامة 2M SAR</span>
+          <span class="rtag">4 وثائق جاهزة</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* PRESENTATION CONTROLLER */
+const slides = Array.from(document.querySelectorAll('.slide'));
+const N = slides.length;
+let cur = 0, wheelLocked = false, tStart = null;
+
+function updateNav() {
+  document.getElementById('nav-c').textContent = `${cur + 1} / ${N}`;
+  document.getElementById('nav-f').style.width = `${((cur + 1) / N) * 100}%`;
+}
+
+function goTo(i) {
+  if (i < 0 || i >= N) return;
+  cur = i;
+  slides[cur].scrollIntoView({ behavior: 'smooth' });
+  updateNav();
+  triggerReveals();
+}
+
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)) { e.preventDefault(); goTo(cur+1); }
+  else if (['ArrowLeft','ArrowUp','PageUp'].includes(e.key)) { e.preventDefault(); goTo(cur-1); }
+});
+
+window.addEventListener('wheel', e => {
+  if (wheelLocked) return;
+  wheelLocked = true;
+  e.deltaY > 0 ? goTo(cur+1) : goTo(cur-1);
+  setTimeout(() => { wheelLocked = false; }, 900);
+}, { passive: true });
+
+window.addEventListener('touchstart', e => { tStart = e.touches[0].clientY; }, { passive: true });
+window.addEventListener('touchend', e => {
+  if (!tStart) return;
+  const d = tStart - e.changedTouches[0].clientY;
+  if (Math.abs(d) > 50) { d > 0 ? goTo(cur+1) : goTo(cur-1); }
+  tStart = null;
+});
+
+const revObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('show'); });
+}, { threshold: 0.05 });
+
+function triggerReveals() {
+  document.querySelectorAll('.rv').forEach(el => revObs.observe(el));
+}
+
+const slideObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { const i = slides.indexOf(e.target); if (i !== -1) { cur = i; updateNav(); } }
+  });
+}, { threshold: 0.5 });
+
+slides.forEach(s => slideObs.observe(s));
+triggerReveals();
+updateNav();
+</script>
+</body>
+</html>
