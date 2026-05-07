@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { QUESTIONS } from '@/agents/chat-flow';
-import { createSession, applyPrefill } from '@/lib/chat-sessions';
-import { getProject } from '@/lib/project-store';
+import { applyPrefill } from '@/lib/chat-sessions';
+import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { enforceRateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -33,19 +33,21 @@ export async function POST(req: Request) {
       if (typed.prefill && typeof typed.prefill === 'object') {
         prefill = typed.prefill as Record<string, unknown>;
       } else if (typeof typed.continueFromProjectId === 'string' && typed.continueFromProjectId) {
-        prefill = buildComplianceHandoff(typed.continueFromProjectId);
+        prefill = await buildComplianceHandoff(typed.continueFromProjectId);
       }
     }
   } catch {
     // no body — fine
   }
 
-  const session = createSession();
+  const repos = getRepositories();
+  const session = await repos.chatSessions.create();
 
   // Apply prefill if provided, then jump currentQuestion to the first
   // unanswered field.
   if (prefill) {
     applyPrefill(session, prefill);
+    await repos.chatSessions.update(session.id, session);
   }
 
   const opener = QUESTIONS[session.currentQuestion ?? 'q0_mode'];
@@ -78,8 +80,11 @@ export async function POST(req: Request) {
  * Everything else (employees, personal-data handling, DPO, hosting, URL) is
  * business-specific and must be asked fresh.
  */
-function buildComplianceHandoff(projectId: string): Record<string, unknown> | undefined {
-  const project = getProject(projectId);
+async function buildComplianceHandoff(
+  projectId: string,
+): Promise<Record<string, unknown> | undefined> {
+  const repos = getRepositories();
+  const project = await repos.projects.findById(projectId);
   if (!project) return undefined;
 
   const seed: Record<string, unknown> = {

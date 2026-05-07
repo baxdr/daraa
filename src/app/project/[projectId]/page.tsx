@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getProject } from '@/lib/project-store';
+import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { EntityCard } from '@/components/entity-card';
 import { GapCard } from '@/components/gap-card';
 import { ScoreRing } from '@/components/score-ring';
@@ -34,8 +34,9 @@ const CITY_LABELS: Record<string, string> = {
  * top. Every alert, entity, cost summary, renewal list, and document
  * recommendation lives here so there's ONE place to look.
  */
-export default function ProjectPage({ params }: { params: { projectId: string } }) {
-  const project = getProject(params.projectId);
+export default async function ProjectPage({ params }: { params: { projectId: string } }) {
+  const repos = getRepositories();
+  const project = await repos.projects.findById(params.projectId);
   if (!project) notFound();
   if (project.status === 'pending' || project.status === 'running') {
     redirect(`/project/${project.id}/agents`);

@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getProject } from '@/lib/project-store';
+import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 
 export const runtime = 'nodejs';
 
 export async function GET(_req: Request, { params }: { params: { projectId: string } }) {
   try {
-    const p = getProject(params.projectId);
+    const repos = getRepositories();
+    const p = await repos.projects.findById(params.projectId);
     if (!p) return NextResponse.json({ error: 'المشروع غير موجود' }, { status: 404 });
 
     return NextResponse.json({

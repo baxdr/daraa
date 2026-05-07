@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getSession } from '@/lib/chat-sessions';
+import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { advanceChat } from '@/agents/chat-agent';
 
 export const runtime = 'nodejs';
@@ -31,7 +31,8 @@ export async function POST(req: Request) {
   const parsed = BodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: 'طلب غير صالح' }, { status: 400 });
 
-  const session = getSession(parsed.data.sessionId);
+  const repos = getRepositories();
+  const session = await repos.chatSessions.findById(parsed.data.sessionId);
   if (!session) return NextResponse.json({ error: 'جلسة غير معروفة' }, { status: 404 });
 
   const turn = await advanceChat({ session, userInput: parsed.data.answer });

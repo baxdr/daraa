@@ -12,3 +12,5 @@ package-lock.json
 public/
 .vercel
 .env*
+data/
+audit-logs.jsonl

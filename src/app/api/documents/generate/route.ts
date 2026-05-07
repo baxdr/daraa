@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getProject } from '@/lib/project-store';
-import { saveDocument } from '@/lib/document-store';
+import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { generateDocument } from '@/agents/document-agent';
 import { enforceRateLimit } from '@/lib/rate-limit';
 
@@ -32,12 +31,13 @@ export async function POST(req: Request) {
   const parsed = BodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: 'طلب غير صالح' }, { status: 400 });
 
-  const project = getProject(parsed.data.scanId);
+  const repos = getRepositories();
+  const project = await repos.projects.findById(parsed.data.scanId);
   if (!project) return NextResponse.json({ error: 'المشروع غير موجود' }, { status: 404 });
 
   try {
     const doc = await generateDocument(parsed.data.docType, project.answers, project.companyName);
-    const stored = saveDocument(project.id, doc);
+    const stored = await repos.documents.create({ scanId: project.id, document: doc });
     return NextResponse.json({
       docId: stored.id,
       kind: stored.kind,

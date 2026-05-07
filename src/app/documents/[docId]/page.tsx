@@ -1,11 +1,12 @@
 import { notFound } from 'next/navigation';
-import { getDocument } from '@/lib/document-store';
+import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { PolicyDocumentView } from '@/components/policy-document';
 
 export const dynamic = 'force-dynamic';
 
-export default function DocumentPage({ params }: { params: { docId: string } }) {
-  const doc = getDocument(params.docId);
+export default async function DocumentPage({ params }: { params: { docId: string } }) {
+  const repos = getRepositories();
+  const doc = await repos.documents.findById(params.docId);
   if (!doc) notFound();
   return <PolicyDocumentView doc={doc} />;
 }

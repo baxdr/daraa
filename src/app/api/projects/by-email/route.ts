@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getProjectsByEmail } from '@/lib/project-store';
+import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { enforceRateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -31,7 +31,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
-  const projects = getProjectsByEmail(parsed.data.email);
+  const repos = getRepositories();
+  const projects = await repos.projects.findByEmail(parsed.data.email);
   return NextResponse.json({
     count: projects.length,
     projects: projects.map((p) => ({

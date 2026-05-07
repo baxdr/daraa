@@ -31,7 +31,7 @@ import {
   type VerticalId,
 } from '@/knowledge/entities';
 import { emit, send, type RunRef } from '@/lib/agent-bus';
-import { getProject, updateProject } from '@/lib/project-store';
+import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { runAgents } from './runtime/orchestrator-runtime';
 import type { AgentContext, AgentId, AgentResult } from './runtime/types';
 import type { Agent } from './runtime/types';
@@ -49,14 +49,15 @@ const CITY_LABELS: Record<string, string> = {
 };
 
 export async function runProjectOrchestrator(projectId: string): Promise<void> {
-  const project = getProject(projectId);
+  const repos = getRepositories();
+  const project = await repos.projects.findById(projectId);
   if (!project) return;
   const run: RunRef = { kind: 'project', id: projectId };
   const mode = project.mode;
   const vertical = project.vertical;
   const answers = project.answers;
 
-  updateProject(projectId, { status: 'running' });
+  await repos.projects.update(projectId, { status: 'running' });
   const modeLabel =
     mode === 'establishment'
       ? 'التأسيس'
@@ -83,7 +84,7 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
         : `لقينا ${updates.length} تحديثاً — أُرسلت للمتخصصين المعنيين.`,
     );
 
-    updateProject(projectId, {
+    await repos.projects.update(projectId, {
       regulatoryUpdates: updates.map((u) => {
         const date = u.date;
         return {
@@ -277,7 +278,7 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
           },
         });
 
-        updateProject(projectId, {
+        await repos.projects.update(projectId, {
           ...(scanResult ? { scanResult } : {}),
           analysis,
           complianceScore: analysis.complianceScore,
@@ -292,7 +293,7 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
           err instanceof Error ? err.message : err,
         );
         emit(run, 'analysis', 'error', 'تعذّر إجراء تحليل الامتثال — عرضنا باقي النتائج.');
-        updateProject(projectId, {
+        await repos.projects.update(projectId, {
           ...(scanResult ? { scanResult } : {}),
           complianceScore: 0,
           totalFineCeilingSar: 0,
@@ -329,7 +330,7 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
             upcomingCount: opReport.upcomingRenewals.length,
           },
         });
-        updateProject(projectId, {
+        await repos.projects.update(projectId, {
           ...(scanResult ? { scanResult } : {}),
           operationalReport: opReport,
         });
@@ -359,7 +360,7 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
       `التقرير جاهز — ${entities.length} جهة، ${roadmap.length} مراحل، ${runResult.waves} موجة.`,
     );
 
-    updateProject(projectId, {
+    await repos.projects.update(projectId, {
       status: 'complete',
       // Auto-transition: every completed project enters active_monitoring.
       // From here on, the dashboard shows the renewal-schedule view built
@@ -376,7 +377,7 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
     const message = err instanceof Error ? err.message : 'خطأ غير متوقع';
     console.error('[project-orchestrator] pipeline failed:', message);
     emit(run, 'orchestrator', 'error', `حصل خطأ: ${message}`);
-    updateProject(projectId, { status: 'error', errorMessage: message });
+    await repos.projects.update(projectId, { status: 'error', errorMessage: message });
   }
 }
 

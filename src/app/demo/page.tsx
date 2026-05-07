@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getProject } from '@/lib/project-store';
+import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
@@ -46,13 +46,16 @@ const SCENARIOS = [
   },
 ];
 
-export default function DemoShowcasePage() {
+export default async function DemoShowcasePage() {
   // Best-effort status check — if a scenario isn't seeded yet we surface
   // a helpful note rather than a 404-on-click.
-  const scenarios = SCENARIOS.map((s) => ({
-    ...s,
-    seeded: Boolean(getProject(s.id)),
-  }));
+  const repos = getRepositories();
+  const scenarios = await Promise.all(
+    SCENARIOS.map(async (s) => ({
+      ...s,
+      seeded: Boolean(await repos.projects.findById(s.id)),
+    })),
+  );
 
   return (
     <main className="relative min-h-screen">

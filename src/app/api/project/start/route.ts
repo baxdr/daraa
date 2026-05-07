@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getSession } from '@/lib/chat-sessions';
-import { createProject } from '@/lib/project-store';
+import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { runProjectOrchestrator } from '@/agents/project-orchestrator';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { VERTICALS, type VerticalId } from '@/knowledge/entities';
@@ -32,7 +31,8 @@ export async function POST(req: Request) {
   const parsed = BodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: 'طلب غير صالح' }, { status: 400 });
 
-  const session = getSession(parsed.data.sessionId);
+  const repos = getRepositories();
+  const session = await repos.chatSessions.findById(parsed.data.sessionId);
   if (!session) return NextResponse.json({ error: 'جلسة غير معروفة' }, { status: 404 });
   if (session.currentQuestion !== null) {
     return NextResponse.json({ error: 'المحادثة لم تكتمل بعد' }, { status: 400 });
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
       : (answers.q8_website_url ?? null);
   const cityId = answers.est2_city ?? answers.op2_city;
 
-  const project = createProject({
+  const project = await repos.projects.create({
     mode,
     vertical,
     companyName,

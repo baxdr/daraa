@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getProject, updateProject } from '@/lib/project-store';
+import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { enforceRateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -20,7 +20,8 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
   const limited = enforceRateLimit(req, { bucket: 'project-email', max: 20, windowMs: 60_000 });
   if (limited) return limited;
 
-  const project = getProject(params.projectId);
+  const repos = getRepositories();
+  const project = await repos.projects.findById(params.projectId);
   if (!project) return NextResponse.json({ error: 'المشروع غير موجود' }, { status: 404 });
 
   let json: unknown;
@@ -36,6 +37,6 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
   }
 
   const normalized = parsed.data.email.trim().toLowerCase();
-  updateProject(project.id, { email: normalized });
+  await repos.projects.update(project.id, { email: normalized });
   return NextResponse.json({ ok: true, email: normalized });
 }
