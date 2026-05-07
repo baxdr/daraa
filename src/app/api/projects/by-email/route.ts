@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { enforceRateLimit } from '@/lib/rate-limit';
+import { lookupProjectsByEmail } from '@/core/use-cases';
+import { isDomainError } from '@/core/errors';
 
 export const runtime = 'nodejs';
 
@@ -12,8 +14,8 @@ const BodySchema = z.object({
 /**
  * POST /api/projects/by-email
  *
- * Return-by-email lookup. Rate-limited to prevent enumeration — we don't
- * leak which addresses have projects, we just return the user's own list.
+ * Thin HTTP adapter around the LookupProjectsByEmail use-case.
+ * Rate-limited to defeat email enumeration.
  */
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, { bucket: 'projects-by-email', max: 10, windowMs: 60_000 });
@@ -31,17 +33,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
-  const repos = getRepositories();
-  const projects = await repos.projects.findByEmail(parsed.data.email);
-  return NextResponse.json({
-    count: projects.length,
-    projects: projects.map((p) => ({
-      id: p.id,
-      createdAt: p.createdAt,
-      mode: p.mode,
-      status: p.status,
-      companyName: p.companyName,
-      vertical: p.vertical,
-    })),
-  });
+  try {
+    const projects = await lookupProjectsByEmail(
+      { projects: getRepositories().projects },
+      { email: parsed.data.email },
+    );
+    return NextResponse.json({ count: projects.length, projects });
+  } catch (err) {
+    if (isDomainError(err) && err.code === 'validation_failed') {
+      return NextResponse.json({ error: 'أدخل بريداً إلكترونياً صحيحاً' }, { status: 400 });
+    }
+    console.error('[projects/by-email] unexpected error:', err);
+    return NextResponse.json({ error: 'خطأ غير متوقع' }, { status: 500 });
+  }
 }
