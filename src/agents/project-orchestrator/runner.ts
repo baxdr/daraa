@@ -1,5 +1,5 @@
 /**
- * Unified project orchestrator.
+ * Unified project orchestrator — main entry point.
  *
  * Replaces `establishment-orchestrator.ts` and `orchestrator.ts` (which
  * ran separate pipelines). Single entry point drives both modes by
@@ -14,39 +14,20 @@
  *      warnings, renewals, optional score/gaps
  */
 
-import type { Answers } from './chat-flow';
-import { runResearchAgent } from './research-agent';
-import { personalizeGaps, personalizeWarnings } from './personalizer';
-import { runAnalysis } from './analysis-agent';
-import { scanPrivacyPolicy } from '@/scanner/privacy-policy';
-import { scanSecurityHeaders } from '@/scanner/security-headers';
-import { scanThirdParty } from '@/scanner/third-party';
-import { scanForms } from '@/scanner/forms';
-import { runOperationalAnalysis } from './operational-analysis';
-import {
-  buildRoadmap,
-  summariseCosts,
-  VERTICALS,
-  type GovEntity,
-  type VerticalId,
-} from '@/knowledge/entities';
+import { runResearchAgent } from '../research-agent';
+import { personalizeGaps, personalizeWarnings } from '../personalizer';
+import { runAnalysis } from '../analysis-agent';
+import { runOperationalAnalysis } from '../operational-analysis';
+import { buildRoadmap, summariseCosts } from '@/knowledge/entities';
 import { emit, send, type RunRef } from '@/lib/agent-bus';
 import { getRepositories } from '@/infrastructure/persistence/persistence-router';
-import { runAgents } from './runtime/orchestrator-runtime';
-import type { AgentContext, AgentId, AgentResult } from './runtime/types';
-import type { Agent } from './runtime/types';
-import { getAgentsForVertical } from './specialists';
-import type { ScanResult } from './types';
-
-const CITY_LABELS: Record<string, string> = {
-  riyadh: 'الرياض',
-  jeddah: 'جدة',
-  mecca: 'مكة المكرمة',
-  medina: 'المدينة المنورة',
-  dammam: 'الدمام',
-  khobar: 'الخُبَر',
-  other: 'مدينة أخرى',
-};
+import { runAgents } from '../runtime/orchestrator-runtime';
+import type { AgentContext } from '../runtime/types';
+import { getAgentsForVertical } from '../specialists';
+import type { ScanResult } from '../types';
+import { CITY_LABELS, computeTopWarnings } from './warnings';
+import { buildEntitiesFromAgents, costLabel } from './entity-builder';
+import { runScanPipeline } from './scan-pipeline';
 
 export async function runProjectOrchestrator(projectId: string): Promise<void> {
   const repos = getRepositories();
@@ -147,93 +128,32 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
      *    because they don't fit the inbox/dependency model cleanly.
      * --------------------------------------------------------------- */
     let scanResult: ScanResult | null = null;
-    // Scanners fire for digital compliance always, AND for operational
-    // compliance when the user opted in via op9_has_website=yes and
-    // provided a URL via op10_website_url.
     const shouldScan =
       (mode === 'compliance' && !!project.url) ||
       (mode === 'operational_compliance' && answers.op9_has_website === 'yes' && !!project.url);
     if (shouldScan && project.url) {
       emit(run, 'scan', 'started', `جاري زيارة ${project.url}…`);
       emit(run, 'scan', 'working', '↳ فحص سياسة الخصوصية + رؤوس الأمان + أدوات التتبع + الفورمز');
-
-      // Promise.allSettled so one scanner's implementation error (not its
-      // own caught errors — those already surface as `{error: ...}`) can't
-      // collapse the whole phase. Each scanner has an empty-result contract
-      // we fall back to if it rejects at the JS level.
-      const [ppRes, shRes, tpRes, fRes] = await Promise.allSettled([
-        scanPrivacyPolicy(project.url),
-        scanSecurityHeaders(project.url),
-        scanThirdParty(project.url),
-        scanForms(project.url),
-      ]);
-      const privacyPolicy =
-        ppRes.status === 'fulfilled' ? ppRes.value : { found: false, error: 'scanner_crashed' };
-      const securityHeaders =
-        shRes.status === 'fulfilled'
-          ? shRes.value
-          : {
-              httpsEnforced: false,
-              hsts: false,
-              contentSecurityPolicy: false,
-              xFrameOptions: false,
-              xContentTypeOptionsNoSniff: false,
-              referrerPolicy: false,
-              permissionsPolicy: false,
-              score: 0,
-              finalUrl: project.url,
-              error: 'scanner_crashed',
-            };
-      const thirdParty =
-        tpRes.status === 'fulfilled'
-          ? tpRes.value
-          : {
-              detected: [],
-              crossBorderCount: 0,
-              categories: {
-                analytics: 0,
-                advertising: 0,
-                chat: 0,
-                marketing: 0,
-                session_replay: 0,
-                other: 0,
-              },
-              error: 'scanner_crashed',
-            };
-      const dataForms =
-        fRes.status === 'fulfilled'
-          ? fRes.value
-          : { formsFound: 0, results: [], error: 'scanner_crashed' };
-      scanResult = {
-        url: project.url,
-        scannedAt: new Date().toISOString(),
-        privacyPolicy,
-        securityHeaders,
-        thirdParty,
-        dataForms,
-      };
-
-      const trackerCount = thirdParty.detected.length;
-      const formIssues = dataForms.results.reduce((n, f) => n + f.violations.length, 0);
+      const outcome = await runScanPipeline(project.url);
+      scanResult = outcome.scanResult;
       emit(
         run,
         'scan',
         'completed',
-        `اكتمل الفحص — رؤوس ${securityHeaders.score}٪، ${trackerCount} أدوات تتبع، ${formIssues} مخالفات فورم.`,
+        `اكتمل الفحص — رؤوس ${outcome.scanResult.securityHeaders?.score ?? 0}٪، ${outcome.trackerCount} أدوات تتبع، ${outcome.formIssues} مخالفات فورم.`,
       );
-
       send(run, {
         from: 'scan',
         to: 'pdpl_nca',
         type: 'data_share',
         messageAr:
-          `تسليم نتائج الفحص — سياسة: ${privacyPolicy.found ? 'موجودة' : 'مفقودة'}، ` +
-          `رؤوس: ${securityHeaders.score}%، تتبع: ${trackerCount}، فورمز: ${formIssues}.`,
+          `تسليم نتائج الفحص — سياسة: ${outcome.scanResult.privacyPolicy.found ? 'موجودة' : 'مفقودة'}، ` +
+          `رؤوس: ${outcome.scanResult.securityHeaders?.score ?? 0}%، تتبع: ${outcome.trackerCount}، فورمز: ${outcome.formIssues}.`,
         payload: {
-          policyFound: privacyPolicy.found,
-          headerScore: securityHeaders.score,
-          trackerCount,
-          formIssueCount: formIssues,
+          policyFound: outcome.scanResult.privacyPolicy.found,
+          headerScore: outcome.scanResult.securityHeaders?.score ?? 0,
+          trackerCount: outcome.trackerCount,
+          formIssueCount: outcome.formIssues,
         },
       });
     }
@@ -286,8 +206,6 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
           gaps: analysis.gaps,
         });
       } catch (err) {
-        // Analysis blew up — surface the failure on the timeline but keep
-        // going so the user still gets the entities + roadmap below.
         console.error(
           '[orchestrator] runAnalysis failed:',
           err instanceof Error ? err.message : err,
@@ -379,75 +297,4 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
     emit(run, 'orchestrator', 'error', `حصل خطأ: ${message}`);
     await repos.projects.update(projectId, { status: 'error', errorMessage: message });
   }
-}
-
-/* ------------------------------------------------------------------------- */
-/* Helpers                                                                    */
-/* ------------------------------------------------------------------------- */
-
-function buildEntitiesFromAgents(
-  agents: readonly Agent[],
-  results: Map<AgentId, AgentResult>,
-): GovEntity[] {
-  const entities: GovEntity[] = [];
-  let order = 1;
-  for (const agent of agents) {
-    const result = results.get(agent.id);
-    if (!result || result.status !== 'complete') continue;
-    const d = result.data;
-    entities.push({
-      id: d.entityId,
-      nameAr: d.nameAr,
-      nameSimpleAr: d.nameSimpleAr,
-      explainAr: d.explainAr,
-      estimatedCostSar: d.estimatedCostSar,
-      estimatedTimeAr: d.estimatedTimeAr,
-      order: order++,
-      dependencies: [...agent.dependencies],
-      ...(d.criticalWarningAr ? { criticalWarningAr: d.criticalWarningAr } : {}),
-      ...(d.commonMistakeAr ? { commonMistakeAr: d.commonMistakeAr } : {}),
-      ...(d.renewalPeriodAr ? { renewalPeriodAr: d.renewalPeriodAr } : {}),
-      ...(d.officialUrl ? { officialUrl: d.officialUrl } : {}),
-      ...(d.requirements ? { requirements: [...d.requirements] } : {}),
-      ...(d.nameCheck ? { nameCheck: d.nameCheck } : {}),
-    });
-  }
-  return entities;
-}
-
-function costLabel(cost: { min: number; max: number }): string {
-  if (cost.max === 0) return 'رسوم: مجاني';
-  if (cost.min === cost.max) return `رسوم: ~${cost.max.toLocaleString('en-US')} ريال`;
-  return `رسوم تقديرية: ${cost.min.toLocaleString('en-US')}–${cost.max.toLocaleString('en-US')} ريال`;
-}
-
-function computeTopWarnings(
-  mode: 'establishment' | 'compliance' | 'operational_compliance',
-  vertical: VerticalId,
-  answers: Answers,
-): string[] {
-  const out: string[] = [];
-
-  // Establishment-only — "don't sign the lease before verifying the activity
-  // is allowed at this location" is the product's most distinctive moment.
-  if (mode === 'establishment') {
-    const isPhysical = vertical === 'restaurant' || vertical === 'salon';
-    if (isPhysical && answers.est6_lease_status === 'not_signed') {
-      out.push(
-        'قبل ما توقّع عقد الإيجار — تأكّد من منصة بلدي (balady.gov.sa) إن الموقع يُرخَّص للنشاط اللي تفكّر فيه. المالك قد يوعدك شفهياً، لكن المرجع الرسمي هو منصة البلدية. وقّع بعد التحقق لتفادي خسارة الإيجار.',
-      );
-    }
-  }
-
-  // Compliance-mode — cross-border hosting without an explicit legal basis.
-  if (mode === 'compliance' && answers.q6_data_location === 'outside') {
-    out.push(
-      'بياناتكم مُستضافة خارج المملكة. نظام حماية البيانات يتطلّب ضمانات إضافية لنقل البيانات عبر الحدود — لا تعتمدوا على اتفاقية الخدمة الافتراضية مع مزوّد السحابة وحدها، راجعوا شروط SDAIA.',
-    );
-  }
-
-  // Vertical ignorance — unknown vertical placeholder.
-  void VERTICALS[vertical];
-
-  return out;
 }
