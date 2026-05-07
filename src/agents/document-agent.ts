@@ -60,8 +60,8 @@ export interface GeneratedDocument {
 }
 
 export const COMPANY_NAME_PLACEHOLDER = '[اسم الشركة]';
-export const DPO_NAME_PLACEHOLDER     = '[اسم مسؤول حماية البيانات]';
-export const DPO_EMAIL_PLACEHOLDER    = 'dpo@[company].sa';
+export const DPO_NAME_PLACEHOLDER = '[اسم مسؤول حماية البيانات]';
+export const DPO_EMAIL_PLACEHOLDER = 'dpo@[company].sa';
 
 export const DOCUMENT_META: Record<
   DocumentKind,
@@ -101,10 +101,14 @@ export async function generateDocument(
   const ctx = buildCompanyContext(answers);
   const base = await (async (): Promise<GeneratedDocument> => {
     switch (kind) {
-      case 'privacy_policy':      return generatePrivacyPolicy(ctx);
-      case 'dpo_appointment':     return generateDpoAppointment(ctx);
-      case 'processing_register': return generateProcessingRegister(ctx);
-      case 'incident_response':   return generateIncidentResponse(ctx);
+      case 'privacy_policy':
+        return generatePrivacyPolicy(ctx);
+      case 'dpo_appointment':
+        return generateDpoAppointment(ctx);
+      case 'processing_register':
+        return generateProcessingRegister(ctx);
+      case 'incident_response':
+        return generateIncidentResponse(ctx);
       default: {
         const _exhaustive: never = kind;
         throw new Error(`Unknown document kind: ${_exhaustive as string}`);
@@ -126,18 +130,24 @@ function substituteCompanyName(doc: GeneratedDocument, companyName?: string): Ge
   return {
     ...doc,
     companyName: name,
-    sections: doc.sections.map((s) => ({
-      ...s,
-      body: swap(s.body),
-      listItems: s.listItems?.map(swap),
-      table: s.table
+    sections: doc.sections.map((s) => {
+      const mappedTable = s.table
         ? {
             headers: s.table.headers.map(swap),
             rows: s.table.rows.map((row) => row.map(swap)),
           }
-        : undefined,
-    })),
-    metadata: doc.metadata?.map((m) => ({ label: m.label, value: swap(m.value) })),
+        : undefined;
+      const mappedListItems = s.listItems?.map(swap);
+      return {
+        ...s,
+        body: swap(s.body),
+        ...(mappedListItems ? { listItems: mappedListItems } : {}),
+        ...(mappedTable ? { table: mappedTable } : {}),
+      };
+    }),
+    ...(doc.metadata
+      ? { metadata: doc.metadata.map((m) => ({ label: m.label, value: swap(m.value) })) }
+      : {}),
   };
 }
 
@@ -169,20 +179,29 @@ function buildCompanyContext(a: Answers): CompanyContext {
 
 function companyTypeLabel(v: Answers['q1_company_type']): string {
   switch (v) {
-    case 'saas':       return 'شركة تقنية (SaaS)';
-    case 'ecommerce':  return 'متجر إلكتروني';
-    case 'fintech':    return 'شركة تقنية مالية';
-    case 'services':   return 'شركة خدمات';
-    default:           return 'شركة';
+    case 'saas':
+      return 'شركة تقنية (SaaS)';
+    case 'ecommerce':
+      return 'متجر إلكتروني';
+    case 'fintech':
+      return 'شركة تقنية مالية';
+    case 'services':
+      return 'شركة خدمات';
+    default:
+      return 'شركة';
   }
 }
 
 function userScaleLabel(v: Answers['q4_user_count']): string | null {
   switch (v) {
-    case 'under_10k':  return 'أقل من ١٠ آلاف مستخدم';
-    case '10k_100k':   return 'بين ١٠ آلاف و ١٠٠ ألف مستخدم';
-    case 'over_100k':  return 'أكثر من ١٠٠ ألف مستخدم';
-    default:           return null;
+    case 'under_10k':
+      return 'أقل من ١٠ آلاف مستخدم';
+    case '10k_100k':
+      return 'بين ١٠ آلاف و ١٠٠ ألف مستخدم';
+    case 'over_100k':
+      return 'أكثر من ١٠٠ ألف مستخدم';
+    default:
+      return null;
   }
 }
 
@@ -345,8 +364,8 @@ async function generateDpoAppointment(ctx: CompanyContext): Promise<GeneratedDoc
   try {
     const sections = await generateDpoWithClaude(ctx);
     return wrapDoc('dpo_appointment', COMPANY_NAME_PLACEHOLDER, sections, false, [
-      { label: 'المُعيَّن',  value: DPO_NAME_PLACEHOLDER },
-      { label: 'الاتصال',   value: DPO_EMAIL_PLACEHOLDER },
+      { label: 'المُعيَّن', value: DPO_NAME_PLACEHOLDER },
+      { label: 'الاتصال', value: DPO_EMAIL_PLACEHOLDER },
       { label: 'تاريخ السريان', value: new Date().toLocaleDateString('ar-SA') },
     ]);
   } catch (err) {
@@ -436,8 +455,8 @@ function buildDpoFallback(ctx: CompanyContext): GeneratedDocument {
   ];
 
   return wrapDoc('dpo_appointment', COMPANY_NAME_PLACEHOLDER, sections, true, [
-    { label: 'المُعيَّن',      value: DPO_NAME_PLACEHOLDER },
-    { label: 'الاتصال',       value: DPO_EMAIL_PLACEHOLDER },
+    { label: 'المُعيَّن', value: DPO_NAME_PLACEHOLDER },
+    { label: 'الاتصال', value: DPO_EMAIL_PLACEHOLDER },
     { label: 'تاريخ السريان', value: new Date().toLocaleDateString('ar-SA') },
   ]);
 }
@@ -452,7 +471,7 @@ async function generateProcessingRegister(ctx: CompanyContext): Promise<Generate
   try {
     const sections = await generateRegisterWithClaude(ctx);
     return wrapDoc('processing_register', COMPANY_NAME_PLACEHOLDER, sections, false, [
-      { label: 'المتحكم',      value: COMPANY_NAME_PLACEHOLDER },
+      { label: 'المتحكم', value: COMPANY_NAME_PLACEHOLDER },
       { label: 'آخر مراجعة', value: new Date().toLocaleDateString('ar-SA') },
     ]);
   } catch (err) {
@@ -556,8 +575,7 @@ function buildRegisterFallback(ctx: CompanyContext): GeneratedDocument {
     },
     {
       heading: 'الإجراءات والضمانات الأمنية',
-      body:
-        'تُطبّق الشركة الإجراءات التنظيمية والتقنية المناسبة لحماية البيانات الشخصية:',
+      body: 'تُطبّق الشركة الإجراءات التنظيمية والتقنية المناسبة لحماية البيانات الشخصية:',
       listItems: [
         'تشفير البيانات الحساسة أثناء التخزين والنقل (TLS للنقل، AES-256 للتخزين)',
         'التحكم في الصلاحيات وفق مبدأ الحد الأدنى من الوصول',
@@ -576,7 +594,7 @@ function buildRegisterFallback(ctx: CompanyContext): GeneratedDocument {
   ];
 
   return wrapDoc('processing_register', COMPANY_NAME_PLACEHOLDER, sections, true, [
-    { label: 'المتحكم',      value: COMPANY_NAME_PLACEHOLDER },
+    { label: 'المتحكم', value: COMPANY_NAME_PLACEHOLDER },
     { label: 'آخر مراجعة', value: new Date().toLocaleDateString('ar-SA') },
   ]);
 }
@@ -590,7 +608,7 @@ async function generateIncidentResponse(ctx: CompanyContext): Promise<GeneratedD
     const sections = await generateIncidentWithClaude(ctx);
     return wrapDoc('incident_response', COMPANY_NAME_PLACEHOLDER, sections, false, [
       { label: 'مسؤول البلاغ', value: DPO_NAME_PLACEHOLDER },
-      { label: 'آخر تحديث',    value: new Date().toLocaleDateString('ar-SA') },
+      { label: 'آخر تحديث', value: new Date().toLocaleDateString('ar-SA') },
     ]);
   } catch (err) {
     logClaudeFallback('incident_response', err);
@@ -698,7 +716,7 @@ function buildIncidentFallback(_ctx: CompanyContext): GeneratedDocument {
 
   return wrapDoc('incident_response', COMPANY_NAME_PLACEHOLDER, sections, true, [
     { label: 'مسؤول البلاغ', value: DPO_NAME_PLACEHOLDER },
-    { label: 'آخر تحديث',    value: new Date().toLocaleDateString('ar-SA') },
+    { label: 'آخر تحديث', value: new Date().toLocaleDateString('ar-SA') },
   ]);
 }
 
@@ -731,7 +749,7 @@ function wrapDoc(
     companyName,
     lastUpdatedAt: new Date().toISOString(),
     sections,
-    metadata,
+    ...(metadata ? { metadata } : {}),
     disclaimerAr: DEFAULT_DISCLAIMER,
     fromFallbackTemplate: fromFallback,
   };

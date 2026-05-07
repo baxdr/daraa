@@ -38,7 +38,7 @@ console.log('\n=== 1. Restaurant with everything overdue — 3 criticals expecte
     q0_mode: 'operational_compliance',
     op1_vertical: 'restaurant',
     op2_city: 'riyadh',
-    op3_cr_issue_date: '2024-01-01',   // > 12mo old
+    op3_cr_issue_date: '2024-01-01', // > 12mo old
     op4_municipal_last_renewed: '2024-03-15',
     op5_civil_defense_last: '2024-04-01',
     op6_sfda_cert_date: '2024-02-20',
@@ -51,8 +51,14 @@ console.log('\n=== 1. Restaurant with everything overdue — 3 criticals expecte
   console.log(`  overdue ids: ${overdueIds.join(', ')}`);
   console.log(`  healthScore: ${r.healthScore}`);
   expect('cr is overdue', overdueIds.includes('op_cr_renewal'));
-  expect('civil defense is overdue (critical)', r.gaps.some((g) => g.id === 'op_civil_defense' && g.severity === 'critical'));
-  expect('sfda is overdue (critical)', r.gaps.some((g) => g.id === 'op_sfda' && g.severity === 'critical'));
+  expect(
+    'civil defense is overdue (critical)',
+    r.gaps.some((g) => g.id === 'op_civil_defense' && g.severity === 'critical'),
+  );
+  expect(
+    'sfda is overdue (critical)',
+    r.gaps.some((g) => g.id === 'op_sfda' && g.severity === 'critical'),
+  );
   expect('healthScore < 40', r.healthScore < 40);
 }
 
@@ -132,7 +138,10 @@ console.log('\n=== 5. Lease expires in 30 days — critical ===');
   const lease = r.gaps.find((g) => g.id === 'op_lease_notice');
   expect('lease gap surfaces', Boolean(lease));
   expect('lease severity critical (≤30d)', lease?.severity === 'critical');
-  expect('lease in upcoming window', r.upcomingRenewals.some((g) => g.id === 'op_lease_notice'));
+  expect(
+    'lease in upcoming window',
+    r.upcomingRenewals.some((g) => g.id === 'op_lease_notice'),
+  );
 }
 
 /* ------------------------------------------------------------------------- */

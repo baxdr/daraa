@@ -1,7 +1,97 @@
 {
-  "extends": ["next/core-web-vitals"],
+  "root": true,
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json",
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
+  "ignorePatterns": [
+    "node_modules",
+    ".next",
+    "out",
+    "build",
+    "coverage",
+    "playwright-report",
+    "test-results",
+    "*.config.js",
+    "*.config.cjs",
+    "*.config.mjs",
+    "next-env.d.ts"
+  ],
   "rules": {
-    "@next/next/no-html-link-for-pages": "off",
-    "react/no-unescaped-entities": "off"
-  }
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      { "prefer": "type-imports", "fixStyle": "inline-type-imports" }
+    ],
+    "@typescript-eslint/no-misused-promises": "error",
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/await-thenable": "error",
+    "@typescript-eslint/no-non-null-assertion": "warn",
+    "@typescript-eslint/naming-convention": [
+      "error",
+      {
+        "selector": "default",
+        "format": ["camelCase"],
+        "leadingUnderscore": "allow"
+      },
+      {
+        "selector": "variable",
+        "format": ["camelCase", "PascalCase", "UPPER_CASE"],
+        "leadingUnderscore": "allow"
+      },
+      { "selector": "function", "format": ["camelCase", "PascalCase"] },
+      { "selector": "parameter", "format": ["camelCase"], "leadingUnderscore": "allow" },
+      { "selector": "typeLike", "format": ["PascalCase"] },
+      { "selector": "enumMember", "format": ["UPPER_CASE", "PascalCase"] },
+      { "selector": "objectLiteralProperty", "format": null },
+      { "selector": "typeProperty", "format": null },
+      { "selector": "import", "format": null }
+    ],
+    "react/jsx-key": "error",
+    "react/jsx-no-target-blank": "error",
+    "react/no-unescaped-entities": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "no-console": ["warn", { "allow": ["warn", "error", "info"] }],
+    "no-debugger": "error",
+    "no-alert": "error",
+    "eqeqeq": ["error", "always", { "null": "ignore" }],
+    "prefer-const": "error",
+    "no-var": "error",
+    "object-shorthand": "error",
+    "max-lines": "off",
+    "max-lines-per-function": "off",
+    "complexity": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx", "tests/**/*"],
+      "rules": {
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": ["scripts/**/*"],
+      "rules": {
+        "no-console": "off",
+        "max-lines": "off",
+        "max-lines-per-function": "off"
+      }
+    }
+  ]
 }

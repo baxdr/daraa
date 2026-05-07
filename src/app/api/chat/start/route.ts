@@ -90,11 +90,21 @@ function buildComplianceHandoff(projectId: string): Record<string, unknown> | un
 
   // Map establishment vertical → compliance company_type.
   switch (project.vertical) {
-    case 'tech':         seed.q1_company_type = 'saas'; break;
-    case 'services':     seed.q1_company_type = 'ecommerce'; break;
-    case 'restaurant':   seed.q1_company_type = 'services'; break;
-    case 'salon':        seed.q1_company_type = 'services'; break;
-    case 'construction': seed.q1_company_type = 'services'; break;
+    case 'tech':
+      seed.q1_company_type = 'saas';
+      break;
+    case 'services':
+      seed.q1_company_type = 'ecommerce';
+      break;
+    case 'restaurant':
+      seed.q1_company_type = 'services';
+      break;
+    case 'salon':
+      seed.q1_company_type = 'services';
+      break;
+    case 'construction':
+      seed.q1_company_type = 'services';
+      break;
   }
   return seed;
 }

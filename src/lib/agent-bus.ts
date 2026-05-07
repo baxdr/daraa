@@ -10,11 +10,7 @@
  */
 
 import type { AgentMessage, AgentActivity, AgentId } from '@/agents/types';
-import {
-  emitProjectActivity,
-  sendProjectMessage,
-  getProject,
-} from './project-store';
+import { emitProjectActivity, sendProjectMessage, getProject } from './project-store';
 
 export type RunKind = 'project';
 
@@ -38,10 +34,7 @@ export function emit(
 /**
  * Send an A2A message. `to: 'ALL'` broadcasts to every agent on the bus.
  */
-export function send(
-  run: RunRef,
-  msg: Omit<AgentMessage, 'seq' | 'kind' | 'createdAt'>,
-): void {
+export function send(run: RunRef, msg: Omit<AgentMessage, 'seq' | 'kind' | 'createdAt'>): void {
   sendProjectMessage(run.id, msg);
 }
 
@@ -57,7 +50,7 @@ export function handoff(
   type: AgentMessage['type'] = 'dependency',
   payload?: Record<string, unknown>,
 ): void {
-  send(run, { from, to, type, messageAr, payload });
+  send(run, { from, to, type, messageAr, ...(payload ? { payload } : {}) });
 }
 
 export function loadMessages(run: RunRef): AgentMessage[] {

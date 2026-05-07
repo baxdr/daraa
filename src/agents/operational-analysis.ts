@@ -20,13 +20,7 @@
 
 import type { Answers } from './chat-flow';
 
-export type OpCategory =
-  | 'municipal'
-  | 'civil_defense'
-  | 'sfda'
-  | 'cr'
-  | 'labor'
-  | 'lease';
+export type OpCategory = 'municipal' | 'civil_defense' | 'sfda' | 'cr' | 'labor' | 'lease';
 
 export interface OperationalGap {
   id: string;
@@ -44,8 +38,8 @@ export interface OperationalGap {
 }
 
 export interface OperationalReport {
-  gaps: OperationalGap[];           // all items regardless of severity
-  overdue: OperationalGap[];         // daysUntilDeadline < 0
+  gaps: OperationalGap[]; // all items regardless of severity
+  overdue: OperationalGap[]; // daysUntilDeadline < 0
   upcomingRenewals: OperationalGap[]; // 0 ≤ daysUntilDeadline ≤ 180, critical+medium only
   healthScore: number;
   computedAt: string;
@@ -56,7 +50,6 @@ export interface OperationalReport {
 /* ------------------------------------------------------------------------- */
 
 const MS_PER_DAY = 86_400_000;
-const RENEWAL_CYCLE_DAYS = 365;
 /** Treat a licence as "urgent" if its next renewal is within this many days. */
 const URGENT_WINDOW_DAYS = 30;
 const SOON_WINDOW_DAYS = 60;
@@ -76,68 +69,91 @@ export function runOperationalAnalysis(args: {
   const gaps: OperationalGap[] = [];
 
   // Commercial register.
-  gaps.push(...buildRenewalGap({
-    id: 'op_cr_renewal',
-    category: 'cr',
-    issuedAt: a.op3_cr_issue_date,
-    today,
-    titlePrefix: 'السجل التجاري',
-    explanationAr: 'السجل التجاري يُجدَّد سنوياً. لو انتهى بدون تجديد، الحسابات البنكية والمعاملات الحكومية تتجمّد.',
-    actionAr: 'جدّد عبر بوابة وزارة التجارة — mc.gov.sa',
-    officialUrl: 'https://mc.gov.sa',
-    fineCeilingSar: 10_000,
-  }));
+  gaps.push(
+    ...buildRenewalGap({
+      id: 'op_cr_renewal',
+      category: 'cr',
+      issuedAt: a.op3_cr_issue_date,
+      today,
+      titlePrefix: 'السجل التجاري',
+      explanationAr:
+        'السجل التجاري يُجدَّد سنوياً. لو انتهى بدون تجديد، الحسابات البنكية والمعاملات الحكومية تتجمّد.',
+      actionAr: 'جدّد عبر بوابة وزارة التجارة — mc.gov.sa',
+      officialUrl: 'https://mc.gov.sa',
+      fineCeilingSar: 10_000,
+    }),
+  );
 
   // Municipal licence.
-  gaps.push(...buildRenewalGap({
-    id: 'op_municipal_renewal',
-    category: 'municipal',
-    issuedAt: a.op4_municipal_last_renewed ?? a.op3_cr_issue_date,
-    today,
-    titlePrefix: 'الرخصة البلدية',
-    explanationAr: 'رخصة البلدية (رخصة النشاط من منصة بلدي) سنوية. انتهاؤها يوقف الخدمات ويعرّض المحل للإغلاق.',
-    actionAr: 'جدّد عبر منصة بلدي — balady.gov.sa',
-    officialUrl: 'https://balady.gov.sa',
-    fineCeilingSar: 5_000,
-    missingSeverity: 'medium',
-  }));
+  gaps.push(
+    ...buildRenewalGap({
+      id: 'op_municipal_renewal',
+      category: 'municipal',
+      issuedAt: a.op4_municipal_last_renewed ?? a.op3_cr_issue_date,
+      today,
+      titlePrefix: 'الرخصة البلدية',
+      explanationAr:
+        'رخصة البلدية (رخصة النشاط من منصة بلدي) سنوية. انتهاؤها يوقف الخدمات ويعرّض المحل للإغلاق.',
+      actionAr: 'جدّد عبر منصة بلدي — balady.gov.sa',
+      officialUrl: 'https://balady.gov.sa',
+      fineCeilingSar: 5_000,
+      missingSeverity: 'medium',
+    }),
+  );
   if (a.op4_municipal_last_renewed === null && a.op3_cr_issue_date) {
-    gaps.push(missingDateInfo('op_municipal_missing_info', 'municipal',
-      'تاريخ آخر تجديد بلدي غير محدّد', 'استخدمنا تاريخ السجل التجاري كتقدير.'));
+    gaps.push(
+      missingDateInfo(
+        'op_municipal_missing_info',
+        'municipal',
+        'تاريخ آخر تجديد بلدي غير محدّد',
+        'استخدمنا تاريخ السجل التجاري كتقدير.',
+      ),
+    );
   }
 
   // Civil defense safety certificate.
-  gaps.push(...buildRenewalGap({
-    id: 'op_civil_defense',
-    category: 'civil_defense',
-    issuedAt: a.op5_civil_defense_last ?? a.op3_cr_issue_date,
-    today,
-    titlePrefix: 'شهادة السلامة (الدفاع المدني)',
-    explanationAr: 'الفحص السنوي للسلامة (الطفايات، مخارج الطوارئ، كواشف الدخان). غيابه = إغلاق فوري عند أي تفتيش.',
-    actionAr: 'احجز فحصاً عبر منصة سلامة — salamah.sa',
-    officialUrl: 'https://salamah.sa',
-    fineCeilingSar: 30_000,
-    escalateToCritical: true,
-  }));
+  gaps.push(
+    ...buildRenewalGap({
+      id: 'op_civil_defense',
+      category: 'civil_defense',
+      issuedAt: a.op5_civil_defense_last ?? a.op3_cr_issue_date,
+      today,
+      titlePrefix: 'شهادة السلامة (الدفاع المدني)',
+      explanationAr:
+        'الفحص السنوي للسلامة (الطفايات، مخارج الطوارئ، كواشف الدخان). غيابه = إغلاق فوري عند أي تفتيش.',
+      actionAr: 'احجز فحصاً عبر منصة سلامة — salamah.sa',
+      officialUrl: 'https://salamah.sa',
+      fineCeilingSar: 30_000,
+      escalateToCritical: true,
+    }),
+  );
   if (a.op5_civil_defense_last === null && a.op3_cr_issue_date) {
-    gaps.push(missingDateInfo('op_civil_defense_missing_info', 'civil_defense',
-      'تاريخ فحص الدفاع المدني غير محدّد', 'استخدمنا تاريخ السجل التجاري كتقدير.'));
+    gaps.push(
+      missingDateInfo(
+        'op_civil_defense_missing_info',
+        'civil_defense',
+        'تاريخ فحص الدفاع المدني غير محدّد',
+        'استخدمنا تاريخ السجل التجاري كتقدير.',
+      ),
+    );
   }
 
   // SFDA — restaurants only.
   if (a.op1_vertical === 'restaurant') {
-    gaps.push(...buildRenewalGap({
-      id: 'op_sfda',
-      category: 'sfda',
-      issuedAt: a.op6_sfda_cert_date ?? a.op3_cr_issue_date,
-      today,
-      titlePrefix: 'ترخيص الغذاء والدواء (SFDA)',
-      explanationAr: 'ترخيص SFDA شرط للمطاعم والكوفي شوب. انتهاؤه = إيقاف خدمة فوري حتى التجديد.',
-      actionAr: 'راجع هيئة الغذاء والدواء — sfda.gov.sa',
-      officialUrl: 'https://sfda.gov.sa',
-      fineCeilingSar: 100_000,
-      escalateToCritical: true,
-    }));
+    gaps.push(
+      ...buildRenewalGap({
+        id: 'op_sfda',
+        category: 'sfda',
+        issuedAt: a.op6_sfda_cert_date ?? a.op3_cr_issue_date,
+        today,
+        titlePrefix: 'ترخيص الغذاء والدواء (SFDA)',
+        explanationAr: 'ترخيص SFDA شرط للمطاعم والكوفي شوب. انتهاؤه = إيقاف خدمة فوري حتى التجديد.',
+        actionAr: 'راجع هيئة الغذاء والدواء — sfda.gov.sa',
+        officialUrl: 'https://sfda.gov.sa',
+        fineCeilingSar: 100_000,
+        escalateToCritical: true,
+      }),
+    );
   }
 
   // Nitaqat labour flag — 10+ employees should verify their zone.
@@ -169,12 +185,11 @@ export function runOperationalAnalysis(args: {
         id: 'op_lease_notice',
         severity: days < 0 ? 'critical' : days <= 30 ? 'critical' : 'medium',
         category: 'lease',
-        titleAr: days < 0
-          ? 'عقد الإيجار منتهي'
-          : `عقد الإيجار ينتهي خلال ${days} يوم`,
-        explanationAr: days < 0
-          ? 'العقد منتهي — استمرار التشغيل بدون عقد ساري يُبطل كثيراً من الرخص.'
-          : 'اقترب موعد انتهاء العقد. ابدأ التفاوض مبكراً لتفادي إغلاق مؤقت.',
+        titleAr: days < 0 ? 'عقد الإيجار منتهي' : `عقد الإيجار ينتهي خلال ${days} يوم`,
+        explanationAr:
+          days < 0
+            ? 'العقد منتهي — استمرار التشغيل بدون عقد ساري يُبطل كثيراً من الرخص.'
+            : 'اقترب موعد انتهاء العقد. ابدأ التفاوض مبكراً لتفادي إغلاق مؤقت.',
         actionAr: 'راجع المالك لتمديد العقد قبل أي جولة تجديد لرخصة البلدية',
         daysUntilDeadline: days,
         dueDate: a.op8_lease_expiry,
@@ -203,7 +218,9 @@ export function runOperationalAnalysis(args: {
     return xd - yd;
   });
 
-  const overdue = gaps.filter((g) => Number.isFinite(g.daysUntilDeadline) && g.daysUntilDeadline < 0);
+  const overdue = gaps.filter(
+    (g) => Number.isFinite(g.daysUntilDeadline) && g.daysUntilDeadline < 0,
+  );
   const upcomingRenewals = gaps.filter(
     (g) =>
       Number.isFinite(g.daysUntilDeadline) &&
@@ -215,9 +232,12 @@ export function runOperationalAnalysis(args: {
   // Health score: denominator is count of gaps that could be pass/fail
   // (excluding low/informational items). Numerator is count with
   // daysUntilDeadline ≥ SOON_WINDOW_DAYS (i.e. not pressing).
-  const meaningful = gaps.filter((g) => g.severity !== 'low' && Number.isFinite(g.daysUntilDeadline));
+  const meaningful = gaps.filter(
+    (g) => g.severity !== 'low' && Number.isFinite(g.daysUntilDeadline),
+  );
   const healthy = meaningful.filter((g) => g.daysUntilDeadline >= SOON_WINDOW_DAYS);
-  const healthScore = meaningful.length === 0 ? 100 : Math.round((healthy.length / meaningful.length) * 100);
+  const healthScore =
+    meaningful.length === 0 ? 100 : Math.round((healthy.length / meaningful.length) * 100);
 
   return {
     gaps,
@@ -254,34 +274,42 @@ interface RenewalInput {
  */
 function buildRenewalGap(input: RenewalInput): OperationalGap[] {
   const {
-    id, category, issuedAt, today,
-    titlePrefix, explanationAr, actionAr, officialUrl,
-    fineCeilingSar, missingSeverity = 'low', escalateToCritical = false,
+    id,
+    category,
+    issuedAt,
+    today,
+    titlePrefix,
+    explanationAr,
+    actionAr,
+    officialUrl,
+    fineCeilingSar,
+    missingSeverity = 'low',
+    escalateToCritical = false,
   } = input;
 
   if (!issuedAt) {
-    return [{
-      id: `${id}_missing_date`,
-      severity: missingSeverity,
-      category,
-      titleAr: `${titlePrefix} — التاريخ غير معروف`,
-      explanationAr: `أدخل تاريخ آخر تجديد لـ${titlePrefix} عشان نقدر نذكّرك بالموعد.`,
-      actionAr: 'حدّث بياناتك بالتاريخ الصحيح',
-      daysUntilDeadline: Number.NaN,
-      dueDate: '',
-      officialUrl,
-    }];
+    return [
+      {
+        id: `${id}_missing_date`,
+        severity: missingSeverity,
+        category,
+        titleAr: `${titlePrefix} — التاريخ غير معروف`,
+        explanationAr: `أدخل تاريخ آخر تجديد لـ${titlePrefix} عشان نقدر نذكّرك بالموعد.`,
+        actionAr: 'حدّث بياناتك بالتاريخ الصحيح',
+        daysUntilDeadline: Number.NaN,
+        dueDate: '',
+        ...(officialUrl ? { officialUrl } : {}),
+      },
+    ];
   }
 
   const issued = parseIsoDate(issuedAt);
   if (!issued) return [];
   // Anniversary-based, not 365-day-offset — handles leap years correctly
   // (Feb 29 issue → Feb 28 anniversary in non-leap years, not Mar 1).
-  const dueDate = new Date(Date.UTC(
-    issued.getUTCFullYear() + 1,
-    issued.getUTCMonth(),
-    issued.getUTCDate(),
-  ));
+  const dueDate = new Date(
+    Date.UTC(issued.getUTCFullYear() + 1, issued.getUTCMonth(), issued.getUTCDate()),
+  );
   const days = daysBetween(today, dueDate);
   if (days === null) return [];
 
@@ -293,24 +321,27 @@ function buildRenewalGap(input: RenewalInput): OperationalGap[] {
   else if (days <= UPCOMING_WINDOW_DAYS) severity = 'low';
   else return []; // more than 180 days away — not worth surfacing
 
-  const titleAr = days < 0
-    ? `${titlePrefix} — منتهية منذ ${Math.abs(days)} يوم`
-    : days === 0
-    ? `${titlePrefix} — ينتهي اليوم`
-    : `${titlePrefix} — يُجدَّد خلال ${days} يوم`;
+  const titleAr =
+    days < 0
+      ? `${titlePrefix} — منتهية منذ ${Math.abs(days)} يوم`
+      : days === 0
+        ? `${titlePrefix} — ينتهي اليوم`
+        : `${titlePrefix} — يُجدَّد خلال ${days} يوم`;
 
-  return [{
-    id,
-    severity,
-    category,
-    titleAr,
-    explanationAr,
-    actionAr,
-    daysUntilDeadline: days,
-    dueDate: isoOf(dueDate),
-    officialUrl,
-    fineCeilingSar,
-  }];
+  return [
+    {
+      id,
+      severity,
+      category,
+      titleAr,
+      explanationAr,
+      actionAr,
+      daysUntilDeadline: days,
+      dueDate: isoOf(dueDate),
+      ...(officialUrl ? { officialUrl } : {}),
+      ...(fineCeilingSar ? { fineCeilingSar } : {}),
+    },
+  ];
 }
 
 function parseIsoDate(iso: string): Date | null {
@@ -329,10 +360,6 @@ function daysBetween(from: Date, to: Date): number | null {
   return Math.round((toUtc - fromUtc) / MS_PER_DAY);
 }
 
-function isoToday(today: Date): string {
-  return isoOf(today);
-}
-
 function isoOf(d: Date): string {
   return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
 }
@@ -345,7 +372,12 @@ function sevWeight(s: OperationalGap['severity']): number {
   return s === 'critical' ? 3 : s === 'medium' ? 2 : 1;
 }
 
-function missingDateInfo(id: string, category: OpCategory, titleAr: string, explanationAr: string): OperationalGap {
+function missingDateInfo(
+  id: string,
+  category: OpCategory,
+  titleAr: string,
+  explanationAr: string,
+): OperationalGap {
   return {
     id,
     severity: 'low',

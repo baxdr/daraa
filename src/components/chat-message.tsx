@@ -20,7 +20,7 @@ interface AgentMessageProps {
 
 export function AgentMessage({ text, hint, terms, children }: AgentMessageProps) {
   return (
-    <div className="flex gap-4 animate-fade-rise">
+    <div className="flex animate-fade-rise gap-4">
       <AgentMark />
       <div className="min-w-0 flex-1">
         <div className="border border-rule bg-paper-2 px-5 py-4 text-ink">
@@ -45,7 +45,9 @@ function InlineTerm({ termId }: { termId: TermId }) {
   if (!term) return null;
   return (
     <div className="text-[13.5px] leading-relaxed text-ink-2">
-      <span className="me-2 font-mono text-[10px] font-bold tracking-[0.16em] text-accent">مصطلح</span>
+      <span className="me-2 font-mono text-[10px] font-bold tracking-[0.16em] text-accent">
+        مصطلح
+      </span>
       <span className="font-display font-extrabold tracking-tight text-ink">{term.termAr}</span>
       <span className="mx-1 text-muted">—</span>
       <span>{term.simpleExplanation}</span>
@@ -67,7 +69,7 @@ function InlineTerm({ termId }: { termId: TermId }) {
 
 export function UserMessage({ text }: { text: string }) {
   return (
-    <div className="flex justify-end animate-fade-rise">
+    <div className="flex animate-fade-rise justify-end">
       <div className="max-w-[78%] bg-ink px-5 py-3.5 text-paper" dir="auto">
         <p className="text-[15px] leading-relaxed">{text}</p>
       </div>

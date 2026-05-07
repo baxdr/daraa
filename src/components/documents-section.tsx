@@ -79,7 +79,9 @@ function DocumentTile({ scanId, rec }: { scanId: string; rec: DocSpec }) {
       setError(
         e instanceof Error && e.name === 'AbortError'
           ? 'انتهت المهلة — خدمة التوليد بطيئة. حاول مجدداً.'
-          : e instanceof Error ? e.message : 'خطأ غير متوقع',
+          : e instanceof Error
+            ? e.message
+            : 'خطأ غير متوقع',
       );
     } finally {
       setGenerating(false);
@@ -102,11 +104,11 @@ function DocumentTile({ scanId, rec }: { scanId: string; rec: DocSpec }) {
 
       <button
         type="button"
-        onClick={handleGenerate}
+        onClick={() => void handleGenerate()}
         disabled={generating}
         aria-busy={generating}
         aria-live="polite"
-        className="btn-outline mt-5 w-full justify-between text-sm hover:bg-accent hover:border-accent hover:text-paper disabled:opacity-50"
+        className="btn-outline mt-5 w-full justify-between text-sm hover:border-accent hover:bg-accent hover:text-paper disabled:opacity-50"
       >
         <span>{generating ? 'جاري التوليد…' : 'ولّد الوثيقة'}</span>
         <span aria-hidden>{generating ? '…' : '←'}</span>

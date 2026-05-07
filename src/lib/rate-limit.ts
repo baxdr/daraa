@@ -25,8 +25,7 @@ interface Bucket {
 }
 
 const globalForRL = globalThis as unknown as { __daraaRL?: Map<string, Bucket> };
-const BUCKETS: Map<string, Bucket> =
-  globalForRL.__daraaRL ?? (globalForRL.__daraaRL = new Map());
+const BUCKETS: Map<string, Bucket> = globalForRL.__daraaRL ?? (globalForRL.__daraaRL = new Map());
 
 /**
  * Sliding-window limiter. Returns `ok: false` with retry-after if the
@@ -49,7 +48,7 @@ export function check(opts: {
   // Drop expired hits.
   b.hits = b.hits.filter((t) => t > cutoff);
   if (b.hits.length >= opts.max) {
-    const earliest = b.hits[0];
+    const earliest = b.hits[0] ?? now;
     const retryAfterSec = Math.max(1, Math.ceil((earliest + opts.windowMs - now) / 1000));
     return { ok: false, retryAfterSec, remaining: 0 };
   }
@@ -60,7 +59,10 @@ export function check(opts: {
 /** Best-effort extraction of the requester's IP. */
 export function clientIp(req: Request): string {
   const fwd = req.headers.get('x-forwarded-for');
-  if (fwd) return fwd.split(',')[0].trim();
+  if (fwd) {
+    const first = fwd.split(',')[0];
+    if (first) return first.trim();
+  }
   const real = req.headers.get('x-real-ip');
   if (real) return real.trim();
   return 'unknown';

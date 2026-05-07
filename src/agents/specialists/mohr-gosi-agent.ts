@@ -33,11 +33,12 @@ export class MohrGosiAgent implements Agent {
       );
     }
 
-    const criticalWarningAr = nitaqatRisk === 'red'
-      ? 'تقديريّاً: نطاق المنشأة مرشّح للأحمر — راجع نسبة التوطين فوراً، لأن أغلب الخدمات الحكومية تتقيّد في النطاق الأحمر.'
-      : nitaqatRisk === 'yellow'
-      ? 'تقديريّاً: النطاق قد يكون أصفر — نسبة التوطين تحتاج مراجعة قبل أي تجديد.'
-      : undefined;
+    const criticalWarningAr =
+      nitaqatRisk === 'red'
+        ? 'تقديريّاً: نطاق المنشأة مرشّح للأحمر — راجع نسبة التوطين فوراً، لأن أغلب الخدمات الحكومية تتقيّد في النطاق الأحمر.'
+        : nitaqatRisk === 'yellow'
+          ? 'تقديريّاً: النطاق قد يكون أصفر — نسبة التوطين تحتاج مراجعة قبل أي تجديد.'
+          : undefined;
 
     const outbox: AgentMessage[] = [];
     if (context.mode === 'compliance' && nitaqatRisk === 'red') {
@@ -46,8 +47,7 @@ export class MohrGosiAgent implements Agent {
         to: 'municipality',
         type: 'warning',
         payload: { nitaqatZone: 'red', employeeCount },
-        messageAr:
-          'تنبيه نطاقات: النطاق الأحمر — كثير من خدمات البلدية تتقيّد حتى يُصحَّح النطاق.',
+        messageAr: 'تنبيه نطاقات: النطاق الأحمر — كثير من خدمات البلدية تتقيّد حتى يُصحَّح النطاق.',
       });
       outbox.push({
         from: 'mohr_gosi',
@@ -75,7 +75,7 @@ export class MohrGosiAgent implements Agent {
         estimatedTimeAr: 'يوم واحد (إلكتروني لكل الخطوتين)',
         officialUrl: 'https://www.hrsd.gov.sa',
         renewalPeriodAr: 'اشتراك شهري (تأمينات)',
-        criticalWarningAr,
+        ...(criticalWarningAr !== undefined ? { criticalWarningAr } : {}),
         requirements,
       },
       outbox,

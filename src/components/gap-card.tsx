@@ -13,24 +13,24 @@ const SEVERITY_STYLES: Record<
   Gap['severity'],
   { bar: string; labelAr: string; labelColor: string }
 > = {
-  critical: { bar: 'bg-danger',    labelAr: 'حرج',    labelColor: 'text-danger'   },
-  medium:   { bar: 'bg-warn',      labelAr: 'متوسط',  labelColor: 'text-warn'     },
+  critical: { bar: 'bg-danger', labelAr: 'حرج', labelColor: 'text-danger' },
+  medium: { bar: 'bg-warn', labelAr: 'متوسط', labelColor: 'text-warn' },
   // Low: use ink-2 for a darker bar — plain rule (#D9D1C3) on white falls
   // below WCAG 3:1 for non-text UI components. ink-2 at 30% alpha on white
   // is ~4.3:1, passes AA non-text.
-  low:      { bar: 'bg-ink-2/30',  labelAr: 'منخفض',  labelColor: 'text-ink-2'    },
+  low: { bar: 'bg-ink-2/30', labelAr: 'منخفض', labelColor: 'text-ink-2' },
 };
 
 type AutoDocType = 'privacy_policy' | 'dpo_appointment';
 const RULE_TO_DOC_TYPE: Record<string, AutoDocType | undefined> = {
   pdpl_privacy_policy_published: 'privacy_policy',
-  pdpl_arabic_available:         'privacy_policy',
-  pdpl_purpose_stated:           'privacy_policy',
-  pdpl_retention_stated:         'privacy_policy',
-  pdpl_cross_border_disclosed:   'privacy_policy',
-  pdpl_third_party_disclosed:    'privacy_policy',
-  pdpl_trackers_disclosed:       'privacy_policy',
-  pdpl_dpo_required:             'dpo_appointment',
+  pdpl_arabic_available: 'privacy_policy',
+  pdpl_purpose_stated: 'privacy_policy',
+  pdpl_retention_stated: 'privacy_policy',
+  pdpl_cross_border_disclosed: 'privacy_policy',
+  pdpl_third_party_disclosed: 'privacy_policy',
+  pdpl_trackers_disclosed: 'privacy_policy',
+  pdpl_dpo_required: 'dpo_appointment',
 };
 
 export function GapCard({ gap, scanId, index }: { gap: Gap; scanId: string; index: number }) {
@@ -71,7 +71,9 @@ export function GapCard({ gap, scanId, index }: { gap: Gap; scanId: string; inde
       setGenError(
         e instanceof Error && e.name === 'AbortError'
           ? 'انتهت المهلة — خدمة التوليد بطيئة. حاول مجدداً.'
-          : e instanceof Error ? e.message : 'خطأ غير متوقع',
+          : e instanceof Error
+            ? e.message
+            : 'خطأ غير متوقع',
       );
     } finally {
       setGenerating(false);
@@ -80,36 +82,40 @@ export function GapCard({ gap, scanId, index }: { gap: Gap; scanId: string; inde
 
   return (
     <article
-      className="grid grid-cols-[6px_1fr] overflow-hidden border border-rule bg-white animate-fade-rise"
+      className="grid animate-fade-rise grid-cols-[6px_1fr] overflow-hidden border border-rule bg-white"
       style={{ animationDelay: `${Math.min(index, 6) * 80}ms` }}
       role="region"
       aria-label={`فجوة ${index + 1}: ${gap.titleAr}`}
     >
       {/* Severity bar — full-height, unmissable */}
-      <div
-        className={`${style.bar}`}
-        aria-hidden
-        title={`الشدة: ${style.labelAr}`}
-      />
+      <div className={`${style.bar}`} aria-hidden title={`الشدة: ${style.labelAr}`} />
 
       <div className="px-5 py-5 md:px-6">
         {/* Metadata row: index, severity label, confidence tag */}
         <div className="flex items-baseline justify-between gap-4">
-          <div className="flex items-baseline gap-3 flex-wrap">
+          <div className="flex flex-wrap items-baseline gap-3">
             <span className="font-mono text-xs tabular-nums text-muted">
               {String(index + 1).padStart(2, '0')}
             </span>
             <div
-              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold tracking-widest border ${
-                gap.severity === 'critical' ? 'bg-danger/10 border-danger/40 text-danger' :
-                gap.severity === 'medium' ? 'bg-warn-soft border-warn/40 text-warn-strong' :
-                'bg-paper-2 border-rule text-ink-2'
+              className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-[11px] font-bold tracking-widest ${
+                gap.severity === 'critical'
+                  ? 'border-danger/40 bg-danger/10 text-danger'
+                  : gap.severity === 'medium'
+                    ? 'border-warn/40 bg-warn-soft text-warn-strong'
+                    : 'border-rule bg-paper-2 text-ink-2'
               }`}
               role="status"
               aria-label={`الشدة: ${style.labelAr}`}
-              title={gap.severity === 'critical' ? 'فجوة حرجة تحتاج تصحيح فوري' : gap.severity === 'medium' ? 'فجوة متوسطة الأهمية' : 'فجوة منخفضة الأهمية'}
+              title={
+                gap.severity === 'critical'
+                  ? 'فجوة حرجة تحتاج تصحيح فوري'
+                  : gap.severity === 'medium'
+                    ? 'فجوة متوسطة الأهمية'
+                    : 'فجوة منخفضة الأهمية'
+              }
             >
-              <span aria-hidden className="w-2 h-2 rounded-full bg-current" />
+              <span aria-hidden className="h-2 w-2 rounded-full bg-current" />
               {style.labelAr}
             </div>
             {gap.confidence === 'low' && (
@@ -127,10 +133,16 @@ export function GapCard({ gap, scanId, index }: { gap: Gap; scanId: string; inde
               role="group"
               aria-label={`سقف الغرامة: ${gap.fineCeilingSar.toLocaleString('en-US')} ريال`}
             >
-              <div className="font-mono text-xs uppercase tracking-widest text-muted" aria-hidden="true">
+              <div
+                className="font-mono text-xs uppercase tracking-widest text-muted"
+                aria-hidden="true"
+              >
                 الحد الأقصى
               </div>
-              <div className="font-display text-lg font-extrabold tabular-nums text-danger" aria-hidden="true">
+              <div
+                className="font-display text-lg font-extrabold tabular-nums text-danger"
+                aria-hidden="true"
+              >
                 {fineLabel}
                 <span className="text-xs font-medium text-muted"> ريال</span>
               </div>
@@ -150,13 +162,15 @@ export function GapCard({ gap, scanId, index }: { gap: Gap; scanId: string; inde
           aria-controls={detailsId}
         >
           <span>{open ? 'إخفاء التفاصيل' : 'وش المشكلة بالضبط'}</span>
-          <span aria-hidden className={`transition-transform ${open ? 'rotate-90' : ''}`}>›</span>
+          <span aria-hidden className={`transition-transform ${open ? 'rotate-90' : ''}`}>
+            ›
+          </span>
         </button>
 
         {open && (
           <div
             id={detailsId}
-            className="mt-4 space-y-3 border-t border-rule pt-4 text-sm leading-relaxed text-ink-2 animate-fade-rise"
+            className="mt-4 animate-fade-rise space-y-3 border-t border-rule pt-4 text-sm leading-relaxed text-ink-2"
           >
             <p>{gap.explanationAr}</p>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1 text-xs">
@@ -169,7 +183,9 @@ export function GapCard({ gap, scanId, index }: { gap: Gap; scanId: string; inde
                 <span className="text-muted">
                   <span className="font-mono tracking-widest">المخاطر</span>
                   <span className="mx-2">·</span>
-                  <span className="text-ink-2">فقدان عقود الجهات الحكومية أو تعرّض الأنظمة للاختراق</span>
+                  <span className="text-ink-2">
+                    فقدان عقود الجهات الحكومية أو تعرّض الأنظمة للاختراق
+                  </span>
                 </span>
               )}
             </div>
@@ -180,11 +196,11 @@ export function GapCard({ gap, scanId, index }: { gap: Gap; scanId: string; inde
           <div className="mt-5 border-t border-rule pt-5">
             <button
               type="button"
-              onClick={handleGenerate}
+              onClick={() => void handleGenerate()}
               disabled={generating}
               aria-busy={generating}
               aria-live="polite"
-              className="btn-outline w-full justify-between text-sm hover:bg-accent hover:border-accent hover:text-paper"
+              className="btn-outline w-full justify-between text-sm hover:border-accent hover:bg-accent hover:text-paper"
             >
               <span>{generating ? 'جاري التوليد…' : 'ولّد الحل تلقائياً'}</span>
               <span aria-hidden>{generating ? '…' : '←'}</span>

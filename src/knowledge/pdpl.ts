@@ -18,11 +18,27 @@ export interface PdplRight {
 }
 
 export const PDPL_DATA_SUBJECT_RIGHTS: readonly PdplRight[] = [
-  { id: 'informed',    nameAr: 'حق العلم',           descriptionAr: 'أن يُعلم بالأساس النظامي والغرض من جمع البيانات الشخصية.' },
-  { id: 'access',      nameAr: 'حق الاطلاع',         descriptionAr: 'الاطلاع على بياناته الشخصية لدى المتحكم.' },
-  { id: 'copy',        nameAr: 'حق الحصول على نسخة', descriptionAr: 'الحصول على نسخة من بياناته الشخصية بصيغة واضحة وقابلة للقراءة.' },
-  { id: 'correction',  nameAr: 'حق التصحيح',         descriptionAr: 'طلب تصحيح أو استكمال أو تحديث بياناته الشخصية.' },
-  { id: 'destruction', nameAr: 'حق الإتلاف',         descriptionAr: 'طلب إتلاف بياناته الشخصية عند انتفاء الغرض من جمعها.' },
+  {
+    id: 'informed',
+    nameAr: 'حق العلم',
+    descriptionAr: 'أن يُعلم بالأساس النظامي والغرض من جمع البيانات الشخصية.',
+  },
+  { id: 'access', nameAr: 'حق الاطلاع', descriptionAr: 'الاطلاع على بياناته الشخصية لدى المتحكم.' },
+  {
+    id: 'copy',
+    nameAr: 'حق الحصول على نسخة',
+    descriptionAr: 'الحصول على نسخة من بياناته الشخصية بصيغة واضحة وقابلة للقراءة.',
+  },
+  {
+    id: 'correction',
+    nameAr: 'حق التصحيح',
+    descriptionAr: 'طلب تصحيح أو استكمال أو تحديث بياناته الشخصية.',
+  },
+  {
+    id: 'destruction',
+    nameAr: 'حق الإتلاف',
+    descriptionAr: 'طلب إتلاف بياناته الشخصية عند انتفاء الغرض من جمعها.',
+  },
 ] as const;
 
 export interface PdplRule {
@@ -132,7 +148,8 @@ export const PDPL_RULES: readonly PdplRule[] = [
   {
     id: 'pdpl_consent_before_processing',
     titleAr: 'الموافقة قبل المعالجة',
-    requirementAr: 'يجب الحصول على موافقة صاحب البيانات قبل معالجة بياناته الشخصية، باستثناء الحالات النظامية.',
+    requirementAr:
+      'يجب الحصول على موافقة صاحب البيانات قبل معالجة بياناته الشخصية، باستثناء الحالات النظامية.',
     severity: 'critical',
     appliesTo: 'all',
     fineCapSar: 3_000_000,

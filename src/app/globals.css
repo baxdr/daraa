@@ -15,7 +15,10 @@
     letter-spacing: 0.01em;
   }
 
-  h1, h2, h3, .font-display {
+  h1,
+  h2,
+  h3,
+  .font-display {
     font-family: theme('fontFamily.display');
     letter-spacing: theme('letterSpacing.tight');
     line-height: 1.15;
@@ -24,7 +27,9 @@
   .font-mono,
   .tabular-nums {
     font-variant-numeric: tabular-nums;
-    font-feature-settings: 'tnum' 1, 'lnum' 1;
+    font-feature-settings:
+      'tnum' 1,
+      'lnum' 1;
   }
 
   /* Focus ring — visible on keyboard nav, invisible on mouse click. */
@@ -56,23 +61,44 @@
   /* Enforce a minimum-legible body text size — any `text-[10px]` /
      `text-[11px]` utilities that slipped in still round up on mobile. */
   @media (max-width: 480px) {
-    html { font-size: 16px; }
+    html {
+      font-size: 16px;
+    }
   }
 }
 
 @layer components {
-  .rule         { display: block; height: 1px; background: theme('colors.rule'); }
-  .rule-accent  { display: block; height: 1px; background: theme('colors.accent.DEFAULT'); }
-  .rule-ink     { display: block; height: 2px; background: theme('colors.ink'); }
+  .rule {
+    display: block;
+    height: 1px;
+    background: theme('colors.rule');
+  }
+  .rule-accent {
+    display: block;
+    height: 1px;
+    background: theme('colors.accent.DEFAULT');
+  }
+  .rule-ink {
+    display: block;
+    height: 2px;
+    background: theme('colors.ink');
+  }
 
   .paper-grain {
-    background-image:
-      radial-gradient(circle at 1px 1px, rgba(20, 17, 15, 0.05) 1px, transparent 0);
+    background-image: radial-gradient(circle at 1px 1px, rgba(20, 17, 15, 0.05) 1px, transparent 0);
     background-size: 20px 20px;
   }
 
-  .ed-card       { background: white;                 border: 1px solid theme('colors.rule'); border-radius: theme('borderRadius.md'); }
-  .ed-card-warm  { background: theme('colors.paper-2'); border: 1px solid theme('colors.rule'); border-radius: theme('borderRadius.md'); }
+  .ed-card {
+    background: white;
+    border: 1px solid theme('colors.rule');
+    border-radius: theme('borderRadius.md');
+  }
+  .ed-card-warm {
+    background: theme('colors.paper-2');
+    border: 1px solid theme('colors.rule');
+    border-radius: theme('borderRadius.md');
+  }
 
   .btn-ink {
     display: inline-flex;
@@ -86,12 +112,19 @@
     font-weight: 700;
     letter-spacing: theme('letterSpacing.tight');
     border-radius: theme('borderRadius.md');
-    transition: transform 0.15s ease-out, background 0.15s ease-out;
+    transition:
+      transform 0.15s ease-out,
+      background 0.15s ease-out;
     /* WCAG 2.2 SC 2.5.8 — minimum 24×24 CSS target size (we go further, 44 is ideal). */
     min-height: 44px;
   }
-  .btn-ink:hover { background: theme('colors.accent.DEFAULT'); transform: translateY(-1px); }
-  .btn-ink:active { transform: translateY(0); }
+  .btn-ink:hover {
+    background: theme('colors.accent.DEFAULT');
+    transform: translateY(-1px);
+  }
+  .btn-ink:active {
+    transform: translateY(0);
+  }
   .btn-ink:disabled {
     background: theme('colors.paper-3');
     color: theme('colors.muted');
@@ -110,10 +143,15 @@
     border: 1.5px solid theme('colors.ink');
     border-radius: theme('borderRadius.md');
     font-weight: 600;
-    transition: background 0.15s ease-out, color 0.15s ease-out;
+    transition:
+      background 0.15s ease-out,
+      color 0.15s ease-out;
     min-height: 44px;
   }
-  .btn-outline:hover { background: theme('colors.ink'); color: theme('colors.paper'); }
+  .btn-outline:hover {
+    background: theme('colors.ink');
+    color: theme('colors.paper');
+  }
   .btn-outline:disabled {
     border-color: theme('colors.rule');
     color: theme('colors.muted');
@@ -185,7 +223,16 @@
    Print — A4 policy documents. Browser handles Arabic shaping correctly.
 ======================================================================== */
 @media print {
-  @page { size: A4; margin: 18mm 16mm; }
-  html, body { background: white !important; }
-  article, section { break-inside: avoid; }
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+  }
+  html,
+  body {
+    background: white !important;
+  }
+  article,
+  section {
+    break-inside: avoid;
+  }
 }

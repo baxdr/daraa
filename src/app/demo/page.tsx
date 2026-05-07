@@ -24,7 +24,7 @@ const SCENARIOS = [
     stats: [
       { value: '٠٪', label: 'صحة الرخص', tone: 'danger' as const },
       { value: '٠٥', label: 'تجديد قادم', tone: 'warn' as const },
-      { value: '١٠',  label: 'يوم حتى SFDA', tone: 'danger' as const },
+      { value: '١٠', label: 'يوم حتى SFDA', tone: 'danger' as const },
     ],
     headline: 'مرحلة التشغيل — التنبيهات الحيّة',
     variant: 'operational' as const,
@@ -57,21 +57,35 @@ export default function DemoShowcasePage() {
   return (
     <main className="relative min-h-screen">
       <header className="relative mx-auto flex max-w-6xl items-center justify-between px-6 pt-6 md:px-10">
-        <Link href="/" className="flex items-center gap-2.5 group">
+        <Link href="/" className="group flex items-center gap-2.5">
           <svg width="22" height="22" viewBox="0 0 34 34" aria-hidden className="text-accent">
-            <path d="M17 3 L29 9 L29 19 Q29 27 17 31 Q5 27 5 19 L5 9 Z"
-              fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-            <path d="M11 17 L15 21 L23 13"
-              fill="none" stroke="currentColor" strokeWidth="2"
-              strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M17 3 L29 9 L29 19 Q29 27 17 31 Q5 27 5 19 L5 9 Z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M11 17 L15 21 L23 13"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           <span className="font-display text-lg font-extrabold tracking-tight group-hover:text-accent">
             درع
           </span>
         </Link>
         <nav className="flex gap-5 text-sm text-ink-2">
-          <Link href="/chat" className="hover:text-ink">ابدأ محادثتك</Link>
-          <Link href="/return" className="hover:text-ink">مشاريعي</Link>
+          <Link href="/chat" className="hover:text-ink">
+            ابدأ محادثتك
+          </Link>
+          <Link href="/return" className="hover:text-ink">
+            مشاريعي
+          </Link>
         </nav>
       </header>
 
@@ -81,9 +95,8 @@ export default function DemoShowcasePage() {
           سيناريوهات حيّة — اضغط وشف الداشبورد
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-ink-2 md:text-lg">
-          كل سيناريو مشروع حقيقي دخلناه مسبقاً في النظام — الأرقام والتنبيهات
-          من محركّ التحليل الفعلي، مو screenshots. اضغط أي بطاقة تدخل على
-          الداشبورد الكامل.
+          كل سيناريو مشروع حقيقي دخلناه مسبقاً في النظام — الأرقام والتنبيهات من محركّ التحليل
+          الفعلي، مو screenshots. اضغط أي بطاقة تدخل على الداشبورد الكامل.
         </p>
         <div className="rule-accent my-8 w-16" />
       </section>
@@ -102,7 +115,9 @@ export default function DemoShowcasePage() {
           </p>
           <Link href="/chat" className="btn-ink mt-5 inline-flex text-sm">
             ابدأ محادثة جديدة
-            <span aria-hidden className="ms-2">←</span>
+            <span aria-hidden className="ms-2">
+              ←
+            </span>
           </Link>
         </div>
       </section>
@@ -110,7 +125,7 @@ export default function DemoShowcasePage() {
   );
 }
 
-function ScenarioCard({ s }: { s: typeof SCENARIOS[number] & { seeded: boolean } }) {
+function ScenarioCard({ s }: { s: (typeof SCENARIOS)[number] & { seeded: boolean } }) {
   const tone = s.variant === 'operational' ? 'bg-warn-soft/50' : 'bg-accent-soft/50';
   return (
     <article className="group overflow-hidden border border-ink bg-white transition-shadow hover:shadow-lg">
@@ -139,10 +154,12 @@ function ScenarioCard({ s }: { s: typeof SCENARIOS[number] & { seeded: boolean }
               className={`px-3 py-3 text-center ${i < s.stats.length - 1 ? 'border-e border-rule' : ''}`}
             >
               <div
-                className={`font-display text-2xl font-extrabold leading-none tabular-nums tracking-tighter md:text-3xl ${
-                  st.tone === 'danger' ? 'text-danger' :
-                  st.tone === 'warn'   ? 'text-warn-strong' :
-                                         'text-ink'
+                className={`font-display text-2xl font-extrabold tabular-nums leading-none tracking-tighter md:text-3xl ${
+                  st.tone === 'danger'
+                    ? 'text-danger'
+                    : st.tone === 'warn'
+                      ? 'text-warn-strong'
+                      : 'text-ink'
                 }`}
               >
                 {st.value}
@@ -153,10 +170,7 @@ function ScenarioCard({ s }: { s: typeof SCENARIOS[number] & { seeded: boolean }
         </div>
 
         {s.seeded ? (
-          <Link
-            href={`/project/${s.id}`}
-            className="btn-ink mt-6 w-full justify-between text-sm"
-          >
+          <Link href={`/project/${s.id}`} className="btn-ink mt-6 w-full justify-between text-sm">
             <span>افتح الداشبورد الكاملة</span>
             <span aria-hidden>←</span>
           </Link>
@@ -164,7 +178,7 @@ function ScenarioCard({ s }: { s: typeof SCENARIOS[number] & { seeded: boolean }
           <button
             type="button"
             disabled
-            className="btn-ink mt-6 w-full justify-between text-sm opacity-40 cursor-not-allowed"
+            className="btn-ink mt-6 w-full cursor-not-allowed justify-between text-sm opacity-40"
           >
             <span>غير مُحمّل</span>
             <span aria-hidden>—</span>

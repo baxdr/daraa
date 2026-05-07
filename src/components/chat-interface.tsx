@@ -67,7 +67,7 @@ export function ChatInterface() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15_000);
       try {
@@ -90,9 +90,12 @@ export function ChatInterface() {
       } catch (e) {
         clearTimeout(timeoutId);
         if (cancelled) return;
-        const msg = e instanceof Error && e.name === 'AbortError'
-          ? 'انتهت المهلة — الخادم بطيء، حاول مجدداً'
-          : e instanceof Error ? e.message : 'خطأ غير متوقع';
+        const msg =
+          e instanceof Error && e.name === 'AbortError'
+            ? 'انتهت المهلة — الخادم بطيء، حاول مجدداً'
+            : e instanceof Error
+              ? e.message
+              : 'خطأ غير متوقع';
         setError(msg);
       }
     })();
@@ -135,9 +138,11 @@ export function ChatInterface() {
         // retyping. The server's own error JSON (if any) takes priority.
         let serverMsg: string | undefined;
         try {
-          const body = await res.json() as { error?: string };
+          const body = (await res.json()) as { error?: string };
           serverMsg = body.error;
-        } catch { /* non-JSON body */ }
+        } catch {
+          /* non-JSON body */
+        }
         setError(serverMsg ?? `تعذّر الاتصال (${res.status}) — حاول مرة أخرى`);
         setTurns((t) => t.slice(0, -1));
         setFreeText(displayText);
@@ -170,9 +175,10 @@ export function ChatInterface() {
           body: JSON.stringify({ sessionId }),
         });
         if (!res2.ok) {
-          const msg = res2.status === 429
-            ? 'تجاوزت الحد المسموح — انتظر دقيقة وحاول.'
-            : `تعذّر بدء المشروع (${res2.status})`;
+          const msg =
+            res2.status === 429
+              ? 'تجاوزت الحد المسموح — انتظر دقيقة وحاول.'
+              : `تعذّر بدء المشروع (${res2.status})`;
           setError(msg);
           setDone(false);
           setInput({ kind: 'text', placeholder: 'اكتب جوابك' });
@@ -193,9 +199,12 @@ export function ChatInterface() {
       setInput(data.input ?? { kind: 'text', placeholder: 'اكتب جوابك' });
     } catch (e) {
       clearTimeout(timeoutId);
-      const msg = e instanceof Error && e.name === 'AbortError'
-        ? 'انتهت المهلة — الخادم بطيء. حاول مجدداً.'
-        : e instanceof Error ? e.message : 'خطأ غير متوقع';
+      const msg =
+        e instanceof Error && e.name === 'AbortError'
+          ? 'انتهت المهلة — الخادم بطيء. حاول مجدداً.'
+          : e instanceof Error
+            ? e.message
+            : 'خطأ غير متوقع';
       setError(msg);
       setTurns((t) => t.slice(0, -1));
       setFreeText(displayText);
@@ -207,19 +216,19 @@ export function ChatInterface() {
   }
 
   function handleQuickReply(opt: QuickReply) {
-    submitAnswer(opt.value, opt.label);
+    void submitAnswer(opt.value, opt.label);
   }
   function handleFreeSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!freeText.trim()) return;
-    submitAnswer(freeText, freeText);
+    void submitAnswer(freeText, freeText);
   }
   function handleSkipInput() {
     // Show the same label the user actually clicked — not a generic "تخطى".
     // Makes the chat log match their action instead of showing a short "تخطى"
     // bubble after clicking "تخطى — أبي التقرير بدون فحص الموقع".
     const label = input?.skipLabel?.trim() || 'تخطى';
-    submitAnswer('__skip__', label);
+    void submitAnswer('__skip__', label);
   }
 
   const progress = computeProgress(turns);
@@ -228,13 +237,33 @@ export function ChatInterface() {
     <div className="mx-auto flex h-[100dvh] max-w-3xl flex-col">
       {/* Masthead */}
       <header className="flex items-center justify-between border-b border-rule px-5 py-4 md:px-8">
-        <Link href="/" className="flex items-center gap-2.5 group" aria-label="درع — العودة للرئيسية">
-          <svg width="22" height="22" viewBox="0 0 34 34" aria-hidden="true" className="text-accent">
-            <path d="M17 3 L29 9 L29 19 Q29 27 17 31 Q5 27 5 19 L5 9 Z"
-              fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-            <path d="M11 17 L15 21 L23 13"
-              fill="none" stroke="currentColor" strokeWidth="2"
-              strokeLinecap="round" strokeLinejoin="round" />
+        <Link
+          href="/"
+          className="group flex items-center gap-2.5"
+          aria-label="درع — العودة للرئيسية"
+        >
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 34 34"
+            aria-hidden="true"
+            className="text-accent"
+          >
+            <path
+              d="M17 3 L29 9 L29 19 Q29 27 17 31 Q5 27 5 19 L5 9 Z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M11 17 L15 21 L23 13"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           <span className="font-display text-lg font-extrabold tracking-tight group-hover:text-accent">
             درع
@@ -242,7 +271,9 @@ export function ChatInterface() {
         </Link>
         <div className="flex flex-col items-end gap-0.5 text-xs text-muted">
           <span>استشارة مباشرة</span>
-          <span className="font-mono tabular-nums">السؤال {computeQuestionCount(turns)}/{expectedTurnsForMode(turns)}</span>
+          <span className="font-mono tabular-nums">
+            السؤال {computeQuestionCount(turns)}/{expectedTurnsForMode(turns)}
+          </span>
         </div>
       </header>
 
@@ -269,9 +300,11 @@ export function ChatInterface() {
           aria-label="المحادثة"
         >
           {turns.map((turn, i) =>
-            turn.role === 'agent'
-              ? <AgentMessage key={i} text={turn.message} />
-              : <UserMessage key={i} text={turn.text} />,
+            turn.role === 'agent' ? (
+              <AgentMessage key={i} text={turn.message} />
+            ) : (
+              <UserMessage key={i} text={turn.text} />
+            ),
           )}
           <div ref={bottomRef} />
         </div>
@@ -283,7 +316,7 @@ export function ChatInterface() {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="text-xs text-muted hover:text-ink transition-colors underline decoration-rule decoration-1 underline-offset-2 hover:decoration-ink"
+              className="text-xs text-muted underline decoration-rule decoration-1 underline-offset-2 transition-colors hover:text-ink hover:decoration-ink"
               title="ابدأ محادثة جديدة"
             >
               ← ابدأ محادثة جديدة
@@ -302,8 +335,11 @@ export function ChatInterface() {
               {!sessionId && (
                 <button
                   type="button"
-                  onClick={() => { setError(null); setStartRetry((n) => n + 1); }}
-                  className="shrink-0 border border-danger px-2 py-1 text-xs font-semibold text-danger hover:bg-danger hover:text-paper transition-colors"
+                  onClick={() => {
+                    setError(null);
+                    setStartRetry((n) => n + 1);
+                  }}
+                  className="shrink-0 border border-danger px-2 py-1 text-xs font-semibold text-danger transition-colors hover:bg-danger hover:text-paper"
                 >
                   أعد المحاولة
                 </button>
@@ -312,7 +348,7 @@ export function ChatInterface() {
                 <button
                   type="button"
                   onClick={() => setError(null)}
-                  className="shrink-0 border border-danger px-2 py-1 text-xs font-semibold text-danger hover:bg-danger hover:text-paper transition-colors"
+                  className="shrink-0 border border-danger px-2 py-1 text-xs font-semibold text-danger transition-colors hover:bg-danger hover:text-paper"
                 >
                   تجاهل التنبيه
                 </button>
@@ -329,7 +365,7 @@ export function ChatInterface() {
                 type="button"
                 disabled={submitting}
                 onClick={() => handleQuickReply(opt)}
-                className="min-h-[40px] border border-rule bg-paper-2 px-3.5 py-2 text-[13px] font-semibold text-ink transition-all hover:border-ink hover:bg-ink hover:text-paper focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:opacity-40 disabled:cursor-not-allowed"
+                className="min-h-[40px] border border-rule bg-paper-2 px-3.5 py-2 text-[13px] font-semibold text-ink transition-all hover:border-ink hover:bg-ink hover:text-paper focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {opt.label}
               </button>
@@ -337,16 +373,24 @@ export function ChatInterface() {
           </div>
         )}
 
-        {!done && input && (
-          <FreeInput
-            input={input}
-            value={freeText}
-            onChange={setFreeText}
-            onSubmit={handleFreeSubmit}
-            onSkip={input.kind === 'url_or_skip' || input.kind === 'date_or_skip' ? handleSkipInput : undefined}
-            submitting={submitting}
-          />
-        )}
+        {!done &&
+          input &&
+          (() => {
+            const onSkip =
+              input.kind === 'url_or_skip' || input.kind === 'date_or_skip'
+                ? handleSkipInput
+                : undefined;
+            return (
+              <FreeInput
+                input={input}
+                value={freeText}
+                onChange={setFreeText}
+                onSubmit={handleFreeSubmit}
+                {...(onSkip !== undefined ? { onSkip } : {})}
+                submitting={submitting}
+              />
+            );
+          })()}
 
         {done && (
           <div className="flex items-center gap-3 border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent-strong">
@@ -355,9 +399,7 @@ export function ChatInterface() {
           </div>
         )}
 
-        <p className="mt-3 text-xs text-muted">
-          أداة استرشادية — لا تغني عن الاستشارة القانونية.
-        </p>
+        <p className="mt-3 text-xs text-muted">أداة استرشادية — لا تغني عن الاستشارة القانونية.</p>
       </footer>
     </div>
   );
@@ -406,7 +448,7 @@ function FreeInput({
         <button
           type="submit"
           disabled={submitting || !value.trim()}
-          className="btn-ink px-6 py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          className="btn-ink px-6 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-40"
         >
           {submitting ? '…' : 'إرسال'}
         </button>
@@ -433,7 +475,9 @@ function FreeInput({
  *  is selected. */
 function expectedTurnsForMode(turns: Turn[]): number {
   // Inspect the earliest user turn — whichever mode button they picked.
-  const first = turns.find((t) => t.role === 'user' && typeof (t as { text: string }).text === 'string');
+  const first = turns.find(
+    (t) => t.role === 'user' && typeof (t as { text: string }).text === 'string',
+  );
   const label = first && 'text' in first ? first.text : '';
   if (label.includes('شغّال رقمي') || label.includes('PDPL')) return 10;
   if (label.includes('محل') || label.includes('مطعم') || label.includes('رخصي')) return 12;

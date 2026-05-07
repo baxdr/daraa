@@ -51,13 +51,13 @@ export class MciAgent implements Agent {
         estimatedTimeAr: 'يوم واحد (إلكتروني عبر منصة الأعمال)',
         officialUrl: 'https://mc.gov.sa',
         renewalPeriodAr: 'سنوي',
-        criticalWarningAr,
+        ...(criticalWarningAr ? { criticalWarningAr } : {}),
         requirements: [
           'هوية وطنية سارية لكل الشركاء',
           'اسم تجاري مقترح (٣ خيارات احتياطية)',
           'عقد تأسيس (يولّده درع تلقائياً)',
         ],
-        nameCheck,
+        ...(nameCheck ? { nameCheck } : {}),
       },
       outbox: [
         {
@@ -82,7 +82,11 @@ export class MciAgent implements Agent {
     return 'شركة ذات مسؤولية محدودة (ذ.م.م)';
   }
 
-  private estimateCost(partners: number, capital: number, foreign: boolean): { min: number; max: number } {
+  private estimateCost(
+    partners: number,
+    capital: number,
+    foreign: boolean,
+  ): { min: number; max: number } {
     if (foreign) return { min: 2000, max: 6000 }; // MISA licence + CR
     if (partners === 1 && capital < 500_000) return { min: 200, max: 400 };
     return { min: 1000, max: 1600 };

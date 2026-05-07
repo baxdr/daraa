@@ -3,6 +3,10 @@
  * Kept intentionally flat so it can be consumed in both server code and the UI.
  */
 
+import type { SecurityHeaderCheck } from '@/scanner/security-headers';
+import type { ThirdPartyCheck } from '@/scanner/third-party';
+import type { FormScanResult } from '@/scanner/forms';
+
 export type Severity = 'critical' | 'medium' | 'low';
 export type Regulation = 'PDPL' | 'NCA_ECC' | 'ZATCA';
 
@@ -10,9 +14,9 @@ export interface ScanResult {
   url: string;
   scannedAt: string;
   privacyPolicy: PrivacyPolicyCheck;
-  securityHeaders?: import('@/scanner/security-headers').SecurityHeaderCheck;
-  thirdParty?: import('@/scanner/third-party').ThirdPartyCheck;
-  dataForms?: import('@/scanner/forms').FormScanResult;
+  securityHeaders?: SecurityHeaderCheck;
+  thirdParty?: ThirdPartyCheck;
+  dataForms?: FormScanResult;
   // Still pending Puppeteer work:
   cookieConsent?: unknown;
 }
@@ -43,8 +47,8 @@ export interface Gap {
   id: string;
   severity: Severity;
   regulation: Regulation;
-  ruleId: string;        // e.g. 'pdpl_art4_rights'
-  ruleLabel: string;     // Arabic display label — the source of truth for what the user sees
+  ruleId: string; // e.g. 'pdpl_art4_rights'
+  ruleLabel: string; // Arabic display label — the source of truth for what the user sees
   title: string;
   titleAr: string;
   description: string;
@@ -135,23 +139,23 @@ export type TimelineEvent = AgentActivity | AgentMessage;
 export const AGENT_LABELS_AR: Record<AgentId, string> = {
   // Coordination
   orchestrator: 'المنسّق',
-  chat:         'وكيل المحادثة',
-  research:     'وكيل البحث',
-  scan:         'وكيل الفحص',
-  regulatory:   'وكيل الأنظمة',
-  analysis:     'وكيل التحليل',
-  report:       'وكيل التقرير',
-  document:     'وكيل المستندات',
+  chat: 'وكيل المحادثة',
+  research: 'وكيل البحث',
+  scan: 'وكيل الفحص',
+  regulatory: 'وكيل الأنظمة',
+  analysis: 'وكيل التحليل',
+  report: 'وكيل التقرير',
+  document: 'وكيل المستندات',
   // Entity specialists
-  mci:                       'متخصّص التجارة',
-  municipality:              'متخصّص البلدية',
-  civil_defense:             'متخصّص الدفاع المدني',
-  sfda:                      'متخصّص الغذاء والدواء',
-  moh:                       'متخصّص وزارة الصحة',
-  mohr_gosi:                 'متخصّص الموارد البشرية والتأمينات',
-  zatca:                     'متخصّص الزكاة والضريبة',
-  zatca_einvoice:            'متخصّص الفوترة الإلكترونية',
-  maroof:                    'متخصّص معروف',
-  pdpl_nca:                  'متخصّص حماية البيانات',
+  mci: 'متخصّص التجارة',
+  municipality: 'متخصّص البلدية',
+  civil_defense: 'متخصّص الدفاع المدني',
+  sfda: 'متخصّص الغذاء والدواء',
+  moh: 'متخصّص وزارة الصحة',
+  mohr_gosi: 'متخصّص الموارد البشرية والتأمينات',
+  zatca: 'متخصّص الزكاة والضريبة',
+  zatca_einvoice: 'متخصّص الفوترة الإلكترونية',
+  maroof: 'متخصّص معروف',
+  pdpl_nca: 'متخصّص حماية البيانات',
   contractor_classification: 'متخصّص تصنيف المقاولين',
 };

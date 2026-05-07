@@ -46,8 +46,7 @@ const FALLBACK_UPDATES: RegulatoryUpdate[] = [
   },
   {
     entity: 'sfda',
-    summaryAr:
-      'SFDA: اشتراط عرض السعرات الحرارية للمشروبات في قوائم المقاهي دخل حيز التنفيذ.',
+    summaryAr: 'SFDA: اشتراط عرض السعرات الحرارية للمشروبات في قوائم المقاهي دخل حيز التنفيذ.',
     date: '2026-02-01',
     source: 'sfda.gov.sa',
     fromFallback: true,
@@ -102,7 +101,10 @@ async function fetchUpdates(activeAgents: AgentId[]): Promise<RegulatoryUpdate[]
   try {
     return await fetchWithClaudeWebSearch(activeAgents);
   } catch (err) {
-    console.warn('[research] web_search failed, falling back:', err instanceof Error ? err.message : err);
+    console.warn(
+      '[research] web_search failed, falling back:',
+      err instanceof Error ? err.message : err,
+    );
     return relevantFallback(activeAgents);
   }
 }
@@ -118,13 +120,13 @@ function relevantFallback(activeAgents: AgentId[]): RegulatoryUpdate[] {
 /* ------------------------------------------------------------------------- */
 async function fetchWithClaudeWebSearch(activeAgents: AgentId[]): Promise<RegulatoryUpdate[]> {
   const QUERIES: Partial<Record<AgentId, string>> = {
-    pdpl_nca:      'آخر تحديثات SDAIA نظام حماية البيانات الشخصية 2026',
-    sfda:          'تحديثات هيئة الغذاء والدواء السعودية اشتراطات جديدة 2026',
-    municipality:  'تحديثات رخص البلدية أمانة الرياض 2026',
-    zatca:         'تحديثات الفوترة الإلكترونية ZATCA 2026',
-    mohr_gosi:     'تحديثات نطاقات وزارة الموارد البشرية 2026',
+    pdpl_nca: 'آخر تحديثات SDAIA نظام حماية البيانات الشخصية 2026',
+    sfda: 'تحديثات هيئة الغذاء والدواء السعودية اشتراطات جديدة 2026',
+    municipality: 'تحديثات رخص البلدية أمانة الرياض 2026',
+    zatca: 'تحديثات الفوترة الإلكترونية ZATCA 2026',
+    mohr_gosi: 'تحديثات نطاقات وزارة الموارد البشرية 2026',
     civil_defense: 'اشتراطات الدفاع المدني السعودي 2026',
-    mci:           'تحديثات وزارة التجارة السعودية 2026',
+    mci: 'تحديثات وزارة التجارة السعودية 2026',
   };
   const queries = activeAgents
     .map((a) => ({ agent: a, query: QUERIES[a] }))
@@ -143,7 +145,7 @@ async function fetchWithClaudeWebSearch(activeAgents: AgentId[]): Promise<Regula
   const res = await anthropic.messages.create({
     model: MODELS.sonnet,
     max_tokens: 2000,
-    tools,
+    ...(tools ? { tools } : {}),
     messages: [
       {
         role: 'user',
@@ -159,7 +161,12 @@ async function fetchWithClaudeWebSearch(activeAgents: AgentId[]): Promise<Regula
 
   const textBlock = res.content.find((b) => b.type === 'text');
   if (!textBlock || textBlock.type !== 'text') throw new Error('no text in response');
-  const parsed = JSON.parse(textBlock.text.replace(/^```json\s*/i, '').replace(/```$/, '').trim());
+  const parsed = JSON.parse(
+    textBlock.text
+      .replace(/^```json\s*/i, '')
+      .replace(/```$/, '')
+      .trim(),
+  );
 
   if (!Array.isArray(parsed)) throw new Error('research payload is not an array');
 
@@ -170,10 +177,11 @@ async function fetchWithClaudeWebSearch(activeAgents: AgentId[]): Promise<Regula
     if (!isAgentId(u.entity)) continue; // reject LLM hallucination of an unknown agent id
     if (typeof u.summaryAr !== 'string' || !u.summaryAr) continue;
     if (typeof u.source !== 'string' || !u.source) continue;
+    const date = typeof u.date === 'string' ? u.date : undefined;
     out.push({
       entity: u.entity,
       summaryAr: u.summaryAr,
-      date: typeof u.date === 'string' ? u.date : undefined,
+      ...(date ? { date } : {}),
       source: u.source,
       fromFallback: false,
     });

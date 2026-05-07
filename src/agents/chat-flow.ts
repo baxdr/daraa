@@ -79,7 +79,7 @@ export interface Answers {
   // Operational-compliance branch.
   op1_vertical?: 'restaurant' | 'salon' | 'construction' | 'retail';
   op2_city?: string;
-  op3_cr_issue_date?: string;              // ISO YYYY-MM-DD
+  op3_cr_issue_date?: string; // ISO YYYY-MM-DD
   op4_municipal_last_renewed?: string | null;
   op5_civil_defense_last?: string | null;
   op6_sfda_cert_date?: string | null;
@@ -90,11 +90,18 @@ export interface Answers {
 }
 
 export interface QuickOption {
-  value: string;       // stored value (internal key)
-  label: string;       // Arabic label shown on the button
+  value: string; // stored value (internal key)
+  label: string; // Arabic label shown on the button
 }
 
-export type InputKind = 'choice' | 'text' | 'number' | 'url' | 'url_or_skip' | 'date' | 'date_or_skip';
+export type InputKind =
+  | 'choice'
+  | 'text'
+  | 'number'
+  | 'url'
+  | 'url_or_skip'
+  | 'date'
+  | 'date_or_skip';
 
 export interface Question {
   id: QuestionId;
@@ -108,7 +115,7 @@ export interface Question {
   input?: {
     kind: Exclude<InputKind, 'choice'>;
     placeholder: string;
-    skipLabel?: string;      // only for url_or_skip
+    skipLabel?: string; // only for url_or_skip
   };
   /** Term chips surfaced with this question — clickable to expand. */
   terms?: TermId[];
@@ -124,8 +131,8 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     text: 'أهلاً! أنا درع — مستشار ذكي للتأسيس والامتثال في السعودية. وش تبي تسوي اليوم؟',
     hint: 'اختر الأنسب لوضعك — تقدر تغيّر لاحقاً إذا احتجت.',
     options: [
-      { value: 'establishment',          label: '🏢 أبدأ مشروع جديد — تأسيس وتسجيل الشركة' },
-      { value: 'compliance',             label: '🔍 عندي شركة شغّالة — أفحص امتثالها الرقمي (PDPL, NCA)' },
+      { value: 'establishment', label: '🏢 أبدأ مشروع جديد — تأسيس وتسجيل الشركة' },
+      { value: 'compliance', label: '🔍 عندي شركة شغّالة — أفحص امتثالها الرقمي (PDPL, NCA)' },
       { value: 'operational_compliance', label: '📋 عندي محل أو مطعم — أتابع رخصي وتجديداتي' },
     ],
   },
@@ -144,10 +151,10 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     text: 'ممتاز! وش نوع المشروع اللي تفكّر فيه؟',
     hint: 'مثال: مطعم، تطبيق، متجر إلكتروني، صالون تجميل، أو مقاولات.',
     options: [
-      { value: 'restaurant',   label: 'مطعم / كوفي شوب' },
-      { value: 'tech',         label: 'شركة تقنية / تطبيق' },
-      { value: 'services',     label: 'متجر إلكتروني' },
-      { value: 'salon',        label: 'صالون / مركز تجميل' },
+      { value: 'restaurant', label: 'مطعم / كوفي شوب' },
+      { value: 'tech', label: 'شركة تقنية / تطبيق' },
+      { value: 'services', label: 'متجر إلكتروني' },
+      { value: 'salon', label: 'صالون / مركز تجميل' },
       { value: 'construction', label: 'مقاولات / بناء' },
     ],
   },
@@ -156,13 +163,13 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     text: 'في أي مدينة؟',
     hint: 'مثال: الرياض، جدة، الدمام، مكة المكرمة، أبها أو مدينة أخرى.',
     options: [
-      { value: 'riyadh',  label: 'الرياض' },
-      { value: 'jeddah',  label: 'جدة' },
-      { value: 'mecca',   label: 'مكة المكرمة' },
-      { value: 'medina',  label: 'المدينة المنورة' },
-      { value: 'dammam',  label: 'الدمام' },
-      { value: 'khobar',  label: 'الخُبَر' },
-      { value: 'other',   label: 'مدينة ثانية' },
+      { value: 'riyadh', label: 'الرياض' },
+      { value: 'jeddah', label: 'جدة' },
+      { value: 'mecca', label: 'مكة المكرمة' },
+      { value: 'medina', label: 'المدينة المنورة' },
+      { value: 'dammam', label: 'الدمام' },
+      { value: 'khobar', label: 'الخُبَر' },
+      { value: 'other', label: 'مدينة ثانية' },
     ],
   },
   est3_partner_count: {
@@ -183,7 +190,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     hint: 'وجود شريك أجنبي يغيّر بعض المتطلبات (ترخيص استثمار أجنبي).',
     options: [
       { value: 'yes', label: 'نعم' },
-      { value: 'no',  label: 'لا — كلنا سعوديين' },
+      { value: 'no', label: 'لا — كلنا سعوديين' },
     ],
   },
   est6_lease_status: {
@@ -191,9 +198,9 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     text: 'وضع الموقع الحالي؟',
     hint: 'هذا السؤال مهم — فيه تنبيه مهم نشاركه معك بعد ما نعرف الإجابة.',
     options: [
-      { value: 'not_signed',       label: 'لقينا محل ولم نوقّع العقد' },
-      { value: 'signed',           label: 'وقّعنا عقد الإيجار' },
-      { value: 'no_location_yet',  label: 'لسا ندوّر' },
+      { value: 'not_signed', label: 'لقينا محل ولم نوقّع العقد' },
+      { value: 'signed', label: 'وقّعنا عقد الإيجار' },
+      { value: 'no_location_yet', label: 'لسا ندوّر' },
     ],
   },
 
@@ -203,11 +210,11 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     id: 'q1_company_type',
     text: 'ممتاز. وش نوع شركتك؟',
     options: [
-      { value: 'saas',       label: 'SaaS' },
-      { value: 'ecommerce',  label: 'متجر إلكتروني' },
-      { value: 'fintech',    label: 'Fintech' },
-      { value: 'services',   label: 'خدمات' },
-      { value: 'other',      label: 'أخرى' },
+      { value: 'saas', label: 'SaaS' },
+      { value: 'ecommerce', label: 'متجر إلكتروني' },
+      { value: 'fintech', label: 'Fintech' },
+      { value: 'services', label: 'خدمات' },
+      { value: 'other', label: 'أخرى' },
     ],
   },
 
@@ -224,7 +231,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     hint: 'يعني أشياء مثل: أسماء، أرقام جوال، إيميلات، عناوين، أو أي معلومات تعرّف الشخص. السؤال هذا مهم لأنه يحدد هل يطبّق عليك نظام حماية البيانات الشخصية (PDPL) أو لا.',
     options: [
       { value: 'yes', label: 'نعم' },
-      { value: 'no',  label: 'لا' },
+      { value: 'no', label: 'لا' },
     ],
     terms: ['PDPL'],
   },
@@ -233,9 +240,9 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     id: 'q4_user_count',
     text: 'كم عدد المستخدمين أو العملاء اللي عندكم بياناتهم تقريباً؟',
     options: [
-      { value: 'under_10k',  label: 'أقل من ١٠ آلاف' },
-      { value: '10k_100k',   label: 'بين ١٠ آلاف و ١٠٠ ألف' },
-      { value: 'over_100k',  label: 'أكثر من ١٠٠ ألف' },
+      { value: 'under_10k', label: 'أقل من ١٠ آلاف' },
+      { value: '10k_100k', label: 'بين ١٠ آلاف و ١٠٠ ألف' },
+      { value: 'over_100k', label: 'أكثر من ١٠٠ ألف' },
     ],
   },
 
@@ -244,8 +251,8 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     text: 'هذا عدد كبير — وهذا يعني إن شركتك ملزمة بتعيين مسؤول حماية بيانات (DPO). هل عيّنتم شخص لهذا الدور؟',
     hint: 'المادة ٣٢ من اللائحة التنفيذية تلزم الشركات اللي تعالج بيانات عدد كبير من الناس بتعيين DPO موثّق. ما يحتاج يكون توظيف جديد — يقدر يكون أحد موظفينك الحاليين.',
     options: [
-      { value: 'yes',     label: 'نعم' },
-      { value: 'no',      label: 'لا' },
+      { value: 'yes', label: 'نعم' },
+      { value: 'no', label: 'لا' },
       { value: 'unknown', label: 'وش هذا؟' },
     ],
     terms: ['DPO'],
@@ -256,7 +263,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     text: 'بياناتكم وين مستضافة؟ يعني السيرفرات اللي عليها بيانات عملائكم.',
     hint: 'إذا السيرفرات خارج السعودية (مثل AWS إيرلندا أو GCP فرانكفورت) — يصير نقل بيانات عبر الحدود ويحتاج مبرّر قانوني واضح قبل أي تدقيق.',
     options: [
-      { value: 'saudi',   label: 'داخل السعودية' },
+      { value: 'saudi', label: 'داخل السعودية' },
       { value: 'outside', label: 'خارج السعودية (AWS/Azure/GCP)' },
       { value: 'unknown', label: 'ما أدري' },
     ],
@@ -269,7 +276,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     hint: 'التعامل مع جهات حكومية يضيف طبقة أمن سيبراني إضافية — ضوابط NCA ECC الأساسية مطلوبة قبل أي عقد، وتشمل HTTPS وسجلات المراجعة وضبط صلاحيات الوصول.',
     options: [
       { value: 'yes', label: 'نعم' },
-      { value: 'no',  label: 'لا' },
+      { value: 'no', label: 'لا' },
     ],
     terms: ['NCA_ECC'],
   },
@@ -292,10 +299,10 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     text: 'ممتاز. وش نوع نشاطكم؟',
     hint: 'مثال: مطعم، صالون تجميل، مقاولات أو محل تجزئة.',
     options: [
-      { value: 'restaurant',   label: 'مطعم / كوفي شوب' },
-      { value: 'salon',        label: 'صالون / مركز تجميل' },
+      { value: 'restaurant', label: 'مطعم / كوفي شوب' },
+      { value: 'salon', label: 'صالون / مركز تجميل' },
       { value: 'construction', label: 'مقاولات / مكتب بناء' },
-      { value: 'retail',       label: 'محل تجزئة' },
+      { value: 'retail', label: 'محل تجزئة' },
     ],
   },
   op2_city: {
@@ -305,11 +312,11 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     options: [
       { value: 'riyadh', label: 'الرياض' },
       { value: 'jeddah', label: 'جدة' },
-      { value: 'mecca',  label: 'مكة المكرمة' },
+      { value: 'mecca', label: 'مكة المكرمة' },
       { value: 'medina', label: 'المدينة المنورة' },
       { value: 'dammam', label: 'الدمام' },
       { value: 'khobar', label: 'الخُبَر' },
-      { value: 'other',  label: 'مدينة ثانية' },
+      { value: 'other', label: 'مدينة ثانية' },
     ],
   },
   op3_cr_issue_date: {
@@ -322,19 +329,31 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     id: 'op4_municipal_last_renewed',
     text: 'متى آخر تجديد لرخصة البلدية؟',
     hint: 'لو ما عندك تاريخ بالضبط، تقدر تتخطى وراح نفترض أنها جديدة مع السجل التجاري.',
-    input: { kind: 'date_or_skip', placeholder: 'مثال: 2024-03-15 (يوم-شهر-سنة بصيغة ISO)', skipLabel: 'تخطى — ما أدري بالضبط' },
+    input: {
+      kind: 'date_or_skip',
+      placeholder: 'مثال: 2024-03-15 (يوم-شهر-سنة بصيغة ISO)',
+      skipLabel: 'تخطى — ما أدري بالضبط',
+    },
   },
   op5_civil_defense_last: {
     id: 'op5_civil_defense_last',
     text: 'متى آخر شهادة سلامة من الدفاع المدني؟',
     hint: 'شهادة السلامة (الطفايات، مخارج الطوارئ، كواشف الدخان) تُجدَّد سنوياً. لو عندك تاريخ قريب عطنا إياه.',
-    input: { kind: 'date_or_skip', placeholder: 'مثال: 2024-03-15 (يوم-شهر-سنة بصيغة ISO)', skipLabel: 'تخطى — ما عندنا تاريخ' },
+    input: {
+      kind: 'date_or_skip',
+      placeholder: 'مثال: 2024-03-15 (يوم-شهر-سنة بصيغة ISO)',
+      skipLabel: 'تخطى — ما عندنا تاريخ',
+    },
   },
   op6_sfda_cert_date: {
     id: 'op6_sfda_cert_date',
     text: 'متى آخر ترخيص من هيئة الغذاء والدواء (SFDA)؟',
     hint: 'فقط للمطاعم والكوفي شوب — يُجدَّد سنوياً وإلا تُوقف الخدمة.',
-    input: { kind: 'date_or_skip', placeholder: 'مثال: 2024-03-15 (يوم-شهر-سنة بصيغة ISO)', skipLabel: 'تخطى' },
+    input: {
+      kind: 'date_or_skip',
+      placeholder: 'مثال: 2024-03-15 (يوم-شهر-سنة بصيغة ISO)',
+      skipLabel: 'تخطى',
+    },
   },
   op7_employee_count: {
     id: 'op7_employee_count',
@@ -346,7 +365,11 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     id: 'op8_lease_expiry',
     text: 'متى ينتهي عقد الإيجار؟',
     hint: 'لو الإيجار قارب الانتهاء بنذكّرك قبل ما تصير أزمة — تقدر تتخطى لو ما عندك التاريخ.',
-    input: { kind: 'date_or_skip', placeholder: 'مثال: 2024-03-15 (يوم-شهر-سنة بصيغة ISO)', skipLabel: 'تخطى' },
+    input: {
+      kind: 'date_or_skip',
+      placeholder: 'مثال: 2024-03-15 (يوم-شهر-سنة بصيغة ISO)',
+      skipLabel: 'تخطى',
+    },
   },
   op9_has_website: {
     id: 'op9_has_website',
@@ -354,7 +377,7 @@ export const QUESTIONS: Record<QuestionId, Question> = {
     hint: 'لو نعم، بنضيف طبقة فحص رقمي (PDPL + رؤوس الأمان) فوق الامتثال التشغيلي.',
     options: [
       { value: 'yes', label: 'نعم، عندنا موقع' },
-      { value: 'no',  label: 'لا — فقط محل فعلي' },
+      { value: 'no', label: 'لا — فقط محل فعلي' },
     ],
   },
   op10_website_url: {
@@ -391,44 +414,61 @@ export function nextQuestion(current: QuestionId, answers: Answers): QuestionId 
       return 'q1_company_type';
 
     /* ---- establishment branch ---- */
-    case 'est1_vertical':    return 'est2_city';
-    case 'est2_city':        return 'est3_partner_count';
-    case 'est3_partner_count': return 'est4_capital_sar';
-    case 'est4_capital_sar': return 'est5_foreign_partner';
-    case 'est5_foreign_partner': return 'est6_lease_status';
+    case 'est1_vertical':
+      return 'est2_city';
+    case 'est2_city':
+      return 'est3_partner_count';
+    case 'est3_partner_count':
+      return 'est4_capital_sar';
+    case 'est4_capital_sar':
+      return 'est5_foreign_partner';
+    case 'est5_foreign_partner':
+      return 'est6_lease_status';
     case 'est6_lease_status':
       return null; // establishment flow ends here; resolver produces the roadmap
 
     /* ---- compliance branch ---- */
-    case 'q1_company_type':  return 'q2_employee_count';
-    case 'q2_employee_count': return 'q3_processes_personal_data';
+    case 'q1_company_type':
+      return 'q2_employee_count';
+    case 'q2_employee_count':
+      return 'q3_processes_personal_data';
     case 'q3_processes_personal_data':
       return answers.q3_processes_personal_data === 'no'
         ? 'q7_government_clients'
         : 'q4_user_count';
     case 'q4_user_count':
-      return answers.q4_user_count === 'over_100k'
-        ? 'q5_dpo_appointed'
-        : 'q6_data_location';
-    case 'q5_dpo_appointed': return 'q6_data_location';
-    case 'q6_data_location': return 'q7_government_clients';
-    case 'q7_government_clients': return 'q8_website_url';
-    case 'q8_website_url':   return null;
+      return answers.q4_user_count === 'over_100k' ? 'q5_dpo_appointed' : 'q6_data_location';
+    case 'q5_dpo_appointed':
+      return 'q6_data_location';
+    case 'q6_data_location':
+      return 'q7_government_clients';
+    case 'q7_government_clients':
+      return 'q8_website_url';
+    case 'q8_website_url':
+      return null;
 
     /* ---- operational-compliance branch ---- */
-    case 'op1_vertical':                return 'op2_city';
-    case 'op2_city':                    return 'op3_cr_issue_date';
-    case 'op3_cr_issue_date':           return 'op4_municipal_last_renewed';
-    case 'op4_municipal_last_renewed':  return 'op5_civil_defense_last';
+    case 'op1_vertical':
+      return 'op2_city';
+    case 'op2_city':
+      return 'op3_cr_issue_date';
+    case 'op3_cr_issue_date':
+      return 'op4_municipal_last_renewed';
+    case 'op4_municipal_last_renewed':
+      return 'op5_civil_defense_last';
     case 'op5_civil_defense_last':
       // SFDA only applies to restaurants.
       return answers.op1_vertical === 'restaurant' ? 'op6_sfda_cert_date' : 'op7_employee_count';
-    case 'op6_sfda_cert_date':          return 'op7_employee_count';
-    case 'op7_employee_count':          return 'op8_lease_expiry';
-    case 'op8_lease_expiry':            return 'op9_has_website';
+    case 'op6_sfda_cert_date':
+      return 'op7_employee_count';
+    case 'op7_employee_count':
+      return 'op8_lease_expiry';
+    case 'op8_lease_expiry':
+      return 'op9_has_website';
     case 'op9_has_website':
       return answers.op9_has_website === 'yes' ? 'op10_website_url' : null;
-    case 'op10_website_url':            return null;
+    case 'op10_website_url':
+      return null;
   }
 }
 

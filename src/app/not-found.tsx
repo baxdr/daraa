@@ -12,8 +12,8 @@ export default function NotFound() {
         </h1>
         <div className="mx-auto my-6 h-px w-24 bg-accent" />
         <p className="text-base leading-relaxed text-ink-2">
-          الرابط اللي تبحث عنه إما منتهي الصلاحية أو ما كان موجود من البداية.
-          الجلسات والخطط عندنا تُحفظ لساعة واحدة فقط.
+          الرابط اللي تبحث عنه إما منتهي الصلاحية أو ما كان موجود من البداية. الجلسات والخطط عندنا
+          تُحفظ لساعة واحدة فقط.
         </p>
         <div className="mt-10 flex flex-wrap justify-center gap-3">
           <Link href="/" className="btn-ink text-sm">

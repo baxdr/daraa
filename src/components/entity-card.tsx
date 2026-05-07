@@ -68,7 +68,9 @@ export function EntityCard({
           {entity.renewalPeriodAr && <MetaItem label="التجديد" value={entity.renewalPeriodAr} />}
           {entity.officialUrl && (
             <div>
-              <div className="font-mono text-[11px] uppercase tracking-widest text-muted">البوابة</div>
+              <div className="font-mono text-[11px] uppercase tracking-widest text-muted">
+                البوابة
+              </div>
               <a
                 href={entity.officialUrl}
                 target="_blank"
@@ -76,7 +78,9 @@ export function EntityCard({
                 className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:text-accent-strong"
               >
                 <span>اذهب للجهة</span>
-                <span aria-hidden className="text-xs">↗</span>
+                <span aria-hidden className="text-xs">
+                  ↗
+                </span>
               </a>
             </div>
           )}
@@ -85,7 +89,9 @@ export function EntityCard({
         {/* Cautions */}
         {entity.criticalWarningAr && (
           <div className="col-span-2 mt-1 flex items-start gap-3 border-s-2 border-warn bg-warn-soft/70 px-4 py-3 text-sm text-ink">
-            <span className="shrink-0 font-mono text-xs tracking-widest text-warn-strong">تنبيه</span>
+            <span className="shrink-0 font-mono text-xs tracking-widest text-warn-strong">
+              تنبيه
+            </span>
             <span>{entity.criticalWarningAr}</span>
           </div>
         )}
@@ -102,8 +108,14 @@ export function EntityCard({
             <div className="eyebrow mb-2">المتطلبات</div>
             <ul className="space-y-1.5">
               {entity.requirements.map((req, i) => (
-                <li key={i} className="flex items-start gap-2 text-[13.5px] leading-relaxed text-ink-2">
-                  <span aria-hidden className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                <li
+                  key={i}
+                  className="flex items-start gap-2 text-[13.5px] leading-relaxed text-ink-2"
+                >
+                  <span
+                    aria-hidden
+                    className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
+                  />
                   <span>{req}</span>
                 </li>
               ))}
@@ -136,26 +148,27 @@ export function EntityCard({
 }
 
 function NameCheckPanel({ check }: { check: NameCheckResult }) {
-  const palette = check.status === 'likely_available'
-    ? {
-        wrap: 'border-accent/40 bg-accent-soft',
-        label: 'text-accent-strong',
-        icon: '✓',
-        heading: 'الاسم متاح — على الأرجح',
-      }
-    : check.status === 'likely_taken'
-    ? {
-        wrap: 'border-danger/40 bg-danger/5',
-        label: 'text-danger',
-        icon: '⚠',
-        heading: 'الاسم يبدو محجوزاً',
-      }
-    : {
-        wrap: 'border-rule bg-paper-2',
-        label: 'text-ink-2',
-        icon: '?',
-        heading: 'الفحص غير حاسم',
-      };
+  const palette =
+    check.status === 'likely_available'
+      ? {
+          wrap: 'border-accent/40 bg-accent-soft',
+          label: 'text-accent-strong',
+          icon: '✓',
+          heading: 'الاسم متاح — على الأرجح',
+        }
+      : check.status === 'likely_taken'
+        ? {
+            wrap: 'border-danger/40 bg-danger/5',
+            label: 'text-danger',
+            icon: '⚠',
+            heading: 'الاسم يبدو محجوزاً',
+          }
+        : {
+            wrap: 'border-rule bg-paper-2',
+            label: 'text-ink-2',
+            icon: '?',
+            heading: 'الفحص غير حاسم',
+          };
 
   return (
     <div className={`border-s-2 px-4 py-3 ${palette.wrap}`}>
@@ -173,7 +186,9 @@ function NameCheckPanel({ check }: { check: NameCheckResult }) {
         <ul className="mt-3 space-y-1 text-[12px] leading-relaxed text-ink-2">
           {check.evidence.map((e, i) => (
             <li key={i} className="flex items-start gap-1.5">
-              <span aria-hidden className="mt-0.5 text-muted">›</span>
+              <span aria-hidden className="mt-0.5 text-muted">
+                ›
+              </span>
               <span className="min-w-0 break-words">{e}</span>
             </li>
           ))}
@@ -223,7 +238,7 @@ function NameCheckPanel({ check }: { check: NameCheckResult }) {
  * reflects visibility signals: a critical warning flips it to "تحذير",
  * a common-mistake note flips to "تنبّه لها", otherwise "جاهزة للبدء".
  */
-function EntityStatusPill({ entity }: { entity: import('@/knowledge/entities').GovEntity }) {
+function EntityStatusPill({ entity }: { entity: GovEntity }) {
   if (entity.criticalWarningAr) {
     return (
       <span
@@ -263,11 +278,12 @@ function EntityStatusPill({ entity }: { entity: import('@/knowledge/entities').G
 }
 
 function A2ALine({ msg, direction }: { msg: AgentMessage; direction: 'in' | 'out' }) {
-  const otherLabel = direction === 'in'
-    ? AGENT_LABELS_AR[msg.from] ?? msg.from
-    : typeof msg.to === 'string' && msg.to !== 'ALL'
-      ? (AGENT_LABELS_AR[msg.to] ?? msg.to)
-      : 'جميع المتخصّصين';
+  const otherLabel =
+    direction === 'in'
+      ? (AGENT_LABELS_AR[msg.from] ?? msg.from)
+      : typeof msg.to === 'string' && msg.to !== 'ALL'
+        ? (AGENT_LABELS_AR[msg.to] ?? msg.to)
+        : 'جميع المتخصّصين';
   const typeLabel = typeLabelAr(msg.type);
   return (
     <li className="flex items-start gap-2 text-[13px] leading-relaxed text-ink-2">
@@ -282,7 +298,9 @@ function A2ALine({ msg, direction }: { msg: AgentMessage; direction: 'in' | 'out
       <span>
         <span className="font-display font-extrabold tracking-tight text-ink">{otherLabel}</span>
         <span className="mx-1.5 text-muted">·</span>
-        <span className="font-mono text-[10px] uppercase tracking-widest text-muted">{typeLabel}</span>
+        <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+          {typeLabel}
+        </span>
         <span className="mx-1.5 text-muted">—</span>
         <span>{msg.messageAr}</span>
       </span>
@@ -292,11 +310,16 @@ function A2ALine({ msg, direction }: { msg: AgentMessage; direction: 'in' | 'out
 
 function typeLabelAr(t: AgentMessage['type']): string {
   switch (t) {
-    case 'dependency': return 'تبعية';
-    case 'data_share': return 'تبادل بيانات';
-    case 'warning':    return 'تنبيه';
-    case 'update':     return 'تحديث';
-    case 'ack':        return 'إقرار';
+    case 'dependency':
+      return 'تبعية';
+    case 'data_share':
+      return 'تبادل بيانات';
+    case 'warning':
+      return 'تنبيه';
+    case 'update':
+      return 'تحديث';
+    case 'ack':
+      return 'إقرار';
   }
 }
 

@@ -67,11 +67,15 @@ export function computeRenewals(
     const diffMs = nextDue.getTime() - now;
     const daysRemaining = Math.floor(diffMs / 86_400_000);
     const urgency: RenewalEntry['urgency'] =
-      daysRemaining < 0   ? 'overdue' :
-      daysRemaining < 7   ? 'urgent'  :
-      daysRemaining <= 30 ? 'soon'    :
-      daysRemaining <= 60 ? 'notice'  :
-                            'ok';
+      daysRemaining < 0
+        ? 'overdue'
+        : daysRemaining < 7
+          ? 'urgent'
+          : daysRemaining <= 30
+            ? 'soon'
+            : daysRemaining <= 60
+              ? 'notice'
+              : 'ok';
 
     out.push({
       entityId: e.id,
@@ -80,7 +84,7 @@ export function computeRenewals(
       nextDueAt: nextDue,
       daysRemaining,
       urgency,
-      officialUrl: e.officialUrl,
+      ...(e.officialUrl ? { officialUrl: e.officialUrl } : {}),
     });
   }
 

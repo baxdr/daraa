@@ -35,33 +35,14 @@ export function getAgentsForVertical(vertical: VerticalId): Agent[] {
 
   switch (vertical) {
     case 'restaurant':
-      return [
-        ...base,
-        new CivilDefenseAgent(),
-        new MunicipalityAgent(),
-        new SfdaAgent(),
-      ];
+      return [...base, new CivilDefenseAgent(), new MunicipalityAgent(), new SfdaAgent()];
     case 'salon':
-      return [
-        ...base,
-        new CivilDefenseAgent(),
-        new MunicipalityAgent(),
-        new MohAgent(),
-      ];
+      return [...base, new CivilDefenseAgent(), new MunicipalityAgent(), new MohAgent()];
     case 'tech':
-      return [
-        ...base,
-        new ZatcaEinvoiceAgent(),
-        new PdplNcaAgent(),
-      ];
+      return [...base, new ZatcaEinvoiceAgent(), new PdplNcaAgent()];
     case 'services':
       // "services" in the chat = ecommerce in the design.
-      return [
-        ...base,
-        new ZatcaEinvoiceAgent(),
-        new MaroofAgent(),
-        new PdplNcaAgent(),
-      ];
+      return [...base, new ZatcaEinvoiceAgent(), new MaroofAgent(), new PdplNcaAgent()];
     case 'construction':
       return [
         ...base,

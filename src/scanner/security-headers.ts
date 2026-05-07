@@ -73,7 +73,12 @@ export async function scanSecurityHeaders(url: string): Promise<SecurityHeaderCh
   } catch (err) {
     return {
       ...empty,
-      error: err instanceof UrlGuardError ? err.reason : err instanceof Error ? err.message : 'fetch_failed',
+      error:
+        err instanceof UrlGuardError
+          ? err.reason
+          : err instanceof Error
+            ? err.message
+            : 'fetch_failed',
     };
   }
 }

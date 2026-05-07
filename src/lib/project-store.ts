@@ -14,21 +14,11 @@
 
 import { nanoid } from 'nanoid';
 import type { Answers } from '@/agents/chat-flow';
-import type {
-  AgentActivity,
-  AgentId,
-  AgentMessage,
-  ScanResult,
-} from '@/agents/types';
+import type { AgentActivity, AgentId, AgentMessage, ScanResult } from '@/agents/types';
 import { AGENT_LABELS_AR } from '@/agents/types';
 import type { AnalysisReport, Gap } from '@/agents/analysis-agent';
 import type { OperationalReport } from '@/agents/operational-analysis';
-import type {
-  CostSummary,
-  GovEntity,
-  RoadmapWeek,
-  VerticalId,
-} from '@/knowledge/entities';
+import type { CostSummary, GovEntity, RoadmapWeek, VerticalId } from '@/knowledge/entities';
 import {
   scanAllProjectsSync,
   markDirty as fsMarkDirty,
@@ -132,10 +122,10 @@ export function createProject(params: {
     mode: params.mode,
     status: 'pending',
     phase: 'roadmap',
-    email: params.email,
+    ...(params.email !== undefined ? { email: params.email } : {}),
     companyName: params.companyName,
     vertical: params.vertical,
-    cityId: params.cityId,
+    ...(params.cityId !== undefined ? { cityId: params.cityId } : {}),
     url: params.url,
     answers: params.answers,
     activities: [],

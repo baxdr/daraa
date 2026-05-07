@@ -63,15 +63,14 @@ export class PdplNcaAgent implements Agent {
           'البيانات مُخزّنة خارج السعودية — راجع المادة ٢٩ من اللائحة قبل أي تدقيق رسمي.',
         );
       } else if (dataLocation === 'unknown') {
-        warnings.push(
-          'موقع تخزين البيانات غير محدّد — هذا في حد ذاته مؤشر امتثال ضعيف.',
-        );
+        warnings.push('موقع تخزين البيانات غير محدّد — هذا في حد ذاته مؤشر امتثال ضعيف.');
       }
     }
 
     // Absorb research updates targeted at pdpl_nca / ALL.
     const updates = inbox.filter(
-      (m) => m.from === 'research' && m.type === 'update' && (m.to === 'pdpl_nca' || m.to === 'ALL'),
+      (m) =>
+        m.from === 'research' && m.type === 'update' && (m.to === 'pdpl_nca' || m.to === 'ALL'),
     );
     for (const u of updates) {
       const summary = String(u.payload?.summary ?? u.messageAr ?? '').trim();
@@ -85,14 +84,15 @@ export class PdplNcaAgent implements Agent {
       : 'نظام حماية البيانات الشخصية (PDPL)';
     const nameSimpleAr = willServeGov ? 'PDPL + NCA' : 'جاهزية PDPL';
 
-    const explainAr = context.mode === 'compliance'
-      ? 'نراجع جاهزيتك الفعلية لنظام حماية البيانات الشخصية — السياسة، الموافقة، DPO، ' +
-        'موقع التخزين، وخطة الحوادث — كلها مطلوبة فعلياً للامتثال الحالي.'
-      : willServeGov
-      ? 'لأن خدمتك ستتعامل مع جهات حكومية، يجب استيفاء متطلبات حماية البيانات (PDPL) ' +
-        'إضافةً لضوابط الأمن السيبراني الأساسية (NCA ECC). الاثنان مطلوبان قبل أي عقد حكومي.'
-      : 'لأن تطبيقك سيجمع بيانات مستخدمين سعوديين، لازم من اليوم الأول تكون عندك سياسة ' +
-        'خصوصية ومسار موافقة وخطة استجابة. المخالفة غرامتها تصل ٥ ملايين ريال.';
+    const explainAr =
+      context.mode === 'compliance'
+        ? 'نراجع جاهزيتك الفعلية لنظام حماية البيانات الشخصية — السياسة، الموافقة، DPO، ' +
+          'موقع التخزين، وخطة الحوادث — كلها مطلوبة فعلياً للامتثال الحالي.'
+        : willServeGov
+          ? 'لأن خدمتك ستتعامل مع جهات حكومية، يجب استيفاء متطلبات حماية البيانات (PDPL) ' +
+            'إضافةً لضوابط الأمن السيبراني الأساسية (NCA ECC). الاثنان مطلوبان قبل أي عقد حكومي.'
+          : 'لأن تطبيقك سيجمع بيانات مستخدمين سعوديين، لازم من اليوم الأول تكون عندك سياسة ' +
+            'خصوصية ومسار موافقة وخطة استجابة. المخالفة غرامتها تصل ٥ ملايين ريال.';
 
     return {
       status: 'complete',
@@ -102,10 +102,11 @@ export class PdplNcaAgent implements Agent {
         nameSimpleAr,
         explainAr,
         estimatedCostSar: { min: 0, max: 0 },
-        estimatedTimeAr: context.mode === 'compliance' ? 'مراجعة مستمرة' : 'مستمر — يبدأ قبل أول إطلاق',
+        estimatedTimeAr:
+          context.mode === 'compliance' ? 'مراجعة مستمرة' : 'مستمر — يبدأ قبل أول إطلاق',
         officialUrl: willServeGov ? 'https://nca.gov.sa' : 'https://sdaia.gov.sa',
         renewalPeriodAr: 'مستمر',
-        criticalWarningAr,
+        ...(criticalWarningAr !== undefined ? { criticalWarningAr } : {}),
         requirements,
       },
       outbox: [],

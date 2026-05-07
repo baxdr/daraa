@@ -39,8 +39,13 @@ import { getAgentsForVertical } from './specialists';
 import type { ScanResult } from './types';
 
 const CITY_LABELS: Record<string, string> = {
-  riyadh: 'الرياض', jeddah: 'جدة', mecca: 'مكة المكرمة',
-  medina: 'المدينة المنورة', dammam: 'الدمام', khobar: 'الخُبَر', other: 'مدينة أخرى',
+  riyadh: 'الرياض',
+  jeddah: 'جدة',
+  mecca: 'مكة المكرمة',
+  medina: 'المدينة المنورة',
+  dammam: 'الدمام',
+  khobar: 'الخُبَر',
+  other: 'مدينة أخرى',
 };
 
 export async function runProjectOrchestrator(projectId: string): Promise<void> {
@@ -53,9 +58,11 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
 
   updateProject(projectId, { status: 'running' });
   const modeLabel =
-    mode === 'establishment'            ? 'التأسيس' :
-    mode === 'operational_compliance'   ? 'الامتثال التشغيلي' :
-                                          'الامتثال الرقمي';
+    mode === 'establishment'
+      ? 'التأسيس'
+      : mode === 'operational_compliance'
+        ? 'الامتثال التشغيلي'
+        : 'الامتثال الرقمي';
   emit(run, 'orchestrator', 'started', `جاري تشغيل المتخصّصين — وضع ${modeLabel}.`);
 
   try {
@@ -77,27 +84,35 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
     );
 
     updateProject(projectId, {
-      regulatoryUpdates: updates.map((u) => ({
-        forAgent: u.entity,
-        summaryAr: u.summaryAr,
-        date: u.date,
-        source: u.source,
-      })),
+      regulatoryUpdates: updates.map((u) => {
+        const date = u.date;
+        return {
+          forAgent: u.entity,
+          summaryAr: u.summaryAr,
+          ...(date ? { date } : {}),
+          source: u.source,
+        };
+      }),
     });
 
     /* ---------------------------------------------------------------
      * 2. Context + specialist run through the real bus.
      * --------------------------------------------------------------- */
+    const cityId = answers.est2_city;
+    const cityLabelAr = cityId ? CITY_LABELS[cityId] : undefined;
+    const partnerCount = answers.est3_partner_count;
+    const capitalSar = answers.est4_capital_sar;
+    const leaseStatus = answers.est6_lease_status;
     const context: AgentContext = {
       mode,
       vertical,
       answers,
-      cityId: answers.est2_city,
-      cityLabelAr: answers.est2_city ? CITY_LABELS[answers.est2_city] : undefined,
-      partnerCount: answers.est3_partner_count,
-      capitalSar: answers.est4_capital_sar,
+      ...(cityId ? { cityId } : {}),
+      ...(cityLabelAr ? { cityLabelAr } : {}),
+      ...(partnerCount ? { partnerCount } : {}),
+      ...(capitalSar ? { capitalSar } : {}),
       hasForeignPartner: answers.est5_foreign_partner === 'yes',
-      leaseStatus: answers.est6_lease_status,
+      ...(leaseStatus ? { leaseStatus } : {}),
       websiteUrl: project.url,
     };
 
@@ -151,10 +166,43 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
         scanThirdParty(project.url),
         scanForms(project.url),
       ]);
-      const privacyPolicy   = ppRes.status === 'fulfilled' ? ppRes.value : { found: false, error: 'scanner_crashed' };
-      const securityHeaders = shRes.status === 'fulfilled' ? shRes.value : { httpsEnforced: false, hsts: false, contentSecurityPolicy: false, xFrameOptions: false, xContentTypeOptionsNoSniff: false, referrerPolicy: false, permissionsPolicy: false, score: 0, finalUrl: project.url, error: 'scanner_crashed' };
-      const thirdParty      = tpRes.status === 'fulfilled' ? tpRes.value : { detected: [], crossBorderCount: 0, categories: { analytics: 0, advertising: 0, chat: 0, marketing: 0, session_replay: 0, other: 0 }, error: 'scanner_crashed' };
-      const dataForms       = fRes.status  === 'fulfilled' ? fRes.value  : { formsFound: 0, results: [], error: 'scanner_crashed' };
+      const privacyPolicy =
+        ppRes.status === 'fulfilled' ? ppRes.value : { found: false, error: 'scanner_crashed' };
+      const securityHeaders =
+        shRes.status === 'fulfilled'
+          ? shRes.value
+          : {
+              httpsEnforced: false,
+              hsts: false,
+              contentSecurityPolicy: false,
+              xFrameOptions: false,
+              xContentTypeOptionsNoSniff: false,
+              referrerPolicy: false,
+              permissionsPolicy: false,
+              score: 0,
+              finalUrl: project.url,
+              error: 'scanner_crashed',
+            };
+      const thirdParty =
+        tpRes.status === 'fulfilled'
+          ? tpRes.value
+          : {
+              detected: [],
+              crossBorderCount: 0,
+              categories: {
+                analytics: 0,
+                advertising: 0,
+                chat: 0,
+                marketing: 0,
+                session_replay: 0,
+                other: 0,
+              },
+              error: 'scanner_crashed',
+            };
+      const dataForms =
+        fRes.status === 'fulfilled'
+          ? fRes.value
+          : { formsFound: 0, results: [], error: 'scanner_crashed' };
       scanResult = {
         url: project.url,
         scannedAt: new Date().toISOString(),
@@ -177,7 +225,8 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
         from: 'scan',
         to: 'pdpl_nca',
         type: 'data_share',
-        messageAr: `تسليم نتائج الفحص — سياسة: ${privacyPolicy.found ? 'موجودة' : 'مفقودة'}، ` +
+        messageAr:
+          `تسليم نتائج الفحص — سياسة: ${privacyPolicy.found ? 'موجودة' : 'مفقودة'}، ` +
           `رؤوس: ${securityHeaders.score}%، تتبع: ${trackerCount}، فورمز: ${formIssues}.`,
         payload: {
           policyFound: privacyPolicy.found,
@@ -207,7 +256,10 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
           } catch (err) {
             // Personalisation is pure polish — failure here should not lose
             // the underlying analysis. Keep the base-rule copy.
-            console.warn('[orchestrator] personalizeGaps failed:', err instanceof Error ? err.message : err);
+            console.warn(
+              '[orchestrator] personalizeGaps failed:',
+              err instanceof Error ? err.message : err,
+            );
           }
         }
 
@@ -226,7 +278,7 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
         });
 
         updateProject(projectId, {
-          scanResult: scanResult ?? undefined,
+          ...(scanResult ? { scanResult } : {}),
           analysis,
           complianceScore: analysis.complianceScore,
           totalFineCeilingSar: analysis.totalFineCeilingSar,
@@ -235,10 +287,13 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
       } catch (err) {
         // Analysis blew up — surface the failure on the timeline but keep
         // going so the user still gets the entities + roadmap below.
-        console.error('[orchestrator] runAnalysis failed:', err instanceof Error ? err.message : err);
+        console.error(
+          '[orchestrator] runAnalysis failed:',
+          err instanceof Error ? err.message : err,
+        );
         emit(run, 'analysis', 'error', 'تعذّر إجراء تحليل الامتثال — عرضنا باقي النتائج.');
         updateProject(projectId, {
-          scanResult: scanResult ?? undefined,
+          ...(scanResult ? { scanResult } : {}),
           complianceScore: 0,
           totalFineCeilingSar: 0,
           gaps: [],
@@ -275,11 +330,14 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
           },
         });
         updateProject(projectId, {
-          scanResult: scanResult ?? undefined,
+          ...(scanResult ? { scanResult } : {}),
           operationalReport: opReport,
         });
       } catch (err) {
-        console.error('[orchestrator] runOperationalAnalysis failed:', err instanceof Error ? err.message : err);
+        console.error(
+          '[orchestrator] runOperationalAnalysis failed:',
+          err instanceof Error ? err.message : err,
+        );
         emit(run, 'analysis', 'error', 'تعذّر تقييم الرخص — عرضنا باقي النتائج.');
       }
     }
@@ -291,9 +349,8 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
     const roadmap = buildRoadmap(entities);
     const costSummary = summariseCosts(entities);
     const rawWarnings = computeTopWarnings(mode, vertical, answers);
-    const topWarnings = rawWarnings.length > 0
-      ? await personalizeWarnings(answers, rawWarnings)
-      : rawWarnings;
+    const topWarnings =
+      rawWarnings.length > 0 ? await personalizeWarnings(answers, rawWarnings) : rawWarnings;
 
     emit(
       run,
@@ -346,12 +403,12 @@ function buildEntitiesFromAgents(
       estimatedTimeAr: d.estimatedTimeAr,
       order: order++,
       dependencies: [...agent.dependencies],
-      criticalWarningAr: d.criticalWarningAr,
-      commonMistakeAr: d.commonMistakeAr,
-      renewalPeriodAr: d.renewalPeriodAr,
-      officialUrl: d.officialUrl,
-      requirements: d.requirements ? [...d.requirements] : undefined,
-      nameCheck: d.nameCheck,
+      ...(d.criticalWarningAr ? { criticalWarningAr: d.criticalWarningAr } : {}),
+      ...(d.commonMistakeAr ? { commonMistakeAr: d.commonMistakeAr } : {}),
+      ...(d.renewalPeriodAr ? { renewalPeriodAr: d.renewalPeriodAr } : {}),
+      ...(d.officialUrl ? { officialUrl: d.officialUrl } : {}),
+      ...(d.requirements ? { requirements: [...d.requirements] } : {}),
+      ...(d.nameCheck ? { nameCheck: d.nameCheck } : {}),
     });
   }
   return entities;

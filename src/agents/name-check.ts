@@ -87,15 +87,15 @@ async function claudeSearch(name: string): Promise<NameCheckResult> {
 
   const userContent = `الاسم المقترح: ${name}\n\nأجرِ البحث كما وصفته وأرجع JSON.`;
 
-  const tools = [
-    { type: 'web_search_20250305', name: 'web_search' },
-  ] as unknown as Parameters<typeof anthropic.messages.create>[0]['tools'];
+  const tools = [{ type: 'web_search_20250305', name: 'web_search' }] as unknown as Parameters<
+    typeof anthropic.messages.create
+  >[0]['tools'];
 
   const res = await anthropic.messages.create({
     model: MODELS.sonnet,
     max_tokens: 1500,
     system,
-    tools,
+    ...(tools ? { tools } : {}),
     messages: [{ role: 'user', content: userContent }],
   });
 
@@ -107,12 +107,15 @@ async function claudeSearch(name: string): Promise<NameCheckResult> {
   }
   const verdict = parseJsonResponse<ClaudeVerdict>(textBlock.text);
 
+  const evidence = sanitizeList(verdict.evidence, 3);
+  const alternatives =
+    verdict.status === 'likely_taken' ? sanitizeList(verdict.alternatives, 3) : undefined;
+
   return {
     status: verdict.status,
     summaryAr: verdict.summary.trim(),
-    evidence: sanitizeList(verdict.evidence, 3),
-    alternatives:
-      verdict.status === 'likely_taken' ? sanitizeList(verdict.alternatives, 3) : undefined,
+    ...(evidence ? { evidence } : {}),
+    ...(alternatives ? { alternatives } : {}),
     checkedAt: new Date().toISOString(),
     source: 'claude_web_search',
   };
@@ -150,8 +153,14 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const t = setTimeout(() => reject(new Error(`name-check timed out after ${ms}ms`)), ms);
     p.then(
-      (v) => { clearTimeout(t); resolve(v); },
-      (e) => { clearTimeout(t); reject(e); },
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      },
     );
   });
 }

@@ -48,13 +48,15 @@ export const anthropic: Anthropic = new Proxy({} as Anthropic, {
   get(_target, prop) {
     const client = getClient();
     const value = Reflect.get(client as unknown as Record<string, unknown>, prop as string);
-    return typeof value === 'function' ? (value as (...args: unknown[]) => unknown).bind(client) : value;
+    return typeof value === 'function'
+      ? (value as (...args: unknown[]) => unknown).bind(client)
+      : value;
   },
 });
 
 export const MODELS = {
   sonnet: 'claude-sonnet-4-6',
-  opus:   'claude-opus-4-7',
+  opus: 'claude-opus-4-7',
 } as const;
 
 export type AgentName = 'scan' | 'regulatory' | 'analysis' | 'document' | 'orchestrator';
@@ -109,7 +111,11 @@ export async function callClaude(opts: {
  * the error message (previous versions leaked up to 500 chars to callers).
  */
 export function parseJsonResponse<T>(text: string): T {
-  const cleaned = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+  const cleaned = text
+    .trim()
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/, '')
+    .replace(/\s*```$/, '');
   try {
     return JSON.parse(cleaned) as T;
   } catch (err) {

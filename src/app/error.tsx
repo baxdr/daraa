@@ -32,8 +32,8 @@ export default function Error({
         </h1>
         <div className="mx-auto my-6 h-px w-24 bg-danger" />
         <p className="text-base leading-relaxed text-ink-2">
-          ضربنا عقبة أثناء تحضير الصفحة. جرّب مرة ثانية — وإذا استمرت المشكلة،
-          ابدأ استشارة جديدة من البداية.
+          ضربنا عقبة أثناء تحضير الصفحة. جرّب مرة ثانية — وإذا استمرت المشكلة، ابدأ استشارة جديدة من
+          البداية.
         </p>
         {error.digest && (
           <p className="mt-4 font-mono text-[11px] text-muted">

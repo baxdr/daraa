@@ -63,7 +63,9 @@ export function PolicyDocumentView({ doc }: { doc: StoredDocument }) {
         aria-label="مسار التنقّل"
         className="mx-auto mb-4 flex max-w-[210mm] items-center gap-2 px-4 text-xs text-muted print:hidden"
       >
-        <Link href="/" className="hover:text-ink">درع</Link>
+        <Link href="/" className="hover:text-ink">
+          درع
+        </Link>
         <span aria-hidden>›</span>
         <span className="font-medium text-ink-2">المستندات</span>
         <span aria-hidden>›</span>
@@ -97,7 +99,11 @@ export function PolicyDocumentView({ doc }: { doc: StoredDocument }) {
               className="border border-ink bg-paper px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
           )}
-          <button type="button" onClick={() => window.print()} className="btn-ink text-sm py-2 px-5">
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="btn-ink px-5 py-2 text-sm"
+          >
             حمّل PDF
           </button>
         </div>
@@ -105,19 +111,20 @@ export function PolicyDocumentView({ doc }: { doc: StoredDocument }) {
 
       {doc.fromFallbackTemplate && (
         <div className="mx-auto mb-4 max-w-[210mm] border-s-2 border-warn bg-warn-soft/70 px-4 py-3 text-xs text-ink-2 print:hidden">
-          النسخة الحالية من قالب جاهز (مفتاح الـ AI غير مُعدّ) — النص صالح للاستخدام بعد مراجعة قانونية.
+          النسخة الحالية من قالب جاهز (مفتاح الـ AI غير مُعدّ) — النص صالح للاستخدام بعد مراجعة
+          قانونية.
         </div>
       )}
 
       {/* A4 sheet — tighter padding on mobile so the document fits the viewport. */}
-      <article className="mx-auto w-full max-w-[210mm] bg-white p-6 shadow-card sm:p-10 md:p-12 print:m-0 print:max-w-none print:p-[20mm] print:shadow-none print:font-serif">
+      <article className="mx-auto w-full max-w-[210mm] bg-white p-6 shadow-card sm:p-10 md:p-12 print:m-0 print:max-w-none print:p-[20mm] print:font-serif print:shadow-none">
         <Masthead
           kind={doc.kind}
           title={doc.title}
-          titleEn={doc.titleEn}
+          {...(doc.titleEn !== undefined ? { titleEn: doc.titleEn } : {})}
           companyName={effectiveCompany}
           dateLabel={lastUpdatedLabel}
-          metadata={doc.metadata}
+          {...(doc.metadata !== undefined ? { metadata: doc.metadata } : {})}
           effectiveDpoName={effectiveDpo}
         />
 
@@ -141,7 +148,9 @@ export function PolicyDocumentView({ doc }: { doc: StoredDocument }) {
                 المُصدر
               </div>
               <div className="mt-3 font-display text-base font-extrabold">{effectiveCompany}</div>
-              <div className="mt-12 border-t border-rule pt-2 text-xs text-muted">التوقيع والختم</div>
+              <div className="mt-12 border-t border-rule pt-2 text-xs text-muted">
+                التوقيع والختم
+              </div>
             </div>
             <div>
               <div className="font-mono text-[10px] uppercase tracking-widest text-muted">
@@ -211,7 +220,9 @@ function Masthead({
         <dl className="mt-5 grid grid-cols-1 gap-x-6 gap-y-2 border-t border-rule pt-4 text-[12px] sm:grid-cols-3">
           {metadata.map((m, i) => (
             <div key={i}>
-              <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">{m.label}</dt>
+              <dt className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                {m.label}
+              </dt>
               <dd className="mt-0.5 font-display text-sm font-extrabold tracking-tight">
                 {/* Substitute placeholder values where applicable */}
                 {m.value === '[اسم مسؤول حماية البيانات]' ? effectiveDpoName : m.value}
@@ -254,7 +265,7 @@ function SectionBlock({
     <section>
       <h2 className="mb-3 flex items-baseline gap-3 font-display text-lg font-extrabold tracking-tight text-ink">
         {showNumber && (
-          <span className="font-mono text-xs text-muted tabular-nums">
+          <span className="font-mono text-xs tabular-nums text-muted">
             {String(index + 1).padStart(2, '0')}
           </span>
         )}
@@ -265,7 +276,7 @@ function SectionBlock({
         <p
           className={
             useDropCap
-              ? 'whitespace-pre-line first-letter:float-start first-letter:font-display first-letter:text-5xl first-letter:font-extrabold first-letter:leading-none first-letter:pe-2 first-letter:pt-1'
+              ? 'whitespace-pre-line first-letter:float-start first-letter:pe-2 first-letter:pt-1 first-letter:font-display first-letter:text-5xl first-letter:font-extrabold first-letter:leading-none'
               : 'whitespace-pre-line'
           }
         >
@@ -332,8 +343,7 @@ function DocTable({
 /* ------------------------------------------------------------------------- */
 
 const KIND_BLURB: Record<DocumentKind, string> = {
-  privacy_policy:
-    'وثيقة تُنشر على موقع الشركة لبيان كيفية جمع ومعالجة وحماية البيانات الشخصية.',
+  privacy_policy: 'وثيقة تُنشر على موقع الشركة لبيان كيفية جمع ومعالجة وحماية البيانات الشخصية.',
   dpo_appointment:
     'خطاب رسمي من الإدارة بتعيين مسؤول حماية البيانات، معتمَد ومحفوظ في سجلات الشركة.',
   processing_register:
@@ -352,21 +362,19 @@ function substituteInSection(
   // unlikely), the second pass would rewrite it — accepted risk; reversing
   // the order would swap the failure mode not eliminate it.
   const swap = (t: string) =>
-    t
-      .split(COMPANY_NAME_PLACEHOLDER)
-      .join(companyName)
-      .split(DPO_NAME_PLACEHOLDER)
-      .join(dpoName);
+    t.split(COMPANY_NAME_PLACEHOLDER).join(companyName).split(DPO_NAME_PLACEHOLDER).join(dpoName);
 
+  const swappedListItems = section.listItems?.map(swap);
+  const swappedTable = section.table
+    ? {
+        headers: section.table.headers.map(swap),
+        rows: section.table.rows.map((r) => r.map(swap)),
+      }
+    : undefined;
   return {
     ...section,
     body: swap(section.body),
-    listItems: section.listItems?.map(swap),
-    table: section.table
-      ? {
-          headers: section.table.headers.map(swap),
-          rows: section.table.rows.map((r) => r.map(swap)),
-        }
-      : undefined,
+    ...(swappedListItems !== undefined ? { listItems: swappedListItems } : {}),
+    ...(swappedTable !== undefined ? { table: swappedTable } : {}),
   };
 }

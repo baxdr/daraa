@@ -16,10 +16,7 @@
 import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  runOperationalAnalysis,
-  type OperationalReport,
-} from '../src/agents/operational-analysis';
+import { runOperationalAnalysis, type OperationalReport } from '../src/agents/operational-analysis';
 import { runAnalysis, type AnalysisReport } from '../src/agents/analysis-agent';
 import type { ProjectRecord } from '../src/lib/project-store';
 import type { Answers } from '../src/agents/chat-flow';
@@ -32,10 +29,8 @@ mkdirSync(DATA_DIR, { recursive: true });
 
 const NOW = Date.now();
 const DAY = 86_400_000;
-const daysAgoIso = (n: number) =>
-  new Date(NOW - n * DAY).toISOString().slice(0, 10);
-const daysFromNowIso = (n: number) =>
-  new Date(NOW + n * DAY).toISOString().slice(0, 10);
+const daysAgoIso = (n: number) => new Date(NOW - n * DAY).toISOString().slice(0, 10);
+const daysFromNowIso = (n: number) => new Date(NOW + n * DAY).toISOString().slice(0, 10);
 
 /* ─────────────────────────────────────────────────────────────────────
  * 1. "كوفي رافعه" — operational_compliance with URGENT renewals
@@ -48,13 +43,13 @@ const daysFromNowIso = (n: number) =>
     q_company_name: 'كوفي رافعه',
     op1_vertical: 'restaurant',
     op2_city: 'jeddah',
-    op3_cr_issue_date:           daysAgoIso(350), // CR: 15d to expiry
-    op4_municipal_last_renewed:  daysAgoIso(340), // Muni: 25d to expiry
-    op5_civil_defense_last:      daysAgoIso(320), // CD:   45d to expiry (critical rule → medium)
-    op6_sfda_cert_date:          daysAgoIso(355), // SFDA: 10d to expiry (critical)
-    op7_employee_count:          12,              // nitaqat flag
-    op8_lease_expiry:            daysFromNowIso(50),
-    op9_has_website:             'no',
+    op3_cr_issue_date: daysAgoIso(350), // CR: 15d to expiry
+    op4_municipal_last_renewed: daysAgoIso(340), // Muni: 25d to expiry
+    op5_civil_defense_last: daysAgoIso(320), // CD:   45d to expiry (critical rule → medium)
+    op6_sfda_cert_date: daysAgoIso(355), // SFDA: 10d to expiry (critical)
+    op7_employee_count: 12, // nitaqat flag
+    op8_lease_expiry: daysFromNowIso(50),
+    op9_has_website: 'no',
   };
   const report: OperationalReport = runOperationalAnalysis({ answers });
 
@@ -85,7 +80,9 @@ const daysFromNowIso = (n: number) =>
   writeFileSync(join(DATA_DIR, `${id}.json`), JSON.stringify(record), 'utf8');
   console.log(`✓ seeded ${id}`);
   console.log(`  healthScore: ${report.healthScore}%`);
-  console.log(`  overdue: ${report.overdue.length} · upcoming: ${report.upcomingRenewals.length} · total: ${report.gaps.length}`);
+  console.log(
+    `  overdue: ${report.overdue.length} · upcoming: ${report.upcomingRenewals.length} · total: ${report.gaps.length}`,
+  );
 }
 
 /* ─────────────────────────────────────────────────────────────────────
@@ -130,26 +127,50 @@ const daysFromNowIso = (n: number) =>
     },
     thirdParty: {
       detected: [
-        { domain: 'google-analytics.com', displayName: 'Google Analytics', category: 'analytics',  crossBorder: true },
-        { domain: 'connect.facebook.net', displayName: 'Facebook Pixel',    category: 'advertising', crossBorder: true },
-        { domain: 'hotjar.com',           displayName: 'Hotjar',            category: 'session_replay', crossBorder: true },
+        {
+          domain: 'google-analytics.com',
+          displayName: 'Google Analytics',
+          category: 'analytics',
+          crossBorder: true,
+        },
+        {
+          domain: 'connect.facebook.net',
+          displayName: 'Facebook Pixel',
+          category: 'advertising',
+          crossBorder: true,
+        },
+        {
+          domain: 'hotjar.com',
+          displayName: 'Hotjar',
+          category: 'session_replay',
+          crossBorder: true,
+        },
       ],
       crossBorderCount: 3,
-      categories: { analytics: 1, advertising: 1, chat: 0, marketing: 0, session_replay: 1, other: 0 },
+      categories: {
+        analytics: 1,
+        advertising: 1,
+        chat: 0,
+        marketing: 0,
+        session_replay: 1,
+        other: 0,
+      },
     },
     dataForms: {
       formsFound: 1,
-      results: [{
-        formIndex: 0,
-        action: '#',
-        sensitiveFields: ['name', 'email', 'phone'],
-        hasConsent: false,
-        hasPrivacyLink: false,
-        violations: [
-          'يجمع بيانات شخصية بدون مربع موافقة صريح',
-          'بدون رابط لسياسة الخصوصية قريب من الفورم',
-        ],
-      }],
+      results: [
+        {
+          formIndex: 0,
+          action: '#',
+          sensitiveFields: ['name', 'email', 'phone'],
+          hasConsent: false,
+          hasPrivacyLink: false,
+          violations: [
+            'يجمع بيانات شخصية بدون مربع موافقة صريح',
+            'بدون رابط لسياسة الخصوصية قريب من الفورم',
+          ],
+        },
+      ],
     },
   };
 
@@ -185,8 +206,12 @@ const daysFromNowIso = (n: number) =>
   writeFileSync(join(DATA_DIR, `${id}.json`), JSON.stringify(record), 'utf8');
   console.log(`\n✓ seeded ${id}`);
   console.log(`  complianceScore: ${analysis.complianceScore}%`);
-  console.log(`  gaps: ${analysis.gaps.length} · fine ceiling: ${analysis.totalFineCeilingSar.toLocaleString('en-US')} SAR`);
-  console.log(`  (precomputed JSON still at src/data/nova-tech-stats.json: ${novaStats.complianceScore}% / ${novaStats.gapCount} / ${novaStats.totalFineCeilingSar.toLocaleString('en-US')})`);
+  console.log(
+    `  gaps: ${analysis.gaps.length} · fine ceiling: ${analysis.totalFineCeilingSar.toLocaleString('en-US')} SAR`,
+  );
+  console.log(
+    `  (precomputed JSON still at src/data/nova-tech-stats.json: ${novaStats.complianceScore}% / ${novaStats.gapCount} / ${novaStats.totalFineCeilingSar.toLocaleString('en-US')})`,
+  );
 }
 
 /* ─────────────────────────────────────────────────────────────────────

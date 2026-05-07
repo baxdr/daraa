@@ -10,7 +10,12 @@ export const maxDuration = 60;
 
 const BodySchema = z.object({
   scanId: z.string().min(1),
-  docType: z.enum(['privacy_policy', 'dpo_appointment', 'processing_register', 'incident_response']),
+  docType: z.enum([
+    'privacy_policy',
+    'dpo_appointment',
+    'processing_register',
+    'incident_response',
+  ]),
 });
 
 export async function POST(req: Request) {
@@ -43,9 +48,6 @@ export async function POST(req: Request) {
     // Arabic message to the client so we don't leak prompt text or model
     // output fragments (parseJsonResponse can include up to 500 chars).
     console.error('[documents] generate failed:', err instanceof Error ? err.message : err);
-    return NextResponse.json(
-      { error: 'تعذّر توليد المستند — جرّب مرة أخرى.' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'تعذّر توليد المستند — جرّب مرة أخرى.' }, { status: 500 });
   }
 }

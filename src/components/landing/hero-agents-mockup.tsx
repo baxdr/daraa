@@ -24,19 +24,53 @@ interface Stage {
 }
 
 const STAGES: Stage[] = [
-  { id: 'mci',   label: 'وكيل التجارة',       detail: 'السجل التجاري جاهز — نوع الكيان ذ.م.م', startAt: 0.0, endAt: 1.8 },
-  { id: 'zatca', label: 'وكيل الزكاة',        detail: 'التسجيل الضريبي مكتمل',                 startAt: 1.4, endAt: 2.8 },
-  { id: 'cd',    label: 'وكيل الدفاع المدني', detail: 'شهادة السلامة جاهزة للإصدار',            startAt: 2.2, endAt: 3.8 },
-  { id: 'muni',  label: 'وكيل البلدية',       detail: 'رخصة (نشاط غذائي) قيد الإصدار…',        startAt: 3.2, endAt: 5.0 },
-  { id: 'sfda',  label: 'وكيل الغذاء والدواء', detail: 'بانتظار رخصة البلدية',                   startAt: 4.8, endAt: 6.2 },
+  {
+    id: 'mci',
+    label: 'وكيل التجارة',
+    detail: 'السجل التجاري جاهز — نوع الكيان ذ.م.م',
+    startAt: 0.0,
+    endAt: 1.8,
+  },
+  { id: 'zatca', label: 'وكيل الزكاة', detail: 'التسجيل الضريبي مكتمل', startAt: 1.4, endAt: 2.8 },
+  {
+    id: 'cd',
+    label: 'وكيل الدفاع المدني',
+    detail: 'شهادة السلامة جاهزة للإصدار',
+    startAt: 2.2,
+    endAt: 3.8,
+  },
+  {
+    id: 'muni',
+    label: 'وكيل البلدية',
+    detail: 'رخصة (نشاط غذائي) قيد الإصدار…',
+    startAt: 3.2,
+    endAt: 5.0,
+  },
+  {
+    id: 'sfda',
+    label: 'وكيل الغذاء والدواء',
+    detail: 'بانتظار رخصة البلدية',
+    startAt: 4.8,
+    endAt: 6.2,
+  },
 ];
 
 const LOOP_SEC = 7.4;
 
 const MESSAGES: Array<{ t: number; from: string; to: string; text: string }> = [
-  { t: 1.6, from: 'وكيل التجارة',        to: 'الجميع',            text: 'السجل جاهز — نوع الكيان: ذ.م.م' },
-  { t: 3.6, from: 'وكيل الدفاع المدني',   to: 'وكيل البلدية',      text: 'شهادة السلامة جاهزة — تقدر تبدأ الرخصة' },
-  { t: 5.1, from: 'وكيل البلدية',         to: 'وكيل الغذاء والدواء', text: 'رخصة بلدية (نشاط غذائي) قيد الإصدار' },
+  { t: 1.6, from: 'وكيل التجارة', to: 'الجميع', text: 'السجل جاهز — نوع الكيان: ذ.م.م' },
+  {
+    t: 3.6,
+    from: 'وكيل الدفاع المدني',
+    to: 'وكيل البلدية',
+    text: 'شهادة السلامة جاهزة — تقدر تبدأ الرخصة',
+  },
+  {
+    t: 5.1,
+    from: 'وكيل البلدية',
+    to: 'وكيل الغذاء والدواء',
+    text: 'رخصة بلدية (نشاط غذائي) قيد الإصدار',
+  },
 ];
 
 export function HeroAgentsMockup() {
@@ -78,7 +112,10 @@ export function HeroAgentsMockup() {
           <span aria-hidden className="h-2 w-2 rounded-full bg-accent/70" />
         </div>
         <div className="flex items-center gap-2 text-[11px] text-muted">
-          <span className="inline-block h-1.5 w-1.5 animate-pulse-subtle rounded-full bg-accent" aria-hidden />
+          <span
+            className="inline-block h-1.5 w-1.5 animate-pulse-subtle rounded-full bg-accent"
+            aria-hidden
+          />
           <span className="font-mono">daraa.sa/project/.../agents</span>
         </div>
         <span className="font-mono text-[11px] tabular-nums text-muted">
@@ -99,9 +136,7 @@ export function HeroAgentsMockup() {
         {STAGES.map((s, i) => {
           const state = stageStatus(s);
           const color =
-            state === 'done'    ? 'bg-accent' :
-            state === 'working' ? 'bg-warn'   :
-                                  'bg-rule';
+            state === 'done' ? 'bg-accent' : state === 'working' ? 'bg-warn' : 'bg-rule';
           return (
             <div
               key={s.id}
@@ -128,8 +163,10 @@ export function HeroAgentsMockup() {
             const icon = state === 'done' ? '✓' : '●';
             const tone = state === 'done' ? 'text-accent-strong' : 'text-ink';
             return (
-              <li key={s.id} className="flex items-baseline gap-2.5 animate-fade-rise">
-                <span className={`shrink-0 font-mono text-[11px] ${tone}`} aria-hidden>{icon}</span>
+              <li key={s.id} className="flex animate-fade-rise items-baseline gap-2.5">
+                <span className={`shrink-0 font-mono text-[11px] ${tone}`} aria-hidden>
+                  {icon}
+                </span>
                 <span className={`flex-1 ${tone}`}>
                   <span className="font-display font-extrabold">{s.label}</span>
                   <span className="mx-1.5 text-muted">·</span>
@@ -146,11 +183,10 @@ export function HeroAgentsMockup() {
           })}
 
           {visibleMsgs.map((m) => (
-            <li
-              key={`${m.t}-${m.from}`}
-              className="flex items-start gap-2.5 animate-fade-rise"
-            >
-              <span className="shrink-0 font-mono text-[11px] text-accent" aria-hidden>⇄</span>
+            <li key={`${m.t}-${m.from}`} className="flex animate-fade-rise items-start gap-2.5">
+              <span className="shrink-0 font-mono text-[11px] text-accent" aria-hidden>
+                ⇄
+              </span>
               <div className="flex-1 border-s-2 border-accent bg-accent-soft/60 px-2.5 py-1.5">
                 <div className="flex items-center gap-1.5 text-[10.5px]">
                   <span className="font-mono tracking-widest text-accent">A2A</span>

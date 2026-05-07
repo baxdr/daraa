@@ -23,13 +23,27 @@ export interface FormScanResult {
 }
 
 const SENSITIVE_FIELD_HINTS = [
-  'email', 'mail',
-  'phone', 'tel', 'mobile', 'جوال', 'جوّال',
-  'name', 'اسم', 'fullname',
-  'id', 'iqama', 'national', 'هوية',
-  'password', 'pin',
-  'address', 'عنوان',
-  'birth', 'dob', 'ميلاد',
+  'email',
+  'mail',
+  'phone',
+  'tel',
+  'mobile',
+  'جوال',
+  'جوّال',
+  'name',
+  'اسم',
+  'fullname',
+  'id',
+  'iqama',
+  'national',
+  'هوية',
+  'password',
+  'pin',
+  'address',
+  'عنوان',
+  'birth',
+  'dob',
+  'ميلاد',
 ];
 
 export async function scanForms(url: string): Promise<FormScanResult> {
@@ -45,7 +59,12 @@ export async function scanForms(url: string): Promise<FormScanResult> {
   } catch (err) {
     return {
       ...empty,
-      error: err instanceof UrlGuardError ? err.reason : err instanceof Error ? err.message : 'fetch_failed',
+      error:
+        err instanceof UrlGuardError
+          ? err.reason
+          : err instanceof Error
+            ? err.message
+            : 'fetch_failed',
     };
   }
 }

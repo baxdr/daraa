@@ -31,7 +31,7 @@ export function SaveProjectBanner({
         body: JSON.stringify({ email: email.trim() }),
       });
       if (!res.ok) {
-        const body = await res.json().catch(() => ({} as { error?: string }));
+        const body = await res.json().catch(() => ({}) as { error?: string });
         setError(body.error ?? `تعذّر الحفظ (${res.status})`);
         return;
       }
@@ -67,7 +67,7 @@ export function SaveProjectBanner({
           </p>
         </div>
       </div>
-      <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-2 sm:flex-row">
+      <form onSubmit={(e) => void onSubmit(e)} className="mt-4 flex flex-col gap-2 sm:flex-row">
         <input
           type="email"
           required

@@ -26,13 +26,13 @@ export type TermId =
   | 'cookie_consent';
 
 export interface TermExplanation {
-  term: string;              // the raw acronym / English name
-  termAr: string;            // Arabic name
+  term: string; // the raw acronym / English name
+  termAr: string; // Arabic name
   simpleExplanation: string; // one sentence, plain Arabic
-  analogy?: string;          // everyday-life analogy
-  example?: string;          // concrete example
-  whenRequired?: string;     // conditionality
-  whatToDo?: string;         // next step
+  analogy?: string; // everyday-life analogy
+  example?: string; // concrete example
+  whenRequired?: string; // conditionality
+  whatToDo?: string; // next step
 }
 
 export const TERMS: Record<TermId, TermExplanation> = {
@@ -50,13 +50,13 @@ export const TERMS: Record<TermId, TermExplanation> = {
       'شخص في شركتك مسؤوليته يتأكد إن الشركة تتعامل مع بيانات العملاء بشكل صحيح ونظامي.',
     analogy: 'مثل ما عندك محاسب يتأكد من الفلوس — هذا يتأكد من البيانات.',
     whenRequired: 'مطلوب لو شركتك تعالج بيانات عدد كبير من الناس.',
-    whatToDo: 'ممكن يكون أحد موظفينك الحاليين — مو لازم توظف شخص جديد. بس لازم يكون عنده صلاحية وتدريب.',
+    whatToDo:
+      'ممكن يكون أحد موظفينك الحاليين — مو لازم توظف شخص جديد. بس لازم يكون عنده صلاحية وتدريب.',
   },
   NCA_ECC: {
     term: 'NCA ECC',
     termAr: 'ضوابط الأمن السيبراني الأساسية',
-    simpleExplanation:
-      'قواعد من الهيئة الوطنية للأمن السيبراني تقول كيف تحمي أنظمتك من الاختراق.',
+    simpleExplanation: 'قواعد من الهيئة الوطنية للأمن السيبراني تقول كيف تحمي أنظمتك من الاختراق.',
     analogy: 'مثل ما البيت يحتاج أقفال وكاميرات — موقعك وسيرفراتك يحتاجون حماية.',
     whenRequired: 'مطلوب لو شركتك تتعامل مع أي جهة حكومية.',
   },
@@ -137,8 +137,7 @@ export const TERMS: Record<TermId, TermExplanation> = {
   security_headers: {
     term: 'Security Headers',
     termAr: 'رؤوس الأمان',
-    simpleExplanation:
-      'إعدادات أمان لموقعك تحميه من أنواع معينة من الهجمات.',
+    simpleExplanation: 'إعدادات أمان لموقعك تحميه من أنواع معينة من الهجمات.',
     analogy: 'مثل ما تحط قفل وسلسلة على باب بيتك — هذي أقفال لموقعك.',
     whatToDo: 'أغلبها يضيفها المبرمج بسطر واحد. بس كثير مواقع تنسى تفعّلها.',
   },

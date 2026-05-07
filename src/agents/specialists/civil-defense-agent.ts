@@ -54,7 +54,7 @@ export class CivilDefenseAgent implements Agent {
         estimatedTimeAr,
         officialUrl: 'https://www.998.gov.sa',
         renewalPeriodAr: 'سنوي',
-        criticalWarningAr,
+        ...(criticalWarningAr ? { criticalWarningAr } : {}),
         requirements,
       },
       outbox: [
@@ -96,10 +96,14 @@ export class CivilDefenseAgent implements Agent {
 
   private estimateCost(vertical: AgentContext['vertical']): { min: number; max: number } {
     switch (vertical) {
-      case 'restaurant':   return { min: 200, max: 1000 };
-      case 'salon':        return { min: 200, max: 800 };
-      case 'construction': return { min: 150, max: 500 };
-      default:             return { min: 200, max: 700 };
+      case 'restaurant':
+        return { min: 200, max: 1000 };
+      case 'salon':
+        return { min: 200, max: 800 };
+      case 'construction':
+        return { min: 150, max: 500 };
+      default:
+        return { min: 200, max: 700 };
     }
   }
 }

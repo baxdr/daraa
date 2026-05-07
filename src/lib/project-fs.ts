@@ -16,12 +16,12 @@
 
 import { createHash } from 'node:crypto';
 import { promises as fs, readFileSync, readdirSync, existsSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join } from 'node:path';
 import type { ProjectRecord } from './project-store';
 
 const DATA_ROOT = join(process.cwd(), 'data');
 const PROJECTS_DIR = join(DATA_ROOT, 'projects');
-const USERS_DIR    = join(DATA_ROOT, 'users');
+const USERS_DIR = join(DATA_ROOT, 'users');
 const FLUSH_DELAY_MS = 150;
 
 const VALID_ID = /^[A-Za-z0-9_-]{10,32}$/;
@@ -30,8 +30,8 @@ const VALID_ID = /^[A-Za-z0-9_-]{10,32}$/;
 
 function ensureDirs() {
   if (!existsSync(PROJECTS_DIR)) mkdirSync(PROJECTS_DIR, { recursive: true });
-  if (!existsSync(USERS_DIR))    mkdirSync(USERS_DIR,    { recursive: true });
-  if (!existsSync(DATA_ROOT))    mkdirSync(DATA_ROOT,    { recursive: true });
+  if (!existsSync(USERS_DIR)) mkdirSync(USERS_DIR, { recursive: true });
+  if (!existsSync(DATA_ROOT)) mkdirSync(DATA_ROOT, { recursive: true });
 }
 ensureDirs();
 
@@ -125,7 +125,11 @@ export async function flushNow(project: ProjectRecord): Promise<void> {
     await writeProjectAtomic(project);
     await updateEmailIndex(project);
   } catch (err) {
-    console.warn('[project-fs] flush failed for', project.id, err instanceof Error ? err.message : err);
+    console.warn(
+      '[project-fs] flush failed for',
+      project.id,
+      err instanceof Error ? err.message : err,
+    );
   } finally {
     inFlight.delete(project.id);
     if (reDirtyAfterFlight.delete(project.id)) {
@@ -138,7 +142,9 @@ export async function flushNow(project: ProjectRecord): Promise<void> {
 }
 
 /** Fire-and-forget flush used during shutdown hooks. */
-export async function flushAll(getRecord: (id: string) => ProjectRecord | undefined): Promise<void> {
+export async function flushAll(
+  getRecord: (id: string) => ProjectRecord | undefined,
+): Promise<void> {
   const ids = [...pendingTimers.keys()];
   for (const id of ids) {
     const rec = getRecord(id);
@@ -160,7 +166,11 @@ async function writeProjectAtomic(project: ProjectRecord): Promise<void> {
     await fs.rename(tmp, final);
   } catch (err) {
     // Best-effort cleanup; swallow secondary error.
-    try { await fs.unlink(tmp); } catch { /* ignore */ }
+    try {
+      await fs.unlink(tmp);
+    } catch {
+      /* ignore */
+    }
     throw err;
   }
 }
@@ -191,8 +201,16 @@ async function updateEmailIndex(project: ProjectRecord): Promise<void> {
     await fs.writeFile(tmp, JSON.stringify(current), { encoding: 'utf8', flag: 'wx' });
     await fs.rename(tmp, indexPath);
   } catch (err) {
-    try { await fs.unlink(tmp); } catch { /* ignore */ }
-    console.warn('[project-fs] email index update failed for', hash, err instanceof Error ? err.message : err);
+    try {
+      await fs.unlink(tmp);
+    } catch {
+      /* ignore */
+    }
+    console.warn(
+      '[project-fs] email index update failed for',
+      hash,
+      err instanceof Error ? err.message : err,
+    );
   }
 }
 

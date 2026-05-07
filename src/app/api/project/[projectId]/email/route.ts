@@ -16,10 +16,7 @@ const BodySchema = z.object({
  * via /return. Idempotent — calling again with the same email is a no-op,
  * with a different email rewrites the attachment.
  */
-export async function POST(
-  req: Request,
-  { params }: { params: { projectId: string } },
-) {
+export async function POST(req: Request, { params }: { params: { projectId: string } }) {
   const limited = enforceRateLimit(req, { bucket: 'project-email', max: 20, windowMs: 60_000 });
   if (limited) return limited;
 

@@ -14,6 +14,8 @@
  * advice territory; we can guide but cannot decide.
  */
 
+import type { NameCheckResult } from '@/agents/runtime/types';
+
 export type VerticalId = 'restaurant' | 'tech' | 'salon' | 'construction' | 'services';
 
 export interface GovEntity {
@@ -44,7 +46,7 @@ export interface GovEntity {
   requirements?: string[];
   /** Trade-name availability finding. Currently only populated by the MCI
    *  specialist in establishment mode. */
-  nameCheck?: import('@/agents/runtime/types').NameCheckResult;
+  nameCheck?: NameCheckResult;
 }
 
 export interface Vertical {
@@ -66,8 +68,7 @@ export const ALWAYS_REQUIRED: readonly GovEntity[] = [
     id: 'mci',
     nameAr: 'وزارة التجارة',
     nameSimpleAr: 'السجل التجاري',
-    explainAr:
-      'أول خطوة لأي مشروع — تسجّل شركتك رسمياً. فكّر فيه مثل شهادة الميلاد للمشروع.',
+    explainAr: 'أول خطوة لأي مشروع — تسجّل شركتك رسمياً. فكّر فيه مثل شهادة الميلاد للمشروع.',
     estimatedCostSar: { min: 200, max: 1600 },
     estimatedTimeAr: 'يوم واحد (إلكتروني)',
     order: 1,
@@ -120,8 +121,7 @@ const RESTAURANT_ENTITIES: GovEntity[] = [
     id: 'civil_defense',
     nameAr: 'الدفاع المدني',
     nameSimpleAr: 'شهادة السلامة',
-    explainAr:
-      'يفحصون محلك ويتأكدون إن فيه طفايات حريق ومخارج طوارئ وكل متطلبات السلامة.',
+    explainAr: 'يفحصون محلك ويتأكدون إن فيه طفايات حريق ومخارج طوارئ وكل متطلبات السلامة.',
     estimatedCostSar: { min: 200, max: 1000 },
     estimatedTimeAr: '٣ إلى ١٤ يوم (يحتاج زيارة ميدانية)',
     order: 5,
@@ -149,8 +149,7 @@ const RESTAURANT_ENTITIES: GovEntity[] = [
     id: 'sfda',
     nameAr: 'الهيئة العامة للغذاء والدواء',
     nameSimpleAr: 'ترخيص الغذاء (SFDA)',
-    explainAr:
-      'لأنك بتقدم أكل ومشروبات — هالجهة تتأكد إن المكان نظيف وآمن صحياً.',
+    explainAr: 'لأنك بتقدم أكل ومشروبات — هالجهة تتأكد إن المكان نظيف وآمن صحياً.',
     estimatedCostSar: { min: 1000, max: 3000 },
     estimatedTimeAr: '٧ إلى ١٤ يوم',
     order: 7,
@@ -346,7 +345,7 @@ export function resolveEntities(verticalId: VerticalId): GovEntity[] {
  * each week contains entities whose deps are satisfied by the previous week.
  */
 export interface RoadmapWeek {
-  label: string;      // "الأسبوع الأول" …
+  label: string; // "الأسبوع الأول" …
   entities: GovEntity[];
 }
 

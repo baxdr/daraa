@@ -1,4 +1,9 @@
-import { AGENT_LABELS_AR, type AgentActivity, type AgentMessage, type AgentId } from '@/agents/types';
+import {
+  AGENT_LABELS_AR,
+  type AgentActivity,
+  type AgentMessage,
+  type AgentId,
+} from '@/agents/types';
 
 /**
  * Unified agent timeline.
@@ -9,18 +14,18 @@ import { AGENT_LABELS_AR, type AgentActivity, type AgentMessage, type AgentId } 
  */
 
 const STATUS_ICON: Record<AgentActivity['status'], string> = {
-  started:   '●',
-  working:   '○',
+  started: '●',
+  working: '○',
   completed: '✓',
-  error:     '!',
+  error: '!',
 };
 
 const MESSAGE_TYPE_LABEL: Record<AgentMessage['type'], string> = {
   dependency: 'اعتمادية',
   data_share: 'تبادل بيانات',
-  warning:    'تنبيه',
-  update:     'تحديث جديد',
-  ack:        'تأكيد',
+  warning: 'تنبيه',
+  update: 'تحديث جديد',
+  ack: 'تأكيد',
 };
 
 export interface TimelineProps {
@@ -62,9 +67,11 @@ export function Timeline({ activities, messages }: TimelineProps) {
       aria-label="سجل نشاط الوكلاء"
     >
       {events.map((e) =>
-        e.kind === 'activity'
-          ? <ActivityRow key={`a-${e.seq}`} activity={e} index={e.seq} />
-          : <MessageRow  key={`m-${e.seq}`} message={e}  index={e.seq} />,
+        e.kind === 'activity' ? (
+          <ActivityRow key={`a-${e.seq}`} activity={e} index={e.seq} />
+        ) : (
+          <MessageRow key={`m-${e.seq}`} message={e} index={e.seq} />
+        ),
       )}
     </ol>
   );
@@ -76,14 +83,17 @@ export function Timeline({ activities, messages }: TimelineProps) {
 function ActivityRow({ activity, index }: { activity: AgentActivity; index: number }) {
   const isIndent = activity.messageAr.startsWith('↳') || activity.messageAr.startsWith('✓');
   const color =
-    activity.status === 'error'     ? 'text-danger' :
-    activity.status === 'completed' ? 'text-accent-strong' :
-    activity.status === 'working'   ? 'text-ink' :
-                                      'text-ink-2';
+    activity.status === 'error'
+      ? 'text-danger'
+      : activity.status === 'completed'
+        ? 'text-accent-strong'
+        : activity.status === 'working'
+          ? 'text-ink'
+          : 'text-ink-2';
 
   return (
     <li
-      className="flex flex-col gap-1 border-b border-rule/50 py-2 animate-slide-in-rtl last:border-b-0 sm:grid sm:grid-cols-[auto_1fr_auto] sm:gap-x-4"
+      className="flex animate-slide-in-rtl flex-col gap-1 border-b border-rule/50 py-2 last:border-b-0 sm:grid sm:grid-cols-[auto_1fr_auto] sm:gap-x-4"
       style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}
     >
       <div className="flex items-baseline justify-between gap-3 sm:contents">
@@ -93,9 +103,7 @@ function ActivityRow({ activity, index }: { activity: AgentActivity; index: numb
         <span className={`text-[13.5px] leading-relaxed ${color} ${isIndent ? 'ps-2' : ''} flex-1`}>
           {activity.messageAr}
         </span>
-        <span className="shrink-0 font-mono text-[11px] text-muted">
-          {activity.agentAr}
-        </span>
+        <span className="shrink-0 font-mono text-[11px] text-muted">{activity.agentAr}</span>
       </div>
     </li>
   );
@@ -107,7 +115,10 @@ function ActivityRow({ activity, index }: { activity: AgentActivity; index: numb
 /* ------------------------------------------------------------------------- */
 function MessageRow({ message, index }: { message: AgentMessage; index: number }) {
   const fromLabel = AGENT_LABELS_AR[message.from] ?? message.from;
-  const toLabel = message.to === 'ALL' ? 'جميع المتخصصين' : AGENT_LABELS_AR[message.to as AgentId] ?? message.to;
+  const toLabel =
+    message.to === 'ALL'
+      ? 'جميع المتخصصين'
+      : (AGENT_LABELS_AR[message.to as AgentId] ?? message.to);
 
   return (
     <li

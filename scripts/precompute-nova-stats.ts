@@ -36,7 +36,7 @@ const OUT_PATH = join(process.cwd(), 'src/data/nova-tech-stats.json');
  * 1. Read Nova Tech static HTML
  * ───────────────────────────────────────────────────────────── */
 
-const indexHtml   = readFileSync(join(DEMO_DIR, 'index.html'),   'utf8');
+const indexHtml = readFileSync(join(DEMO_DIR, 'index.html'), 'utf8');
 const privacyHtml = readFileSync(join(DEMO_DIR, 'privacy.html'), 'utf8');
 const contactHtml = readFileSync(join(DEMO_DIR, 'contact.html'), 'utf8');
 
@@ -61,8 +61,8 @@ const dataForms = analyseForms(contactHtml);
 
 // Security headers — bare-hosting profile (see module header note).
 const securityHeaders: SecurityHeaderCheck = {
-  httpsEnforced: true,   // assume Nova Tech has SSL — most hosts do
-  hsts:          false,
+  httpsEnforced: true, // assume Nova Tech has SSL — most hosts do
+  hsts: false,
   contentSecurityPolicy: false,
   xFrameOptions: false,
   xContentTypeOptionsNoSniff: false,

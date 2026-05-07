@@ -33,10 +33,7 @@ export function ScoreRing({ score, label, sublabel }: ScoreRingProps) {
     return () => cancelAnimationFrame(raf);
   }, [clamped, reduced]);
 
-  const strokeColor =
-    clamped >= 75 ? '#166534' :
-    clamped >= 50 ? '#B8571E' :
-                    '#9B2C2C';
+  const strokeColor = clamped >= 75 ? '#166534' : clamped >= 50 ? '#B8571E' : '#9B2C2C';
   const circumference = 2 * Math.PI * 56;
   const dash = (rendered / 100) * circumference;
 
@@ -53,7 +50,9 @@ export function ScoreRing({ score, label, sublabel }: ScoreRingProps) {
         <svg viewBox="0 0 128 128" className="h-full w-full -rotate-90" aria-hidden="true">
           <circle cx="64" cy="64" r="56" fill="none" stroke="#D9D1C3" strokeWidth="2" />
           <circle
-            cx="64" cy="64" r="56"
+            cx="64"
+            cy="64"
+            r="56"
             fill="none"
             stroke={strokeColor}
             strokeWidth="3"
@@ -65,7 +64,7 @@ export function ScoreRing({ score, label, sublabel }: ScoreRingProps) {
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <div
             aria-hidden="true"
-            className="font-display text-4xl font-extrabold leading-none tabular-nums tracking-tighter text-ink md:text-5xl"
+            className="font-display text-4xl font-extrabold tabular-nums leading-none tracking-tighter text-ink md:text-5xl"
           >
             {roundedScore}
             <span className="text-xl text-muted md:text-2xl">٪</span>
@@ -77,9 +76,7 @@ export function ScoreRing({ score, label, sublabel }: ScoreRingProps) {
         <h2 className="mt-2 font-display text-2xl font-extrabold leading-tight tracking-tight">
           {label}
         </h2>
-        {sublabel && (
-          <p className="mt-2 max-w-xs text-sm leading-relaxed text-ink-2">{sublabel}</p>
-        )}
+        {sublabel && <p className="mt-2 max-w-xs text-sm leading-relaxed text-ink-2">{sublabel}</p>}
       </div>
     </div>
   );

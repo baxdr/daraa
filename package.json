@@ -3,18 +3,43 @@
   "version": "1.0.0",
   "description": "Saudi Business Formation & Compliance Intelligence",
   "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "next dev -p 3333",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "lint": "next lint",
-    "precompute": "npx tsx scripts/precompute-nova-stats.ts",
-    "seed-demo": "npx tsx scripts/seed-demo-projects.ts",
-    "test:agents": "npx tsx scripts/test-agent-runtime.ts",
-    "test:forms": "npx tsx scripts/test-form-scanner.ts",
-    "test:operational": "npx tsx scripts/test-operational-analysis.ts",
+    "lint": "next lint --max-warnings=0",
+    "lint:fix": "next lint --fix",
+    "format": "prettier --write . --ignore-path .prettierignore",
+    "format:check": "prettier --check . --ignore-path .prettierignore",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:report": "playwright show-report",
+    "verify": "pnpm format:check && pnpm typecheck && pnpm lint && pnpm test",
+    "prepare": "husky",
+    "precompute": "tsx scripts/precompute-nova-stats.ts",
+    "seed-demo": "tsx scripts/seed-demo-projects.ts",
+    "test:agents": "tsx scripts/test-agent-runtime.ts",
+    "test:forms": "tsx scripts/test-form-scanner.ts",
+    "test:operational": "tsx scripts/test-operational-analysis.ts",
     "test:smoke": "bash scripts/smoke.sh"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "prettier --write",
+      "next lint --fix --file"
+    ],
+    "*.{json,md,yml,yaml,css}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
@@ -27,14 +52,32 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.5.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.10.0",
+    "@typescript-eslint/parser": "^8.10.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "@vitest/coverage-v8": "^2.1.0",
+    "@vitest/ui": "^2.1.0",
     "autoprefixer": "^10.4.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
+    "eslint-plugin-react": "^7.37.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "husky": "^9.1.0",
+    "jsdom": "^25.0.0",
+    "lint-staged": "^15.2.0",
     "postcss": "^8.4.0",
+    "prettier": "^3.3.0",
+    "prettier-plugin-tailwindcss": "^0.6.0",
     "tailwindcss": "^3.4.0",
-    "typescript": "^5.4.0"
+    "tsx": "^4.19.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.1.0"
   }
 }

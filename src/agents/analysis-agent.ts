@@ -42,8 +42,8 @@ export interface CompliantItem {
 }
 
 export interface AnalysisReport {
-  complianceScore: number;      // 0–100
-  totalFineCeilingSar: number;  // sum of ceilings for failed rules
+  complianceScore: number; // 0–100
+  totalFineCeilingSar: number; // sum of ceilings for failed rules
   applicableRuleCount: number;
   gaps: Gap[];
   compliantItems: CompliantItem[];
@@ -55,8 +55,8 @@ export interface AnalysisReport {
 }
 
 export interface RemediationWeek {
-  window: string;        // "هذا الأسبوع" / "خلال أسبوعين" / "خلال شهر"
-  tasks: string[];       // plain-Arabic action items
+  window: string; // "هذا الأسبوع" / "خلال أسبوعين" / "خلال شهر"
+  tasks: string[]; // plain-Arabic action items
 }
 
 const SEVERITY_WEIGHT: Record<Gap['severity'], number> = {
@@ -124,7 +124,9 @@ export function runAnalysis({ answers, scan }: AnalysisInput): AnalysisReport {
 /* Signal extraction                                                          */
 /* ------------------------------------------------------------------------- */
 
-type PartialSignals = Partial<Record<keyof ScanSignalMap, { value: boolean; source: 'answer' | 'scan' }>>;
+type PartialSignals = Partial<
+  Record<keyof ScanSignalMap, { value: boolean; source: 'answer' | 'scan' }>
+>;
 
 function buildSignals(answers: Answers, scan: ScanResult | null): PartialSignals {
   const s: PartialSignals = {};
@@ -236,7 +238,10 @@ function isApplicable(rule: PdplRule, answers: Answers): boolean {
 /* Gap construction                                                           */
 /* ------------------------------------------------------------------------- */
 
-const PLAIN_LANGUAGE: Record<string, { titleAr: string; explanationAr: string; canAutoGenerate?: boolean }> = {
+const PLAIN_LANGUAGE: Record<
+  string,
+  { titleAr: string; explanationAr: string; canAutoGenerate?: boolean }
+> = {
   pdpl_privacy_policy_published: {
     titleAr: 'موقعكم ما فيه صفحة تشرح للعملاء كيف تتعاملون مع بياناتهم',
     explanationAr:
@@ -300,7 +305,7 @@ const PLAIN_LANGUAGE: Record<string, { titleAr: string; explanationAr: string; c
   nca_https_enforced: {
     titleAr: 'موقعكم لا يستخدم HTTPS بشكل كامل',
     explanationAr:
-      'HTTPS يحمي البيانات أثناء انتقالها بين المتصفح وسيرفركم من الاعتراض. أي موقع يجمع بيانات من المستخدمين بدون HTTPS يعتبر خرقاً للحد الأدنى من الحماية. الحل: فعّلوا شهادة SSL (متوفرة مجاناً عبر Let\'s Encrypt).',
+      "HTTPS يحمي البيانات أثناء انتقالها بين المتصفح وسيرفركم من الاعتراض. أي موقع يجمع بيانات من المستخدمين بدون HTTPS يعتبر خرقاً للحد الأدنى من الحماية. الحل: فعّلوا شهادة SSL (متوفرة مجاناً عبر Let's Encrypt).",
     canAutoGenerate: false,
   },
   nca_hsts_header: {
@@ -352,7 +357,9 @@ function buildGap(
 
 function sortGapsBySeverity(gaps: Gap[]): Gap[] {
   return [...gaps].sort(
-    (a, b) => SEVERITY_WEIGHT[b.severity] - SEVERITY_WEIGHT[a.severity] || b.fineCeilingSar - a.fineCeilingSar,
+    (a, b) =>
+      SEVERITY_WEIGHT[b.severity] - SEVERITY_WEIGHT[a.severity] ||
+      b.fineCeilingSar - a.fineCeilingSar,
   );
 }
 

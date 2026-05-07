@@ -7,18 +7,18 @@ import type { AgentActivity, AgentId, AgentMessage } from '@/agents/types';
 import { Timeline } from './timeline';
 
 const STATION_ROW: Array<{ id: AgentId; label: string }> = [
-  { id: 'orchestrator',  label: 'المنسّق' },
-  { id: 'research',      label: 'البحث' },
-  { id: 'mci',           label: 'التجارة' },
-  { id: 'zatca',         label: 'الزكاة' },
-  { id: 'mohr_gosi',     label: 'الموارد والتأمينات' },
+  { id: 'orchestrator', label: 'المنسّق' },
+  { id: 'research', label: 'البحث' },
+  { id: 'mci', label: 'التجارة' },
+  { id: 'zatca', label: 'الزكاة' },
+  { id: 'mohr_gosi', label: 'الموارد والتأمينات' },
   { id: 'civil_defense', label: 'الدفاع المدني' },
-  { id: 'municipality',  label: 'البلدية' },
-  { id: 'sfda',          label: 'الغذاء والدواء' },
-  { id: 'moh',           label: 'الصحة' },
-  { id: 'pdpl_nca',      label: 'حماية البيانات' },
-  { id: 'scan',          label: 'الفحص' },
-  { id: 'analysis',      label: 'التحليل' },
+  { id: 'municipality', label: 'البلدية' },
+  { id: 'sfda', label: 'الغذاء والدواء' },
+  { id: 'moh', label: 'الصحة' },
+  { id: 'pdpl_nca', label: 'حماية البيانات' },
+  { id: 'scan', label: 'الفحص' },
+  { id: 'analysis', label: 'التحليل' },
 ];
 
 /**
@@ -73,8 +73,11 @@ export function ProjectAgentsView({ projectId }: { projectId: string }) {
         clearTimeout(timeoutId);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = (await res.json()) as {
-          status: string; mode: string; companyName?: string;
-          activities: AgentActivity[]; messages: AgentMessage[];
+          status: string;
+          mode: string;
+          companyName?: string;
+          activities: AgentActivity[];
+          messages: AgentMessage[];
           errorMessage?: string | null;
         };
         if (cancelledRef.current) return;
@@ -100,7 +103,7 @@ export function ProjectAgentsView({ projectId }: { projectId: string }) {
           setStalled(true);
           return;
         }
-        timer = setTimeout(poll, 500);
+        timer = setTimeout(() => void poll(), 500);
       } catch (e) {
         clearTimeout(timeoutId);
         if (cancelledRef.current) return;
@@ -115,11 +118,11 @@ export function ProjectAgentsView({ projectId }: { projectId: string }) {
         }
         // Transient failure — retry with exponential backoff (1s, 2s, 4s, ...).
         const delay = Math.min(8_000, 1_000 * 2 ** (consecutiveFailures - 1));
-        timer = setTimeout(poll, delay);
+        timer = setTimeout(() => void poll(), delay);
       }
     }
 
-    poll();
+    void poll();
     return () => {
       cancelledRef.current = true;
       if (timer) clearTimeout(timer);
@@ -138,18 +141,22 @@ export function ProjectAgentsView({ projectId }: { projectId: string }) {
   }, [stationStatus, visibleStations.length]);
 
   const title = companyName
-    ? (mode === 'compliance'
-        ? `درع يفحص امتثال ${companyName}`
-        : `درع يجهّز خريطة ${companyName}`)
+    ? mode === 'compliance'
+      ? `درع يفحص امتثال ${companyName}`
+      : `درع يجهّز خريطة ${companyName}`
     : 'الوكلاء يتواصلون';
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10 md:px-10 md:py-16">
       {/* Breadcrumb */}
       <nav aria-label="مسار التنقّل" className="mb-6 flex items-center gap-2 text-xs text-muted">
-        <Link href="/" className="hover:text-ink">درع</Link>
+        <Link href="/" className="hover:text-ink">
+          درع
+        </Link>
         <span aria-hidden>›</span>
-        <Link href="/chat" className="hover:text-ink">المحادثة</Link>
+        <Link href="/chat" className="hover:text-ink">
+          المحادثة
+        </Link>
         <span aria-hidden>›</span>
         <span className="font-medium text-ink-2">الوكلاء</span>
       </nav>
@@ -161,14 +168,17 @@ export function ProjectAgentsView({ projectId }: { projectId: string }) {
             {title}
           </h1>
           <p className="mt-3 max-w-xl text-sm text-ink-2 md:text-base">
-            وكيل البحث يجلب التحديثات، المتخصّصون يتبادلون الرسائل على الحافلة،
-            ووكيل التحليل يُنتج النتيجة. السجل أدناه مباشر.
+            وكيل البحث يجلب التحديثات، المتخصّصون يتبادلون الرسائل على الحافلة، ووكيل التحليل يُنتج
+            النتيجة. السجل أدناه مباشر.
           </p>
         </div>
 
         {/* Elapsed-time badge — live */}
         {status !== 'complete' && status !== 'error' && (
-          <div className="shrink-0 border border-rule bg-paper-2 px-3 py-2 text-center" aria-live="polite">
+          <div
+            className="shrink-0 border border-rule bg-paper-2 px-3 py-2 text-center"
+            aria-live="polite"
+          >
             <div className="font-mono text-[10px] uppercase tracking-widest text-muted">الزمن</div>
             <div className="mt-1 font-display text-xl font-extrabold tabular-nums leading-none text-ink">
               {elapsedSec.toFixed(1)}s
@@ -268,7 +278,10 @@ export function ProjectAgentsView({ projectId }: { projectId: string }) {
 
       {status !== 'complete' && status !== 'error' && (
         <p className="mt-12 text-xs text-muted">
-          معرّف المشروع: <code dir="ltr" className="font-mono">{projectId}</code>
+          معرّف المشروع:{' '}
+          <code dir="ltr" className="font-mono">
+            {projectId}
+          </code>
         </p>
       )}
     </main>
@@ -317,10 +330,13 @@ function Station({
   isLast: boolean;
 }) {
   const dotColor =
-    state === 'error'     ? 'bg-danger' :
-    state === 'completed' ? 'bg-accent' :
-    state === 'working'   ? 'bg-warn' :
-                            'bg-rule';
+    state === 'error'
+      ? 'bg-danger'
+      : state === 'completed'
+        ? 'bg-accent'
+        : state === 'working'
+          ? 'bg-warn'
+          : 'bg-rule';
   const pulsing = state === 'working';
   return (
     <div

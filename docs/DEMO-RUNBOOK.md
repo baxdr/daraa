@@ -30,15 +30,15 @@ Stay on the landing page. Point at the two tracks.
 
 Click **"ابدأ الاستشارة المجانية"**.
 
-| Question | Answer |
-|----------|--------|
-| وش تبي تسوي؟ | أبي أفتح مشروع جديد |
-| نوع المشروع؟ | مطعم / كوفي شوب |
-| في أي مدينة؟ | الرياض |
-| عدد الشركاء؟ | 2 |
-| رأس المال؟ | 80000 |
-| شريك غير سعودي؟ | لا — كلنا سعوديين |
-| وضع الموقع؟ | **لقينا محل ولم نوقّع العقد** |
+| Question        | Answer                        |
+| --------------- | ----------------------------- |
+| وش تبي تسوي؟    | أبي أفتح مشروع جديد           |
+| نوع المشروع؟    | مطعم / كوفي شوب               |
+| في أي مدينة؟    | الرياض                        |
+| عدد الشركاء؟    | 2                             |
+| رأس المال؟      | 80000                         |
+| شريك غير سعودي؟ | لا — كلنا سعوديين             |
+| وضع الموقع؟     | **لقينا محل ولم نوقّع العقد** |
 
 While the timeline runs, call out 2 A2A messages as they appear:
 
@@ -57,16 +57,16 @@ Scroll through the weekly roadmap. Cost summary: **~6,900–12,600 ريال · 4
 
 New tab: `/chat` → **"عندي مشروع شغّال"**.
 
-| Question | Answer |
-|----------|--------|
-| نوع الشركة | SaaS |
-| عدد الموظفين | 25 |
-| تعالج بيانات شخصية؟ | نعم |
-| عدد المستخدمين | أكثر من ١٠٠ ألف |
-| عيّنتم DPO؟ | لا |
-| أين البيانات؟ | خارج السعودية |
-| عقود مع جهات حكومية؟ | نعم |
-| URL | `http://localhost:3333/demo/novatech/index.html` |
+| Question             | Answer                                           |
+| -------------------- | ------------------------------------------------ |
+| نوع الشركة           | SaaS                                             |
+| عدد الموظفين         | 25                                               |
+| تعالج بيانات شخصية؟  | نعم                                              |
+| عدد المستخدمين       | أكثر من ١٠٠ ألف                                  |
+| عيّنتم DPO؟          | لا                                               |
+| أين البيانات؟        | خارج السعودية                                    |
+| عقود مع جهات حكومية؟ | نعم                                              |
+| URL                  | `http://localhost:3333/demo/novatech/index.html` |
 
 Point at the A2A messages:
 
@@ -116,13 +116,13 @@ Skip `noon.com` — rate-limits the scanner.
 
 ## If something breaks
 
-| Breakage | Response |
-|----------|----------|
-| Chat POST 500 | Reload the tab. If it persists, refresh the browser and restart. |
+| Breakage               | Response                                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------------------- |
+| Chat POST 500          | Reload the tab. If it persists, refresh the browser and restart.                         |
 | Scan stuck on timeline | Wait 30 s (fire-and-forget + polling). If still stuck, cancel and play the backup video. |
-| Nova Tech doesn't load | Use one of the live backup URLs. |
-| Claude API 429 | Fallbacks kick in automatically. Narrate: "نظامنا يشتغل حتى لو الـ AI API tripped." |
-| Internet down | Play the backup video. |
+| Nova Tech doesn't load | Use one of the live backup URLs.                                                         |
+| Claude API 429         | Fallbacks kick in automatically. Narrate: "نظامنا يشتغل حتى لو الـ AI API tripped."      |
+| Internet down          | Play the backup video.                                                                   |
 
 ---
 

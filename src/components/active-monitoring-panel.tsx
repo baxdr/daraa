@@ -31,8 +31,10 @@ export function ActiveMonitoringPanel({ renewals, totalEntities }: ActiveMonitor
           </h2>
         </div>
         <div className="rule mb-6" />
-        <div className="border border-accent/20 bg-accent-soft px-6 py-10 text-center rounded-md">
-          <div className="text-4xl mb-3" aria-hidden>✓</div>
+        <div className="rounded-md border border-accent/20 bg-accent-soft px-6 py-10 text-center">
+          <div className="mb-3 text-4xl" aria-hidden>
+            ✓
+          </div>
           <h3 className="font-display text-lg font-extrabold text-accent-strong">
             لا توجد رخص تحتاج تجديد دوري
           </h3>
@@ -46,7 +48,7 @@ export function ActiveMonitoringPanel({ renewals, totalEntities }: ActiveMonitor
 
   const critical = renewals.filter((r) => r.urgency === 'urgent' || r.urgency === 'overdue').length;
   const upcoming = renewals.filter((r) => r.urgency === 'soon' || r.urgency === 'notice').length;
-  const healthy  = renewals.filter((r) => r.urgency === 'ok').length;
+  const healthy = renewals.filter((r) => r.urgency === 'ok').length;
 
   return (
     <section className="mb-12">
@@ -58,7 +60,8 @@ export function ActiveMonitoringPanel({ renewals, totalEntities }: ActiveMonitor
           </h2>
         </div>
         <span className="font-mono text-[11px] text-muted">
-          {renewals.length.toString().padStart(2, '0')} من {totalEntities.toString().padStart(2, '0')} جهة
+          {renewals.length.toString().padStart(2, '0')} من{' '}
+          {totalEntities.toString().padStart(2, '0')} جهة
         </span>
       </div>
       <div className="rule mb-6" />
@@ -66,8 +69,8 @@ export function ActiveMonitoringPanel({ renewals, totalEntities }: ActiveMonitor
       {/* Summary pills */}
       <div className="mb-6 grid grid-cols-3 gap-0 border border-rule">
         <SummaryPill count={critical} label="تحتاج إجراء الآن" tone="danger" />
-        <SummaryPill count={upcoming} label="قرب موعد التجديد" tone="warn"   />
-        <SummaryPill count={healthy}  label="سارية"             tone="ok"     last />
+        <SummaryPill count={upcoming} label="قرب موعد التجديد" tone="warn" />
+        <SummaryPill count={healthy} label="سارية" tone="ok" last />
       </div>
 
       {/* Status rows */}
@@ -78,8 +81,7 @@ export function ActiveMonitoringPanel({ renewals, totalEntities }: ActiveMonitor
       </ul>
 
       <p className="mt-4 text-[11px] text-muted">
-        التنبيهات محسوبة على افتراض أن كل الرخص أُصدرت يوم إنشاء المشروع.
-        لو عندك تواريخ دقيقة،{' '}
+        التنبيهات محسوبة على افتراض أن كل الرخص أُصدرت يوم إنشاء المشروع. لو عندك تواريخ دقيقة،{' '}
         <a href="/chat" className="font-semibold text-accent hover:text-accent-strong">
           ابدأ مساراً تشغيلياً جديداً
         </a>{' '}
@@ -101,14 +103,12 @@ function SummaryPill({
   last?: boolean;
 }) {
   const color =
-    tone === 'danger' ? 'text-danger'       :
-    tone === 'warn'   ? 'text-warn-strong'  :
-                        'text-accent-strong';
+    tone === 'danger' ? 'text-danger' : tone === 'warn' ? 'text-warn-strong' : 'text-accent-strong';
   return (
-    <div
-      className={`px-5 py-4 text-center ${last ? '' : 'border-e border-rule'}`}
-    >
-      <div className={`font-display text-3xl font-extrabold tabular-nums leading-none md:text-4xl ${color}`}>
+    <div className={`px-5 py-4 text-center ${last ? '' : 'border-e border-rule'}`}>
+      <div
+        className={`font-display text-3xl font-extrabold tabular-nums leading-none md:text-4xl ${color}`}
+      >
         {String(count).padStart(2, '0')}
       </div>
       <div className="mt-2 text-[11px] leading-tight text-ink-2">{label}</div>
@@ -119,7 +119,9 @@ function SummaryPill({
 function RenewalRow({ renewal: r }: { renewal: RenewalEntry }) {
   const style = urgencyStyle(r.urgency);
   const dateLabel = r.nextDueAt.toLocaleDateString('ar-SA-u-ca-gregory', {
-    year: 'numeric', month: 'long', day: 'numeric',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   });
 
   return (
@@ -128,27 +130,36 @@ function RenewalRow({ renewal: r }: { renewal: RenewalEntry }) {
       role="region"
       aria-label={`${r.nameSimpleAr} - ${style.label}`}
     >
-      <div
-        className={style.bar}
-        aria-hidden
-        title={style.label}
-      />
+      <div className={style.bar} aria-hidden title={style.label} />
       <div className="px-5 py-4">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
           <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-wrap items-center gap-2">
               <div
-                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold tracking-widest border ${
-                  r.urgency === 'overdue' || r.urgency === 'urgent' ? 'bg-danger/10 border-danger/40 text-danger' :
-                  r.urgency === 'soon' ? 'bg-warn-soft border-warn/40 text-warn-strong' :
-                  r.urgency === 'notice' ? 'bg-warn/10 border-warn/30 text-warn-strong' :
-                  'bg-accent-soft border-accent/30 text-accent-strong'
+                className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-[11px] font-bold tracking-widest ${
+                  r.urgency === 'overdue' || r.urgency === 'urgent'
+                    ? 'border-danger/40 bg-danger/10 text-danger'
+                    : r.urgency === 'soon'
+                      ? 'border-warn/40 bg-warn-soft text-warn-strong'
+                      : r.urgency === 'notice'
+                        ? 'border-warn/30 bg-warn/10 text-warn-strong'
+                        : 'border-accent/30 bg-accent-soft text-accent-strong'
                 }`}
                 role="status"
                 aria-label={style.label}
-                title={r.urgency === 'overdue' ? 'متأخر عن موعد التجديد — جدّد فوراً' : r.urgency === 'urgent' ? 'عاجل جداً — ابدأ الإجراءات الآن' : r.urgency === 'soon' ? 'سيأتي قريباً — خطّط الآن' : r.urgency === 'notice' ? 'للتذكير — خطّط مبكراً' : 'سارية وآمنة'}
+                title={
+                  r.urgency === 'overdue'
+                    ? 'متأخر عن موعد التجديد — جدّد فوراً'
+                    : r.urgency === 'urgent'
+                      ? 'عاجل جداً — ابدأ الإجراءات الآن'
+                      : r.urgency === 'soon'
+                        ? 'سيأتي قريباً — خطّط الآن'
+                        : r.urgency === 'notice'
+                          ? 'للتذكير — خطّط مبكراً'
+                          : 'سارية وآمنة'
+                }
               >
-                <span aria-hidden className="w-2 h-2 rounded-full bg-current" />
+                <span aria-hidden className="h-2 w-2 rounded-full bg-current" />
                 {style.icon}
               </div>
               <h3 className="font-display text-lg font-extrabold leading-tight tracking-tight text-ink">
@@ -158,11 +169,16 @@ function RenewalRow({ renewal: r }: { renewal: RenewalEntry }) {
             <div className="mt-1 text-xs text-muted">
               دورة: {r.renewalPeriodAr}
               <span className="mx-2 text-rule">·</span>
-              موعد التجديد: <span className="font-mono" dir="ltr">{dateLabel}</span>
+              موعد التجديد:{' '}
+              <span className="font-mono" dir="ltr">
+                {dateLabel}
+              </span>
             </div>
           </div>
           <div className="shrink-0 text-end">
-            <div className={`font-display text-2xl font-extrabold tabular-nums leading-none ${style.numColor}`}>
+            <div
+              className={`font-display text-2xl font-extrabold tabular-nums leading-none ${style.numColor}`}
+            >
               {r.daysRemaining < 0 ? `-${Math.abs(r.daysRemaining)}` : r.daysRemaining}
             </div>
             <div className="mt-0.5 text-[11px] text-muted">يوم متبقي</div>

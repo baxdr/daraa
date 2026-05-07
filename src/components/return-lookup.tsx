@@ -42,7 +42,7 @@ export function ReturnLookup() {
       });
       clearTimeout(timeoutId);
       if (!res.ok) {
-        const body = await res.json().catch(() => ({} as { error?: string }));
+        const body = await res.json().catch(() => ({}) as { error?: string });
         setError(body.error ?? `تعذّر البحث (${res.status})`);
         return;
       }
@@ -53,7 +53,9 @@ export function ReturnLookup() {
       setError(
         e instanceof Error && e.name === 'AbortError'
           ? 'انتهت المهلة — حاول مرة أخرى'
-          : e instanceof Error ? e.message : 'خطأ غير متوقع',
+          : e instanceof Error
+            ? e.message
+            : 'خطأ غير متوقع',
       );
     } finally {
       setSubmitting(false);
@@ -62,7 +64,7 @@ export function ReturnLookup() {
 
   return (
     <div>
-      <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row">
+      <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-3 sm:flex-row">
         <input
           type="email"
           required
@@ -93,9 +95,7 @@ export function ReturnLookup() {
 
       {results && results.length === 0 && (
         <div className="mt-8 border border-rule bg-paper-2 px-5 py-6 text-center">
-          <p className="text-sm text-ink-2">
-            ما لقينا مشاريع مربوطة بهذا البريد.
-          </p>
+          <p className="text-sm text-ink-2">ما لقينا مشاريع مربوطة بهذا البريد.</p>
           <Link
             href="/chat"
             className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-accent hover:text-accent-strong"
@@ -108,9 +108,7 @@ export function ReturnLookup() {
 
       {results && results.length > 0 && (
         <div className="mt-8">
-          <div className="eyebrow mb-3">
-            {results.length.toString().padStart(2, '0')} مشروع
-          </div>
+          <div className="eyebrow mb-3">{results.length.toString().padStart(2, '0')} مشروع</div>
           <ul className="space-y-3">
             {results.map((p) => (
               <li key={p.id}>
@@ -119,7 +117,7 @@ export function ReturnLookup() {
                   className="grid grid-cols-[1fr_auto] items-center gap-4 border border-rule bg-white px-5 py-4 transition-colors hover:border-ink hover:bg-paper-2/60"
                 >
                   <div className="min-w-0">
-                    <div className="font-display text-lg font-extrabold tracking-tight text-ink truncate">
+                    <div className="truncate font-display text-lg font-extrabold tracking-tight text-ink">
                       {p.companyName || 'مشروع بدون اسم'}
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
@@ -127,7 +125,13 @@ export function ReturnLookup() {
                       <span className="text-rule">·</span>
                       <span>{VERTICAL_LABELS[p.vertical] ?? p.vertical}</span>
                       <span className="text-rule">·</span>
-                      <span>{new Date(p.createdAt).toLocaleDateString('ar-SA-u-ca-gregory', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                      <span>
+                        {new Date(p.createdAt).toLocaleDateString('ar-SA-u-ca-gregory', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </span>
                     </div>
                   </div>
                   <StatusPill status={p.status} />
@@ -149,18 +153,22 @@ function modeLabel(m: ProjectSummary['mode']): string {
 
 function StatusPill({ status }: { status: ProjectSummary['status'] }) {
   const style =
-    status === 'complete' ? 'border-accent/30 bg-accent-soft text-accent-strong' :
-    status === 'running'  ? 'border-warn/30 bg-warn-soft text-warn-strong' :
-    status === 'error'    ? 'border-danger/40 bg-danger/5 text-danger' :
-                            'border-rule bg-paper-2 text-ink-2';
+    status === 'complete'
+      ? 'border-accent/30 bg-accent-soft text-accent-strong'
+      : status === 'running'
+        ? 'border-warn/30 bg-warn-soft text-warn-strong'
+        : status === 'error'
+          ? 'border-danger/40 bg-danger/5 text-danger'
+          : 'border-rule bg-paper-2 text-ink-2';
   const label =
-    status === 'complete' ? '✓ جاهز' :
-    status === 'running'  ? 'جارٍ' :
-    status === 'error'    ? 'خطأ' :
-                            'قيد التحضير';
+    status === 'complete'
+      ? '✓ جاهز'
+      : status === 'running'
+        ? 'جارٍ'
+        : status === 'error'
+          ? 'خطأ'
+          : 'قيد التحضير';
   return (
-    <span className={`shrink-0 border px-2.5 py-1 text-[11px] font-bold ${style}`}>
-      {label}
-    </span>
+    <span className={`shrink-0 border px-2.5 py-1 text-[11px] font-bold ${style}`}>{label}</span>
   );
 }

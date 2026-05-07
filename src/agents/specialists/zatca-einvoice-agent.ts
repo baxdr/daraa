@@ -9,9 +9,7 @@ export class ZatcaEinvoiceAgent implements Agent {
   readonly dependencies: readonly AgentId[] = ['zatca'];
 
   async run(_context: AgentContext, inbox: AgentMessage[]): Promise<AgentResult> {
-    const zatcaSignal = inbox.find(
-      (m) => m.from === 'zatca' && m.payload?.taxRegistered === true,
-    );
+    const zatcaSignal = inbox.find((m) => m.from === 'zatca' && m.payload?.taxRegistered === true);
     if (!zatcaSignal) {
       return { status: 'blocked', reason: 'بانتظار إنجاز التسجيل الضريبي الأساسي' };
     }

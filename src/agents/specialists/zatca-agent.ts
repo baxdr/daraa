@@ -25,16 +25,23 @@ export class ZatcaAgent implements Agent {
 
     // Research agent may have broadcast a VAT-relevant update.
     const vatUpdate = inbox.find(
-      (m) => m.from === 'research' && m.type === 'update' &&
+      (m) =>
+        m.from === 'research' &&
+        m.type === 'update' &&
         /فوترة|الفوترة|VAT|ضريبة/.test(String(m.payload?.summary ?? m.messageAr ?? '')),
     );
 
     // Compose requirements based on entity type + mode.
-    const requirements: string[] = ['تسجيل المنشأة في بوابة ZATCA', 'ربط عنوان وطني ورقم هوية مالك/مفوّض'];
+    const requirements: string[] = [
+      'تسجيل المنشأة في بوابة ZATCA',
+      'ربط عنوان وطني ورقم هوية مالك/مفوّض',
+    ];
     if (isSoleProprietor) {
       requirements.push('تسجيل VAT يصير إلزامي عند تجاوز ٣٧٥,٠٠٠ ريال إيراد سنوي');
     } else {
-      requirements.push('تسجيل VAT إلزامي من اليوم الأول — الشركات ذات المسؤولية المحدودة لا يعفى عنها حد الإيراد');
+      requirements.push(
+        'تسجيل VAT إلزامي من اليوم الأول — الشركات ذات المسؤولية المحدودة لا يعفى عنها حد الإيراد',
+      );
     }
 
     const explainAr = isSoleProprietor
@@ -47,9 +54,10 @@ export class ZatcaAgent implements Agent {
 
     // Compliance mode: we don't check a real tax filing status (no API). But
     // we surface the same data with a renewal-flavoured framing.
-    const estimatedTimeAr = context.mode === 'compliance'
-      ? 'اشتراك سنوي مستمر — تأكّد من حالة التسجيل'
-      : 'يوم واحد (إلكتروني)';
+    const estimatedTimeAr =
+      context.mode === 'compliance'
+        ? 'اشتراك سنوي مستمر — تأكّد من حالة التسجيل'
+        : 'يوم واحد (إلكتروني)';
 
     return {
       status: 'complete',
@@ -63,7 +71,7 @@ export class ZatcaAgent implements Agent {
         officialUrl: 'https://zatca.gov.sa',
         renewalPeriodAr: 'سنوي',
         requirements,
-        commonMistakeAr,
+        ...(commonMistakeAr !== undefined ? { commonMistakeAr } : {}),
       },
       outbox: [
         {

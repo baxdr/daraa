@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getProject } from '@/lib/project-store';
@@ -12,16 +11,21 @@ import { SaveProjectBanner } from '@/components/save-project-banner';
 import { OperationalDashboard } from '@/components/operational-dashboard';
 import { ActiveMonitoringPanel } from '@/components/active-monitoring-panel';
 import { computeRenewals } from '@/lib/renewals';
-import { DashboardSkeleton } from '@/components/dashboard-skeleton';
 import type { DocumentKind } from '@/agents/document-agent';
 import type { Gap } from '@/agents/analysis-agent';
 import type { Answers } from '@/agents/chat-flow';
+import type { NameCheckResult } from '@/agents/runtime/types';
 
 export const dynamic = 'force-dynamic';
 
 const CITY_LABELS: Record<string, string> = {
-  riyadh: 'الرياض', jeddah: 'جدة', mecca: 'مكة المكرمة',
-  medina: 'المدينة المنورة', dammam: 'الدمام', khobar: 'الخُبَر', other: 'مدينة أخرى',
+  riyadh: 'الرياض',
+  jeddah: 'جدة',
+  mecca: 'مكة المكرمة',
+  medina: 'المدينة المنورة',
+  dammam: 'الدمام',
+  khobar: 'الخُبَر',
+  other: 'مدينة أخرى',
 };
 
 /**
@@ -37,11 +41,33 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
     redirect(`/project/${project.id}/agents`);
   }
   if (project.status === 'error') {
-    return <ProjectErrorState projectId={project.id} message={project.errorMessage} />;
+    return (
+      <ProjectErrorState
+        projectId={project.id}
+        {...(project.errorMessage !== undefined ? { message: project.errorMessage } : {})}
+      />
+    );
   }
 
-  const { mode, companyName, vertical, cityId, entities, roadmap, costSummary, topWarnings, analysis, complianceScore, totalFineCeilingSar, gaps, answers, url, messages, operationalReport } = project;
-  const cityLabel = cityId ? CITY_LABELS[cityId] ?? cityId : null;
+  const {
+    mode,
+    companyName,
+    vertical,
+    cityId,
+    entities,
+    roadmap,
+    costSummary,
+    topWarnings,
+    analysis,
+    complianceScore,
+    totalFineCeilingSar,
+    gaps,
+    answers,
+    url,
+    messages,
+    operationalReport,
+  } = project;
+  const cityLabel = cityId ? (CITY_LABELS[cityId] ?? cityId) : null;
   const verticalLabel = verticalDisplayLabel(vertical);
   const isCompliance = mode === 'compliance';
   const isOperational = mode === 'operational_compliance';
@@ -50,11 +76,17 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
     <main className="mx-auto max-w-4xl px-6 py-10 md:px-10 md:py-14">
       {/* Breadcrumb */}
       <nav aria-label="مسار التنقّل" className="mb-6 flex items-center gap-2 text-xs text-muted">
-        <Link href="/" className="hover:text-ink">درع</Link>
+        <Link href="/" className="hover:text-ink">
+          درع
+        </Link>
         <span aria-hidden>›</span>
-        <Link href="/chat" className="hover:text-ink">المحادثة</Link>
+        <Link href="/chat" className="hover:text-ink">
+          المحادثة
+        </Link>
         <span aria-hidden>›</span>
-        <Link href={`/project/${project.id}/agents`} className="hover:text-ink">الوكلاء</Link>
+        <Link href={`/project/${project.id}/agents`} className="hover:text-ink">
+          الوكلاء
+        </Link>
         <span aria-hidden>›</span>
         <span className="font-medium text-ink-2">
           {isOperational ? 'الامتثال التشغيلي' : isCompliance ? 'تقرير الامتثال' : 'خريطة التأسيس'}
@@ -63,11 +95,15 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
 
       {/* Masthead */}
       <header className="mb-10">
-        <div className="flex flex-wrap items-end justify-between gap-4 mb-4">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <div className="mb-3 flex items-center gap-2 flex-wrap">
-              <span className="pill text-[11px] font-bold tracking-widest text-accent-strong border-accent/30 bg-accent-soft">
-                {isOperational ? '◉ الامتثال التشغيلي' : isCompliance ? '◉ تقرير الامتثال' : '◉ خريطة التأسيس'}
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <span className="pill border-accent/30 bg-accent-soft text-[11px] font-bold tracking-widest text-accent-strong">
+                {isOperational
+                  ? '◉ الامتثال التشغيلي'
+                  : isCompliance
+                    ? '◉ تقرير الامتثال'
+                    : '◉ خريطة التأسيس'}
               </span>
               <StatusModeIndicator
                 mode={isOperational ? 'operational' : isCompliance ? 'compliance' : 'establishment'}
@@ -78,7 +114,12 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
             </h1>
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-2">
               <span>{verticalLabel}</span>
-              {cityLabel && (<><span className="text-rule">·</span><span>{cityLabel}</span></>)}
+              {cityLabel && (
+                <>
+                  <span className="text-rule">·</span>
+                  <span>{cityLabel}</span>
+                </>
+              )}
               {url && (
                 <>
                   <span className="text-rule">·</span>
@@ -87,7 +128,7 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
                     target="_blank"
                     rel="noopener noreferrer"
                     dir="ltr"
-                    className="font-mono text-xs border-b border-rule pb-0.5 hover:border-accent hover:text-accent"
+                    className="border-b border-rule pb-0.5 font-mono text-xs hover:border-accent hover:text-accent"
                   >
                     {url}
                   </a>
@@ -106,21 +147,25 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
 
       <div className="rule-ink mb-10" />
 
-      <SaveProjectBanner projectId={project.id} initialEmail={project.email} />
+      <SaveProjectBanner
+        projectId={project.id}
+        {...(project.email !== undefined ? { initialEmail: project.email } : {})}
+      />
 
       {/* Trade-name finding — hoisted to the top for establishment projects so it's
           the first answer a new founder sees. Full detail still renders inside the
           MCI entity card below. */}
-      {!isCompliance && (() => {
-        const mciEntity = entities.find((e) => e.id === 'mci');
-        const check = mciEntity?.nameCheck;
-        if (!check || check.status === 'skipped') return null;
-        return (
-          <section className="mb-10">
-            <TradeNameBanner check={check} companyName={companyName} />
-          </section>
-        );
-      })()}
+      {!isCompliance &&
+        (() => {
+          const mciEntity = entities.find((e) => e.id === 'mci');
+          const check = mciEntity?.nameCheck;
+          if (!check || check.status === 'skipped') return null;
+          return (
+            <section className="mb-10">
+              <TradeNameBanner check={check} companyName={companyName} />
+            </section>
+          );
+        })()}
 
       {/* Prominent warnings — top of page, before anything else. */}
       {topWarnings.length > 0 && (
@@ -128,7 +173,9 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
           {topWarnings.map((w, i) => (
             <div key={i} className="border-s-4 border-warn bg-warn-soft px-6 py-5">
               <div className="flex items-center gap-3">
-                <span aria-hidden className="text-xl">⚠️</span>
+                <span aria-hidden className="text-xl">
+                  ⚠️
+                </span>
                 <span className="font-display text-xl font-extrabold tracking-tight text-warn-strong">
                   تنبيه مهم
                 </span>
@@ -153,12 +200,21 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
             <ScoreRing
               score={complianceScore ?? 0}
               label="نسبة الامتثال"
-              sublabel={(complianceScore ?? 0) >= 75 ? 'وضعك جيد — في نقاط يمكن تحسينها.' : (complianceScore ?? 0) >= 50 ? 'في مخاطر متوسطة. راجع الفجوات أدناه.' : 'في فجوات حرجة ينبغي معالجتها قبل أي تفتيش.'}
+              sublabel={
+                (complianceScore ?? 0) >= 75
+                  ? 'وضعك جيد — في نقاط يمكن تحسينها.'
+                  : (complianceScore ?? 0) >= 50
+                    ? 'في مخاطر متوسطة. راجع الفجوات أدناه.'
+                    : 'في فجوات حرجة ينبغي معالجتها قبل أي تفتيش.'
+              }
             />
           </div>
           <div className="border-s-2 border-ink md:ps-8">
             <div className="eyebrow">الغرامة القصوى الممكنة</div>
-            <div className="mt-3 font-display text-5xl font-extrabold leading-none tabular-nums tracking-tighter text-danger sm:text-6xl md:text-7xl" style={{ wordBreak: 'break-word' }}>
+            <div
+              className="mt-3 font-display text-5xl font-extrabold tabular-nums leading-none tracking-tighter text-danger sm:text-6xl md:text-7xl"
+              style={{ wordBreak: 'break-word' }}
+            >
               <NumberTicker
                 target={totalFineCeilingSar ?? 0}
                 ariaLabel={`الغرامة القصوى الممكنة: ${(totalFineCeilingSar ?? 0).toLocaleString('en-US')} ريال سعودي`}
@@ -168,7 +224,8 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
               ريال سعودي
             </div>
             <p className="mt-5 max-w-sm text-sm leading-relaxed text-ink-2">
-              سقف نظامي — مجموع الحد الأقصى للغرامات على الفجوات المؤكدة. أغلبها يُتفادى بخطوات أدناه.
+              سقف نظامي — مجموع الحد الأقصى للغرامات على الفجوات المؤكدة. أغلبها يُتفادى بخطوات
+              أدناه.
             </p>
           </div>
         </section>
@@ -180,9 +237,11 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
           <StatCell label="الجهات المطلوبة" value={entities.length.toString()} />
           <StatCell
             label="الرسوم التقديرية"
-            value={costSummary.maxSar === 0
-              ? 'مجاني'
-              : `${costSummary.minSar.toLocaleString('en-US')}–${costSummary.maxSar.toLocaleString('en-US')} ريال`}
+            value={
+              costSummary.maxSar === 0
+                ? 'مجاني'
+                : `${costSummary.minSar.toLocaleString('en-US')}–${costSummary.maxSar.toLocaleString('en-US')} ريال`
+            }
             note="رسوم الجهات فقط"
           />
           <StatCell
@@ -198,9 +257,12 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
       {isCompliance && gaps && gaps.length > 0 && (
         <section className="mb-12">
           <div className="mb-6 flex items-baseline justify-between">
-            <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">الفجوات المكتشفة</h2>
+            <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">
+              الفجوات المكتشفة
+            </h2>
             <span className="font-mono text-xs tabular-nums text-muted">
-              {gaps.length.toString().padStart(2, '0')} / {analysis?.applicableRuleCount.toString().padStart(2, '0') ?? '—'}
+              {gaps.length.toString().padStart(2, '0')} /{' '}
+              {analysis?.applicableRuleCount.toString().padStart(2, '0') ?? '—'}
             </span>
           </div>
           <div className="rule mb-6" />
@@ -222,20 +284,20 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
             </span>
           </div>
           <div className="rule mb-6" />
-          <div className="border border-accent/20 bg-accent-soft px-6 py-10 text-center rounded-md">
-            <div className="text-4xl mb-3" aria-hidden>✓</div>
-            <h3 className="font-display text-2xl font-extrabold text-accent-strong">
-              امتثال كامل
-            </h3>
-            <p className="mt-4 text-sm leading-relaxed text-ink-2 max-w-md mx-auto">
-              ما لقينا أي فجوات في الفحص الحالي. استمر في مراجعة التحديثات التنظيمية — سنُشعرك إذا صدرت متطلبات جديدة من الجهات.
+          <div className="rounded-md border border-accent/20 bg-accent-soft px-6 py-10 text-center">
+            <div className="mb-3 text-4xl" aria-hidden>
+              ✓
+            </div>
+            <h3 className="font-display text-2xl font-extrabold text-accent-strong">امتثال كامل</h3>
+            <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-ink-2">
+              ما لقينا أي فجوات في الفحص الحالي. استمر في مراجعة التحديثات التنظيمية — سنُشعرك إذا
+              صدرت متطلبات جديدة من الجهات.
             </p>
-            <Link
-              href="/chat"
-              className="btn-outline mt-5 inline-flex text-sm"
-            >
+            <Link href="/chat" className="btn-outline mt-5 inline-flex text-sm">
               أعد الفحص
-              <span aria-hidden className="ms-2">←</span>
+              <span aria-hidden className="ms-2">
+                ←
+              </span>
             </Link>
           </div>
         </section>
@@ -244,7 +306,7 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
       {/* Roadmap */}
       {roadmap.length > 0 && (
         <section className="mb-12">
-          <div className="mb-6 flex items-baseline justify-between flex-wrap gap-2">
+          <div className="mb-6 flex flex-wrap items-baseline justify-between gap-2">
             <div>
               <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">
                 {isCompliance ? 'الجهات المُطابَقة' : 'خريطة الطريق'}
@@ -255,22 +317,38 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
                   <>
                     <span className="text-rule">·</span>
                     <span className="font-semibold">
-                      إجمالي الرسوم: <span className="text-ink font-display">{costSummary.minSar.toLocaleString('en-US')}–{costSummary.maxSar.toLocaleString('en-US')}</span> ريال
+                      إجمالي الرسوم:{' '}
+                      <span className="font-display text-ink">
+                        {costSummary.minSar.toLocaleString('en-US')}–
+                        {costSummary.maxSar.toLocaleString('en-US')}
+                      </span>{' '}
+                      ريال
                     </span>
                   </>
                 )}
               </div>
             </div>
-            <span className="font-mono text-xs tabular-nums text-muted">{roadmap.length.toString().padStart(2, '0')} مرحلة</span>
+            <span className="font-mono text-xs tabular-nums text-muted">
+              {roadmap.length.toString().padStart(2, '0')} مرحلة
+            </span>
           </div>
           <div className="rule mb-8" />
           <div className="space-y-10">
             {roadmap.map((week, wi) => {
               let running = 0;
-              for (let j = 0; j < wi; j++) running += roadmap[j].entities.length;
-              const weekTotalMin = week.entities.reduce((sum, e) => sum + e.estimatedCostSar.min, 0);
-              const weekTotalMax = week.entities.reduce((sum, e) => sum + e.estimatedCostSar.max, 0);
-              const weekTotalCost = weekTotalMax === 0 ? 'مجاني' : `${weekTotalMin.toLocaleString('en-US')}–${weekTotalMax.toLocaleString('en-US')}`;
+              for (let j = 0; j < wi; j++) running += roadmap[j]?.entities.length ?? 0;
+              const weekTotalMin = week.entities.reduce(
+                (sum, e) => sum + e.estimatedCostSar.min,
+                0,
+              );
+              const weekTotalMax = week.entities.reduce(
+                (sum, e) => sum + e.estimatedCostSar.max,
+                0,
+              );
+              const weekTotalCost =
+                weekTotalMax === 0
+                  ? 'مجاني'
+                  : `${weekTotalMin.toLocaleString('en-US')}–${weekTotalMax.toLocaleString('en-US')}`;
               return (
                 <div key={week.label}>
                   <div className="mb-4 flex items-baseline gap-4">
@@ -278,7 +356,7 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
                       <span className="font-display text-3xl font-extrabold tabular-nums leading-none text-ink md:text-4xl">
                         {String(wi + 1).padStart(2, '0')}
                       </span>
-                      <div className="h-6 w-1 bg-accent rounded-full" aria-hidden />
+                      <div className="h-6 w-1 rounded-full bg-accent" aria-hidden />
                     </div>
                     <div className="flex-1">
                       <div className="eyebrow">المرحلة</div>
@@ -287,7 +365,8 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
                       </div>
                       {!isCompliance && (
                         <div className="mt-1 text-xs text-ink-2">
-                          <span className="font-semibold text-ink">{week.entities.length}</span> {week.entities.length === 1 ? 'جهة' : 'جهات'} ·
+                          <span className="font-semibold text-ink">{week.entities.length}</span>{' '}
+                          {week.entities.length === 1 ? 'جهة' : 'جهات'} ·
                           <span className="mx-1">الرسوم: {weekTotalCost} ريال</span>
                         </div>
                       )}
@@ -295,9 +374,7 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
                   </div>
                   <div className="space-y-4">
                     {week.entities.map((entity, ei) => {
-                      const incoming = messages.filter(
-                        (m) => m.to === entity.id || m.to === 'ALL',
-                      );
+                      const incoming = messages.filter((m) => m.to === entity.id || m.to === 'ALL');
                       const outgoing = messages.filter((m) => m.from === entity.id);
                       return (
                         <EntityCard
@@ -320,15 +397,12 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
       {/* Active monitoring — the "ongoing operation" phase for every project
           once the pipeline completes. Operational mode shows its own richer
           timeline above, so we suppress this panel there. */}
-      {!isOperational && project.phase === 'active_monitoring' && (() => {
-        const renewals = computeRenewals(entities, new Date(project.createdAt));
-        return (
-          <ActiveMonitoringPanel
-            renewals={renewals}
-            totalEntities={entities.length}
-          />
-        );
-      })()}
+      {!isOperational &&
+        project.phase === 'active_monitoring' &&
+        (() => {
+          const renewals = computeRenewals(entities, new Date(project.createdAt));
+          return <ActiveMonitoringPanel renewals={renewals} totalEntities={entities.length} />;
+        })()}
 
       {/* Documents — compliance mode (gap-driven) */}
       {isCompliance && gaps && (
@@ -342,22 +416,22 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
       {isCompliance && !url && (
         <section className="mb-12 border-s-2 border-accent bg-accent-soft/60 px-6 py-6">
           <div className="flex items-baseline gap-3">
-            <span aria-hidden className="text-lg">ℹ️</span>
+            <span aria-hidden className="text-lg">
+              ℹ️
+            </span>
             <h3 className="font-display text-xl font-extrabold tracking-tight text-accent-strong">
               هذا التقرير مبني على إجاباتك فقط
             </h3>
           </div>
           <p className="mt-3 text-sm leading-relaxed text-ink-2">
-            ما فحصنا موقعك — يعني ممكن يكون فيه فجوات إضافية ما نعرف عنها
-            (سياسة الخصوصية، رؤوس الأمان، أدوات التتبع، النماذج). عطنا رابط
-            موقعك عشان نعطيك تقرير أدق.
+            ما فحصنا موقعك — يعني ممكن يكون فيه فجوات إضافية ما نعرف عنها (سياسة الخصوصية، رؤوس
+            الأمان، أدوات التتبع، النماذج). عطنا رابط موقعك عشان نعطيك تقرير أدق.
           </p>
-          <Link
-            href="/chat"
-            className="btn-outline mt-5 inline-flex text-sm"
-          >
+          <Link href="/chat" className="btn-outline mt-5 inline-flex text-sm">
             أضف رابط الموقع وأعد الفحص
-            <span aria-hidden className="ms-2">←</span>
+            <span aria-hidden className="ms-2">
+              ←
+            </span>
           </Link>
         </section>
       )}
@@ -366,23 +440,24 @@ export default function ProjectPage({ params }: { params: { projectId: string } 
       {!isCompliance && (
         <section className="mb-12 border-s-2 border-ink bg-paper-2 px-6 py-7">
           <div className="flex items-baseline gap-3">
-            <span aria-hidden className="text-lg">🔄</span>
-            <h3 className="font-display text-2xl font-extrabold tracking-tight">
-              فتحت مشروعك؟
-            </h3>
+            <span aria-hidden className="text-lg">
+              🔄
+            </span>
+            <h3 className="font-display text-2xl font-extrabold tracking-tight">فتحت مشروعك؟</h3>
           </div>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
-            درع يقدر يفحص وضعك الحالي ويتأكد إنك ملتزم بكل الأنظمة — نفس
-            الجهات اللي جهّزناها لك فوق. بنسألك بعض أسئلة إضافية عن وضعك
-            (موظفين، بيانات، رخص سارية) وبنعطيك تقرير شامل بنسبة الامتثال
-            والفجوات.
+            درع يقدر يفحص وضعك الحالي ويتأكد إنك ملتزم بكل الأنظمة — نفس الجهات اللي جهّزناها لك
+            فوق. بنسألك بعض أسئلة إضافية عن وضعك (موظفين، بيانات، رخص سارية) وبنعطيك تقرير شامل
+            بنسبة الامتثال والفجوات.
           </p>
           <Link
             href={`/chat?continueFrom=${project.id}`}
             className="btn-ink mt-6 inline-flex text-sm"
           >
             ابدأ فحص الامتثال
-            <span aria-hidden className="ms-2">←</span>
+            <span aria-hidden className="ms-2">
+              ←
+            </span>
           </Link>
           <p className="mt-3 text-xs text-muted">
             اسم الشركة، نوع النشاط، والمدينة محفوظين — ما نعيد سؤالك عنهم.
@@ -420,11 +495,11 @@ function StatusModeIndicator({ mode }: { mode: 'establishment' | 'compliance' | 
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 border px-2 py-1 text-[11px] font-bold tracking-widest rounded ${config.bg} ${config.text} ${config.border}`}
+      className={`inline-flex items-center gap-1.5 rounded border px-2 py-1 text-[11px] font-bold tracking-widest ${config.bg} ${config.text} ${config.border}`}
       role="status"
       aria-label={`الحالة: ${config.label}`}
     >
-      <span aria-hidden className="w-2 h-2 rounded-full bg-current" />
+      <span aria-hidden className="h-2 w-2 rounded-full bg-current" />
       {config.label}
     </span>
   );
@@ -434,12 +509,18 @@ function StatusModeIndicator({ mode }: { mode: 'establishment' | 'compliance' | 
 
 function verticalDisplayLabel(v: string): string {
   switch (v) {
-    case 'restaurant':   return 'مطعم / كوفي شوب';
-    case 'salon':        return 'صالون / مركز تجميل';
-    case 'tech':         return 'شركة تقنية';
-    case 'services':     return 'متجر إلكتروني';
-    case 'construction': return 'مقاولات / بناء';
-    default:             return v;
+    case 'restaurant':
+      return 'مطعم / كوفي شوب';
+    case 'salon':
+      return 'صالون / مركز تجميل';
+    case 'tech':
+      return 'شركة تقنية';
+    case 'services':
+      return 'متجر إلكتروني';
+    case 'construction':
+      return 'مقاولات / بناء';
+    default:
+      return v;
   }
 }
 
@@ -449,7 +530,18 @@ function buildRecommendations(
 ): Array<{ kind: DocumentKind; priorityAr: string; whyAr: string }> {
   const recs: Array<{ kind: DocumentKind; priorityAr: string; whyAr: string }> = [];
 
-  const hasPolicyGap = gaps.some((g) => ['pdpl_privacy_policy_published','pdpl_arabic_available','pdpl_purpose_stated','pdpl_retention_stated','pdpl_cross_border_disclosed','pdpl_third_party_disclosed','pdpl_trackers_disclosed','pdpl_form_consent_present'].includes(g.ruleId));
+  const hasPolicyGap = gaps.some((g) =>
+    [
+      'pdpl_privacy_policy_published',
+      'pdpl_arabic_available',
+      'pdpl_purpose_stated',
+      'pdpl_retention_stated',
+      'pdpl_cross_border_disclosed',
+      'pdpl_third_party_disclosed',
+      'pdpl_trackers_disclosed',
+      'pdpl_form_consent_present',
+    ].includes(g.ruleId),
+  );
   const hasDpoGap = gaps.some((g) => g.ruleId === 'pdpl_dpo_required');
   const processesData = answers.q3_processes_personal_data === 'yes';
 
@@ -502,13 +594,7 @@ function ProjectErrorState({ projectId, message }: { projectId: string; message?
   );
 }
 
-function TradeNameBanner({
-  check,
-  companyName,
-}: {
-  check: import('@/agents/runtime/types').NameCheckResult;
-  companyName: string;
-}) {
+function TradeNameBanner({ check, companyName }: { check: NameCheckResult; companyName: string }) {
   const palette =
     check.status === 'likely_available'
       ? {
@@ -517,23 +603,25 @@ function TradeNameBanner({
           heading: `الاسم "${companyName}" — متاح على الأرجح`,
         }
       : check.status === 'likely_taken'
-      ? {
-          wrap: 'border-danger bg-danger/5',
-          accent: 'text-danger',
-          heading: `الاسم "${companyName}" — يبدو محجوزاً`,
-        }
-      : {
-          wrap: 'border-ink bg-paper-2',
-          accent: 'text-ink-2',
-          heading: `الاسم "${companyName}" — الفحص غير حاسم`,
-        };
+        ? {
+            wrap: 'border-danger bg-danger/5',
+            accent: 'text-danger',
+            heading: `الاسم "${companyName}" — يبدو محجوزاً`,
+          }
+        : {
+            wrap: 'border-ink bg-paper-2',
+            accent: 'text-ink-2',
+            heading: `الاسم "${companyName}" — الفحص غير حاسم`,
+          };
 
   return (
     <div className={`border-s-4 px-6 py-5 ${palette.wrap}`}>
       <div className="flex items-baseline justify-between gap-4">
         <div>
           <div className="eyebrow !text-[10px]">نتيجة فحص الاسم التجاري</div>
-          <h2 className={`mt-1 font-display text-xl font-extrabold tracking-tight md:text-2xl ${palette.accent}`}>
+          <h2
+            className={`mt-1 font-display text-xl font-extrabold tracking-tight md:text-2xl ${palette.accent}`}
+          >
             {palette.heading}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-ink">{check.summaryAr}</p>
@@ -550,7 +638,7 @@ function TradeNameBanner({
 
       {check.alternatives && check.alternatives.length > 0 && (
         <div className="mt-4 border-t border-rule/70 pt-3">
-          <div className="text-[11px] font-mono tracking-widest text-muted">بدائل مقترحة</div>
+          <div className="font-mono text-[11px] tracking-widest text-muted">بدائل مقترحة</div>
           <ul className="mt-2 flex flex-wrap gap-2">
             {check.alternatives.map((alt, i) => (
               <li

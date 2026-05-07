@@ -66,8 +66,8 @@ export async function scanPrivacyPolicy(siteUrl: string): Promise<PrivacyPolicyC
     language,
     hasArabicVersion,
     rawTextExcerpt: text.slice(0, 500),
-    analysis,
-    error: claudeError,
+    ...(analysis !== undefined ? { analysis } : {}),
+    ...(claudeError !== undefined ? { error: claudeError } : {}),
   };
 }
 

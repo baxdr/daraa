@@ -41,9 +41,8 @@ export class UrlGuardError extends Error {
   }
 }
 
-const USER_AGENT =
-  'Mozilla/5.0 (compatible; DaraaComplianceScanner/1.0; +https://daraa.sa/bot)';
-const DEFAULT_MAX_BYTES = 2 * 1024 * 1024;  // 2 MB
+const USER_AGENT = 'Mozilla/5.0 (compatible; DaraaComplianceScanner/1.0; +https://daraa.sa/bot)';
+const DEFAULT_MAX_BYTES = 2 * 1024 * 1024; // 2 MB
 const DEFAULT_MAX_HOPS = 3;
 const DEFAULT_TIMEOUT_MS = 12_000;
 
@@ -87,10 +86,7 @@ export async function assertPublicHost(hostname: string): Promise<void> {
   // Resolve A + AAAA; a host can resolve to both, and we fail if ANY address is private.
   let addrs: string[];
   try {
-    const [a, aaaa] = await Promise.allSettled([
-      dns.resolve4(hostname),
-      dns.resolve6(hostname),
-    ]);
+    const [a, aaaa] = await Promise.allSettled([dns.resolve4(hostname), dns.resolve6(hostname)]);
     addrs = [
       ...(a.status === 'fulfilled' ? a.value : []),
       ...(aaaa.status === 'fulfilled' ? aaaa.value : []),
@@ -119,26 +115,36 @@ export function isPublicIp(addr: string): boolean {
 }
 
 function isPublicIpv4(addr: string): boolean {
-  const [a, b] = addr.split('.').map((n) => Number.parseInt(n, 10));
-  if (a === 0)   return false;                // 0.0.0.0/8 "this network"
-  if (a === 10)  return false;                // 10.0.0.0/8 private
-  if (a === 127) return false;                // loopback
-  if (a === 169 && b === 254) return false;   // link-local + cloud metadata
+  const parts = addr.split('.').map((n) => Number.parseInt(n, 10));
+  if (parts.length !== 4) return false;
+  const [a, b, c, d] = parts as [number, number, number, number];
+  if ([a, b, c, d].some((n) => Number.isNaN(n) || n < 0 || n > 255)) return false;
+  if (a === 0) return false; // 0.0.0.0/8 "this network"
+  if (a === 10) return false; // 10.0.0.0/8 private
+  if (a === 127) return false; // loopback
+  if (a === 169 && b === 254) return false; // link-local + cloud metadata
   if (a === 172 && b >= 16 && b <= 31) return false; // 172.16.0.0/12 private
-  if (a === 192 && b === 168) return false;   // 192.168.0.0/16 private
+  if (a === 192 && b === 168) return false; // 192.168.0.0/16 private
   if (a === 100 && b >= 64 && b <= 127) return false; // CGNAT 100.64.0.0/10
   if (a === 198 && (b === 18 || b === 19)) return false; // benchmark 198.18.0.0/15
-  if (a === 224 || a === 239) return false;   // multicast
-  if (a === 255 && b === 255) return false;   // broadcast
+  if (a === 224 || a === 239) return false; // multicast
+  if (a === 255 && b === 255) return false; // broadcast
   return a >= 1 && a <= 254;
 }
 
 function isPublicIpv6(addr: string): boolean {
   const lower = addr.toLowerCase();
-  if (lower === '::' || lower === '::1') return false;                    // unspecified + loopback
-  if (lower.startsWith('fe80:') || lower.startsWith('fe8') || lower.startsWith('fe9') || lower.startsWith('fea') || lower.startsWith('feb')) return false; // link-local
-  if (lower.startsWith('fc') || lower.startsWith('fd')) return false;     // unique-local
-  if (lower.startsWith('ff')) return false;                                // multicast
+  if (lower === '::' || lower === '::1') return false; // unspecified + loopback
+  if (
+    lower.startsWith('fe80:') ||
+    lower.startsWith('fe8') ||
+    lower.startsWith('fe9') ||
+    lower.startsWith('fea') ||
+    lower.startsWith('feb')
+  )
+    return false; // link-local
+  if (lower.startsWith('fc') || lower.startsWith('fd')) return false; // unique-local
+  if (lower.startsWith('ff')) return false; // multicast
   if (lower.startsWith('::ffff:')) {
     // IPv4-mapped — extract and check the v4 side.
     const v4 = lower.replace('::ffff:', '');
@@ -194,7 +200,8 @@ export async function safeFetch(
       const loc = res.headers.get('location');
       if (!loc) return { response: res, finalUrl: currentUrl, bytes: 0, truncated: false };
       hops += 1;
-      if (hops > maxHops) throw new UrlGuardError('تجاوز عدد التحويلات المسموح', 'too_many_redirects');
+      if (hops > maxHops)
+        throw new UrlGuardError('تجاوز عدد التحويلات المسموح', 'too_many_redirects');
       currentUrl = new URL(loc, currentUrl).toString();
       validateUrlShape(currentUrl);
       await assertPublicHost(new URL(currentUrl).hostname);
@@ -241,7 +248,11 @@ async function readCapped(
       total += value.byteLength;
       if (total > maxBytes) {
         truncated = true;
-        try { await reader.cancel(); } catch { /* ignore */ }
+        try {
+          await reader.cancel();
+        } catch {
+          /* ignore */
+        }
         break;
       }
       chunks.push(value);
