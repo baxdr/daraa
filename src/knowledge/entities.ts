@@ -113,6 +113,85 @@ export const ALWAYS_REQUIRED: readonly GovEntity[] = [
 ];
 
 /* ------------------------------------------------------------------------- */
+/* Cross-vertical specialists — added Phase 6 (KB) for use by Phase 5c agents */
+/* ------------------------------------------------------------------------- */
+
+/** Tax strategy specialist's KB entry — applies across all verticals.
+ *  Distinct from `zatca` (which handles the registration + filing mechanics).
+ *  This entry surfaces *strategic* tax decisions: VAT timing, foreign-share
+ *  treatment, Zakat vs corporate-tax mix, withholding obligations. */
+const TAX_STRATEGY_ENTITY: GovEntity = {
+  id: 'tax_strategy',
+  nameAr: 'التخطيط الضريبي',
+  nameSimpleAr: 'استراتيجية الضرائب',
+  explainAr:
+    'مراجعة شاملة لالتزاماتك الضريبية المتوقعة — متى تتجاوز حد VAT (375 ألف)، حصص الزكاة مقابل ضريبة الدخل (للملاك الأجانب)، الاستقطاع الضريبي على المدفوعات الدولية، والتخطيط لتقليل المخاطر الضريبية مع الالتزام الكامل.',
+  estimatedCostSar: { min: 0, max: 5_000 },
+  estimatedTimeAr: 'مراجعة أولية ساعة، تنفيذ ١-٢ أسبوع',
+  order: 8,
+  dependencies: ['mci', 'zatca'],
+  commonMistakeAr:
+    'كثير من المؤسسين يتفاجؤون بالاستقطاع الضريبي 5-15% على مدفوعاتهم لمزودين أجانب (AWS، Stripe، إلخ). خطّط لها من البداية.',
+  renewalPeriodAr: 'مراجعة سنوية',
+  officialUrl: 'https://zatca.gov.sa',
+};
+
+/** Saudi Authority for Intellectual Property — for tech, ecommerce, and any
+ *  business with a brand worth protecting. */
+const SAIP_IP_ENTITY: GovEntity = {
+  id: 'saip_ip',
+  nameAr: 'الهيئة السعودية للملكية الفكرية',
+  nameSimpleAr: 'حماية الملكية الفكرية',
+  explainAr:
+    'تسجيل العلامة التجارية وبراءات الاختراع وحقوق المصنفات. حماية اسمك، شعارك، وابتكاراتك من النسخ. للشركات التقنية والمتاجر الإلكترونية — حماية أساسية، ليست رفاهية.',
+  estimatedCostSar: { min: 1_000, max: 7_000 },
+  estimatedTimeAr: '٣ إلى ٦ أشهر للاعتماد',
+  order: 8,
+  dependencies: ['mci'],
+  commonMistakeAr:
+    'سجّل علامتك التجارية قبل الإطلاق العام — لو أحد سجّلها قبلك (حتى لو سيئ النية)، استرجاعها يتطلب نزاعاً قانونياً مكلفاً.',
+  renewalPeriodAr: 'كل ١٠ سنوات للعلامات التجارية',
+  officialUrl: 'https://saip.gov.sa',
+};
+
+/** Customs / Import-Export — for businesses dealing in physical goods that
+ *  cross borders (ecommerce importers, construction with imported materials). */
+const CUSTOMS_ENTITY: GovEntity = {
+  id: 'customs',
+  nameAr: 'الجمارك السعودية + Saber/FASAH',
+  nameSimpleAr: 'الاستيراد والتصدير',
+  explainAr:
+    'كل ما تحتاجه لإدخال أو إخراج البضائع: حساب FASAH للتخليص الجمركي، ومنصة Saber للتأكد من مطابقة المنتجات للمواصفات السعودية، ورمز GS1 الباركود، ومتطلبات الفسح حسب نوع المنتج.',
+  estimatedCostSar: { min: 500, max: 3_000 },
+  estimatedTimeAr: '٧ إلى ٢١ يوم لإكمال التسجيلات',
+  order: 9,
+  dependencies: ['mci', 'zatca'],
+  criticalWarningAr:
+    'لكل منتج يدخل المملكة لازم شهادة مطابقة سعودية (CoC) عبر Saber — بدونها ترجع الشحنة من الميناء. تأكّد قبل أي طلب.',
+  renewalPeriodAr: 'حسب نوع التسجيل',
+  officialUrl: 'https://customs.gov.sa',
+};
+
+/** NCA-ECC compliance specialist — for B2G + critical infra entities only.
+ *  Distinct from `pdpl_nca` which focuses on PDPL (data privacy);
+ *  this entry covers the full 114-control NCA-ECC framework. */
+const NCA_ECC_ENTITY: GovEntity = {
+  id: 'nca_ecc',
+  nameAr: 'الهيئة الوطنية للأمن السيبراني — ECC',
+  nameSimpleAr: 'الالتزام بضوابط NCA-ECC',
+  explainAr:
+    'ضوابط الأمن السيبراني الأساسية (114 ضابط) إلزامية للجهات الحكومية ومن يعمل معها كمورد أو شريك. تغطي الحوكمة، الدفاع، الصمود، الأطراف الخارجية، وأنظمة التحكم الصناعي. للشركات التقنية اللي تستهدف القطاع العام — ضرورية للتأهل.',
+  estimatedCostSar: { min: 30_000, max: 150_000 },
+  estimatedTimeAr: '٦ إلى ١٢ شهر للالتزام الكامل',
+  order: 9,
+  dependencies: ['pdpl_readiness'],
+  commonMistakeAr:
+    'كثير من الشركات تظن أن PDPL = NCA-ECC. هما إطاران مختلفان: PDPL للخصوصية، ECC للأمن السيبراني العام. الالتزام بـ ECC شرط للتعاقد مع كثير من الجهات الحكومية.',
+  renewalPeriodAr: 'مراجعة سنوية',
+  officialUrl: 'https://nca.gov.sa',
+};
+
+/* ------------------------------------------------------------------------- */
 /* Vertical-specific entities                                                 */
 /* ------------------------------------------------------------------------- */
 
@@ -157,6 +236,7 @@ const RESTAURANT_ENTITIES: GovEntity[] = [
     renewalPeriodAr: 'سنوي',
     officialUrl: 'https://sfda.gov.sa',
   },
+  TAX_STRATEGY_ENTITY,
 ];
 
 const TECH_ENTITIES: GovEntity[] = [
@@ -188,6 +268,9 @@ const TECH_ENTITIES: GovEntity[] = [
     renewalPeriodAr: 'مستمر',
     officialUrl: 'https://zatca.gov.sa',
   },
+  SAIP_IP_ENTITY,
+  NCA_ECC_ENTITY,
+  TAX_STRATEGY_ENTITY,
 ];
 
 const SALON_ENTITIES: GovEntity[] = [
@@ -234,6 +317,7 @@ const SALON_ENTITIES: GovEntity[] = [
     renewalPeriodAr: 'سنوي',
     officialUrl: 'https://www.moh.gov.sa',
   },
+  TAX_STRATEGY_ENTITY,
 ];
 
 const CONSTRUCTION_ENTITIES: GovEntity[] = [
@@ -278,8 +362,12 @@ const CONSTRUCTION_ENTITIES: GovEntity[] = [
     renewalPeriodAr: 'كل 3 سنوات',
     officialUrl: 'https://momrah.gov.sa',
   },
+  TAX_STRATEGY_ENTITY,
+  CUSTOMS_ENTITY,
 ];
 
+// ECOMMERCE includes everything tech needs (PDPL, e-invoicing, IP, NCA-ECC, tax)
+// PLUS Maroof (storefront verification) and customs (cross-border goods).
 const ECOMMERCE_ENTITIES: GovEntity[] = [
   {
     id: 'maroof',
@@ -294,6 +382,7 @@ const ECOMMERCE_ENTITIES: GovEntity[] = [
     officialUrl: 'https://maroof.sa',
   },
   ...TECH_ENTITIES,
+  CUSTOMS_ENTITY,
 ];
 
 export const VERTICALS: Record<VerticalId, Vertical> = {
