@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import type { PrivacyPolicyCheck, PrivacyPolicyAnalysis } from '@/agents/types';
 import { callClaude, MODELS, MissingApiKeyError, parseJsonResponse } from '@/lib/claude';
-import { safeFetch, UrlGuardError } from '@/lib/url-guard';
+import { safeFetch, UrlGuardError } from '@/infrastructure/http/url-guard';
 
 const COMMON_PATHS = [
   '/privacy',

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { QUESTIONS } from '@/agents/chat-flow';
 import { applyPrefill } from '@/lib/chat-sessions';
 import { getRepositories } from '@/infrastructure/persistence/persistence-router';
-import { enforceRateLimit } from '@/lib/rate-limit';
+import { enforceRateLimit } from '@/infrastructure/rate-limit/rate-limit';
 
 export const runtime = 'nodejs';
 

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { runProjectOrchestrator } from '@/agents/project-orchestrator';
-import { enforceRateLimit } from '@/lib/rate-limit';
+import { enforceRateLimit } from '@/infrastructure/rate-limit/rate-limit';
 import { startProject } from '@/core/use-cases';
 import { isDomainError } from '@/core/errors';
 

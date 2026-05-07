@@ -3,7 +3,7 @@
  * Replaced/expanded in Phase 12 (real coverage of core/use-cases).
  */
 import { describe, it, expect } from 'vitest';
-import { isPublicIp } from '@/lib/url-guard';
+import { isPublicIp } from '@/infrastructure/http/url-guard';
 
 describe('test harness — Phase 0 smoke', () => {
   it('boots vitest with module alias resolution', () => {

@@ -5,7 +5,7 @@
  */
 
 import * as cheerio from 'cheerio';
-import { safeFetch, UrlGuardError } from '@/lib/url-guard';
+import { safeFetch, UrlGuardError } from '@/infrastructure/http/url-guard';
 
 export interface FormIssue {
   formIndex: number;

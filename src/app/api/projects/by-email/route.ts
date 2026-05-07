@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getRepositories } from '@/infrastructure/persistence/persistence-router';
-import { enforceRateLimit } from '@/lib/rate-limit';
+import { enforceRateLimit } from '@/infrastructure/rate-limit/rate-limit';
 import { lookupProjectsByEmail } from '@/core/use-cases';
-import { isDomainError } from '@/core/errors';
+import { mapDomainErrorToHttp } from '@/application/middleware/error-handler';
 
 export const runtime = 'nodejs';
 
@@ -40,10 +40,8 @@ export async function POST(req: Request) {
     );
     return NextResponse.json({ count: projects.length, projects });
   } catch (err) {
-    if (isDomainError(err) && err.code === 'validation_failed') {
-      return NextResponse.json({ error: 'أدخل بريداً إلكترونياً صحيحاً' }, { status: 400 });
-    }
-    console.error('[projects/by-email] unexpected error:', err);
-    return NextResponse.json({ error: 'خطأ غير متوقع' }, { status: 500 });
+    return mapDomainErrorToHttp(err, {
+      validation_failed: 'أدخل بريداً إلكترونياً صحيحاً',
+    });
   }
 }

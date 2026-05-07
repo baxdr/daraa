@@ -3,7 +3,7 @@
  * headers against NCA ECC baseline web-application controls.
  */
 
-import { safeFetch, UrlGuardError } from '@/lib/url-guard';
+import { safeFetch, UrlGuardError } from '@/infrastructure/http/url-guard';
 
 export interface SecurityHeaderCheck {
   httpsEnforced: boolean;

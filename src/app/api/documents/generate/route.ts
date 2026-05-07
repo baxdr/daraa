@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { generateDocument } from '@/agents/document-agent';
-import { enforceRateLimit } from '@/lib/rate-limit';
+import { enforceRateLimit } from '@/infrastructure/rate-limit/rate-limit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
