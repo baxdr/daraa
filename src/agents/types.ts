@@ -93,7 +93,12 @@ export type EntityAgent =
   | 'zatca_einvoice'
   | 'maroof'
   | 'pdpl_nca'
-  | 'contractor_classification';
+  | 'contractor_classification'
+  // Phase 5c specialists (KB entries already in entities.ts).
+  | 'tax_strategy'
+  | 'saip_ip'
+  | 'customs'
+  | 'nca_ecc';
 
 export type AgentId = CoordinationAgent | EntityAgent;
 
@@ -158,4 +163,8 @@ export const AGENT_LABELS_AR: Record<AgentId, string> = {
   maroof: 'متخصّص معروف',
   pdpl_nca: 'متخصّص حماية البيانات',
   contractor_classification: 'متخصّص تصنيف المقاولين',
+  tax_strategy: 'متخصّص التخطيط الضريبي',
+  saip_ip: 'متخصّص الملكية الفكرية',
+  customs: 'متخصّص الاستيراد والتصدير',
+  nca_ecc: 'متخصّص ضوابط الأمن السيبراني (ECC)',
 };
