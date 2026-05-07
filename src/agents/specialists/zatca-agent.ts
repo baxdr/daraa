@@ -83,6 +83,24 @@ export class ZatcaAgent implements Agent {
             ? 'التسجيل الضريبي جاهز — VAT اختياري الآن، يصير إلزامي عند تجاوز حد الإيراد.'
             : 'التسجيل الضريبي جاهز + VAT إلزامي — ابدأ ربط الفوترة الإلكترونية (المرحلة الثانية).',
         },
+        {
+          from: 'zatca',
+          to: 'pdpl_nca',
+          type: 'dependency',
+          payload: { invoiceRetentionYears: 6, dataCategory: 'transactional_financial' },
+          messageAr:
+            'حفظ الفواتير الإلكترونية إلزامي 6 سنوات — احرص على إدراج هذه المدة في سياسة الاحتفاظ ومعالجة البيانات المالية.',
+        },
+        {
+          from: 'zatca',
+          to: 'document',
+          type: 'data_share',
+          payload: {
+            templateNeeded: 'tax_invoice_arabic',
+            requiredFields: ['vat_number', 'qr_code', 'cr_number'],
+          },
+          messageAr: 'يولّد وكيل المستندات قالب فاتورة ضريبية بالعربي يستوفي حقول ZATCA الإلزامية.',
+        },
       ],
     };
   }

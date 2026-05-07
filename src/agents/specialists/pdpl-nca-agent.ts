@@ -94,6 +94,52 @@ export class PdplNcaAgent implements Agent {
           : 'لأن تطبيقك سيجمع بيانات مستخدمين سعوديين، لازم من اليوم الأول تكون عندك سياسة ' +
             'خصوصية ومسار موافقة وخطة استجابة. المخالفة غرامتها تصل ٥ ملايين ريال.';
 
+    const outbox: AgentMessage[] = [
+      {
+        from: 'pdpl_nca',
+        to: 'ALL',
+        type: 'data_share',
+        payload: {
+          willServeGov,
+          processesPersonal,
+          dataLocationOutside: dataLocation === 'outside',
+        },
+        messageAr: willServeGov
+          ? 'متطلبات PDPL + NCA-ECC معاً — العقود الحكومية تحتاج الالتزام بالاثنين قبل أي توقيع.'
+          : 'متطلبات PDPL مفعّلة — جهّز سياسة الخصوصية وآلية الموافقة قبل أي إطلاق علني.',
+      },
+      {
+        from: 'pdpl_nca',
+        to: 'document',
+        type: 'data_share',
+        payload: {
+          templatesNeeded: ['privacy_policy', 'consent_banner', 'breach_response_plan'],
+          arabicRequired: true,
+        },
+        messageAr:
+          'يولّد وكيل المستندات: سياسة خصوصية بالعربي + بانر موافقة + خطة استجابة لاختراق البيانات.',
+      },
+    ];
+    if (willServeGov) {
+      outbox.push({
+        from: 'pdpl_nca',
+        to: 'nca_ecc',
+        type: 'dependency',
+        payload: { isB2g: true, baselineEccApplies: true },
+        messageAr:
+          'الجهة ستتعامل مع القطاع الحكومي — ضوابط NCA-ECC الأساسية (الحوكمة + الدفاع) إلزامية للتأهل.',
+      });
+    }
+    if (dataLocation === 'outside') {
+      outbox.push({
+        from: 'pdpl_nca',
+        to: 'document',
+        type: 'dependency',
+        payload: { templatesNeeded: ['data_processing_agreement', 'cross_border_addendum'] },
+        messageAr: 'البيانات خارج المملكة — يجب توليد ملحق نقل بيانات وعقد معالج للموردين الأجانب.',
+      });
+    }
+
     return {
       status: 'complete',
       data: {
@@ -109,7 +155,7 @@ export class PdplNcaAgent implements Agent {
         ...(criticalWarningAr !== undefined ? { criticalWarningAr } : {}),
         requirements,
       },
-      outbox: [],
+      outbox,
     };
   }
 }
