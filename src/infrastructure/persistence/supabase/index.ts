@@ -1,9 +1,10 @@
 /**
  * Supabase persistence layer factory.
  *
- * Creates all repository implementations backed by Supabase.
- * This factory is the single source of truth for dependency injection
- * and can be swapped out in the persistence-router.
+ * The active repositories (projects + chatSessions) use the service-role
+ * client internally and don't need request context. workspaces/auditLogs
+ * remain scaffolded but unused; the factory threads through an optional
+ * cookie-bound client for them so legacy callers compile.
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -26,15 +27,11 @@ export interface Repositories {
   workspaces: WorkspaceRepository;
 }
 
-/**
- * Create all Supabase repositories.
- * The client should be a server-side client created from cookies/headers.
- */
-export function createSupabaseRepositories(client: SupabaseClient<Database>): Repositories {
+export function createSupabaseRepositories(client?: SupabaseClient<Database>): Repositories {
   return {
-    projects: new SupabaseProjectRepository(client),
-    chatSessions: new SupabaseChatSessionRepository(client),
-    auditLogs: new SupabaseAuditLogRepository(client),
-    workspaces: new SupabaseWorkspaceRepository(client),
+    projects: new SupabaseProjectRepository(),
+    chatSessions: new SupabaseChatSessionRepository(),
+    auditLogs: new SupabaseAuditLogRepository(client as SupabaseClient<Database>),
+    workspaces: new SupabaseWorkspaceRepository(client as SupabaseClient<Database>),
   };
 }

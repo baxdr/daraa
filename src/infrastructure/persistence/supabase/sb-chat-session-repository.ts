@@ -1,104 +1,65 @@
-// @ts-nocheck
-// TODO(phase-4): rewrite with proper Supabase TS strict types. Filesystem driver
-// remains the default; this file compiles only when PERSISTENCE_DRIVER=supabase.
 /**
- * Supabase-backed ChatSessionRepository implementation.
+ * Supabase-backed ChatSessionRepository (minimal blob schema).
  *
- * Persists chat sessions to the chat_sessions table.
- * Sessions can belong to authenticated or anonymous users (user_id nullable).
+ * Stores the entire ChatSession as a jsonb document in `daraa_chat_sessions`.
+ * The session shape lives in `src/lib/chat-sessions.ts` and is the source of
+ * truth — this repository is just a serializer.
+ *
+ * Uses the service-role client (RLS bypassed) because /chat is anonymous.
  */
 
 import { nanoid } from 'nanoid';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { FIRST_QUESTION } from '@/agents/chat-flow';
 import type { ChatSessionRepository } from '@/core/repositories/chat-session-repository';
 import type { ChatSession } from '@/lib/chat-sessions';
-import type { Database } from '@/types/supabase';
+import { getServiceRoleClient } from './sb-service-client';
+
+const TABLE = 'daraa_chat_sessions';
+
+interface SessionRow {
+  id: string;
+  data: ChatSession;
+}
 
 export class SupabaseChatSessionRepository implements ChatSessionRepository {
-  constructor(private supabase: SupabaseClient<Database>) {}
-
   async create(): Promise<ChatSession> {
-    const id = nanoid();
-    const now = new Date().toISOString();
-
-    // Get current user (may be null for anonymous sessions)
-    const {
-      data: { user },
-    } = await this.supabase.auth.getUser();
-
-    const { data: session, error } = await this.supabase
-      .from('chat_sessions')
-      .insert([
-        {
-          id,
-          user_id: user?.id ?? null,
-          session_data: {},
-          created_at: now,
-          updated_at: now,
-        },
-      ])
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return {
-      id: session.id,
-      userId: session.user_id ?? undefined,
-      sessionData: session.session_data,
-      createdAt: new Date(session.created_at).getTime(),
+    const session: ChatSession = {
+      id: nanoid(),
+      createdAt: Date.now(),
+      currentQuestion: FIRST_QUESTION,
+      answers: {},
     };
+    const { error } = await getServiceRoleClient()
+      .from(TABLE)
+      .insert({ id: session.id, data: session });
+    if (error) throw new Error(`chat-session create failed: ${error.message}`);
+    return session;
   }
 
   async findById(id: string): Promise<ChatSession | null> {
-    const { data: session, error } = await this.supabase
-      .from('chat_sessions')
-      .select()
+    const { data, error } = await getServiceRoleClient()
+      .from(TABLE)
+      .select('id, data')
       .eq('id', id)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw error;
-    }
-
-    return {
-      id: session.id,
-      userId: session.user_id ?? undefined,
-      sessionData: session.session_data,
-      createdAt: new Date(session.created_at).getTime(),
-    };
+      .maybeSingle<SessionRow>();
+    if (error) throw new Error(`chat-session findById failed: ${error.message}`);
+    return data?.data ?? null;
   }
 
   async update(id: string, patch: Partial<ChatSession>): Promise<ChatSession | null> {
-    const updateData: Record<string, unknown> = {};
-
-    if (patch.userId !== undefined) updateData.user_id = patch.userId ?? null;
-    if (patch.sessionData !== undefined) updateData.session_data = patch.sessionData;
-
-    const { data: session, error } = await this.supabase
-      .from('chat_sessions')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw error;
-    }
-
-    return {
-      id: session.id,
-      userId: session.user_id ?? undefined,
-      sessionData: session.session_data,
-      createdAt: new Date(session.created_at).getTime(),
-    };
+    const existing = await this.findById(id);
+    if (!existing) return null;
+    const merged: ChatSession = { ...existing, ...patch };
+    const { error } = await getServiceRoleClient()
+      .from(TABLE)
+      .update({ data: merged, updated_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) throw new Error(`chat-session update failed: ${error.message}`);
+    return merged;
   }
 
   async delete(id: string): Promise<void> {
-    const { error } = await this.supabase.from('chat_sessions').delete().eq('id', id);
-
-    if (error) throw error;
+    const { error } = await getServiceRoleClient().from(TABLE).delete().eq('id', id);
+    if (error) throw new Error(`chat-session delete failed: ${error.message}`);
   }
 }

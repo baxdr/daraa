@@ -40,6 +40,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: turn.error }, { status: 400 });
   }
 
+  // advanceChat mutates `session` in place. Persist the new state so the
+  // next /api/chat/message — which may land on a different lambda — sees
+  // the updated answers and currentQuestion.
+  await repos.chatSessions.update(session.id, session);
+
   if (turn.done) {
     return NextResponse.json({
       done: true,
