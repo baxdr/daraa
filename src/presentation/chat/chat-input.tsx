@@ -26,12 +26,11 @@ export function FreeInput({
     <form onSubmit={onSubmit} className="flex flex-col gap-2">
       <div className="flex gap-2">
         <input
-          // type=text for dates — native type=date would force a
-          // browser-locale dd/mm/yyyy picker that contradicts our ISO
-          // validator. Keep the user typing the format we actually accept.
-          type={isUrl ? 'url' : 'text'}
-          inputMode={isNumber ? 'numeric' : isDate ? 'numeric' : 'text'}
-          pattern={isDate ? '\\d{4}-\\d{2}-\\d{2}' : undefined}
+          // Native type=date renders a locale-aware picker but always
+          // submits an ISO YYYY-MM-DD value — exactly what the validator
+          // expects. No pattern attribute needed.
+          type={isUrl ? 'url' : isDate ? 'date' : 'text'}
+          inputMode={isNumber ? 'numeric' : 'text'}
           dir={isUrl || isDate || isNumber ? 'ltr' : 'rtl'}
           aria-label="اكتب ردك"
           className={`flex-1 border border-ink bg-paper px-4 py-3 text-ink placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent ${
