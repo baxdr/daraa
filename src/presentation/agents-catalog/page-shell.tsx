@@ -1,11 +1,19 @@
 import Link from 'next/link';
 import { AgentCard } from './agent-card';
 import { SystemDiagram } from './system-diagram';
+import { EngineTaxonomy } from './engine-taxonomy';
 import { AGENTS_CATALOG, AGENT_LAYER_LABEL } from './data';
 
 export function AgentsCatalogPage() {
   const coordination = AGENTS_CATALOG.filter((a) => a.layer === 'coordination');
   const specialists = AGENTS_CATALOG.filter((a) => a.layer === 'specialist');
+  const claudePoweredCount = AGENTS_CATALOG.filter(
+    (a) =>
+      a.engine === 'claude_llm' ||
+      a.engine === 'claude_llm_tools' ||
+      a.engine === 'claude_web_search',
+  ).length;
+  const totalTools = AGENTS_CATALOG.reduce((s, a) => s + (a.workflow.tools?.length ?? 0), 0);
 
   return (
     <main className="relative mx-auto max-w-6xl px-6 py-12 md:px-10 md:py-16">
@@ -20,29 +28,28 @@ export function AgentsCatalogPage() {
       <header className="mb-10">
         <span className="eyebrow">دليل الوكلاء · Agentic Layer</span>
         <h1 className="mt-3 font-display text-4xl font-extrabold leading-[1.1] tracking-tighter md:text-6xl">
-          {AGENTS_CATALOG.length} وكيل ذكاء اصطناعي
+          {AGENTS_CATALOG.length} وكيل
           <br />
-          <span className="text-accent">يشتغلون بالتوازي</span>
+          <span className="text-accent">{claudePoweredCount} منهم Claude AI</span>
         </h1>
         <div className="rule-accent mt-6 w-16" />
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-2">
-          درع مبني على نظام متعدد الوكلاء مُلهَم من Anthropic Agent SDK — كل وكيل متخصّص في جهة أو
-          مهمة، يتواصلون عبر بروتوكول A2A، ويُسلّمون نتائجهم لـ{' '}
-          <span className="font-bold">المنسّق</span> الذي يبني التقرير النهائي.
+          درع مبني على Anthropic Claude SDK — كل ايجنت من المتخصّصين السبعة + analysis يستدعي tools
+          deterministic للحقائق ثم يصيغ المخرج. باقي الوكلاء (orchestrator + report) كود تنسيق. الكل
+          يتواصلون عبر <span className="font-bold">AgentBus</span> بـ A2A messages.
         </p>
       </header>
 
-      <section className="mb-16 grid grid-cols-1 gap-0 border border-rule bg-white sm:grid-cols-3">
-        <Stat label="وكيل تنسيق" value={coordination.length.toString()} />
-        <Stat label="وكيل متخصّص" value={specialists.length.toString()} />
-        <Stat
-          label="جهة حكومية مغطّاة"
-          value={specialists.filter((a) => a.group !== 'tax').length.toString()}
-          last
-        />
+      <section className="mb-16 grid grid-cols-1 gap-0 border border-rule bg-white sm:grid-cols-4">
+        <Stat label="إجمالي الوكلاء" value={AGENTS_CATALOG.length.toString()} />
+        <Stat label="ايجنت Claude" value={claudePoweredCount.toString()} />
+        <Stat label="منسّقين" value={(AGENTS_CATALOG.length - claudePoweredCount).toString()} />
+        <Stat label="Tools متاحة" value={totalTools.toString()} last />
       </section>
 
       <SystemDiagram />
+
+      <EngineTaxonomy />
 
       <section className="mb-16">
         <SectionHeader

@@ -3,7 +3,14 @@ import { ALWAYS_REQUIRED, VERTICALS } from '@/knowledge/entities';
 import { VAT } from '@/knowledge/zatca';
 import { TERMS } from '@/knowledge/terms';
 
-const FEATURED_TERMS = ['ZATCA', 'tax_VAT', 'gov_GOSI', 'license_CR'] as const;
+const FEATURED_TERMS = [
+  'license_CR',
+  'license_civil_defense_cert',
+  'tax_VAT',
+  'emp_nitaqat',
+  'gov_GOSI',
+  'gov_civil_defense',
+] as const;
 
 export function KnowledgeCatalogPage() {
   const totalTerms = Object.keys(TERMS).length;
@@ -114,6 +121,33 @@ export function KnowledgeCatalogPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="mb-16 border-s-4 border-accent bg-accent-soft px-6 py-5 md:px-7 md:py-6">
+        <div className="mb-2 flex items-center gap-2">
+          <span className="eyebrow !text-accent-strong">كيف يستخدمها النظام</span>
+        </div>
+        <h2 className="font-display text-2xl font-extrabold tracking-tight">
+          كل اللي فوق ينام داخل tools الايجنتات
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
+          الجهات + المتطلبات تحت ينضمّوا في tools deterministic مثل{' '}
+          <code className="font-mono text-[12px]" dir="ltr">
+            list_safety_requirements
+          </code>{' '}
+          و{' '}
+          <code className="font-mono text-[12px]" dir="ltr">
+            check_vat_threshold
+          </code>
+          . لمّا Claude يقرر يحتاج معلومة — يستدعي الـ tool. لمّا يحتاج يصيغ تفسير — يستخدم الـ
+          knowledge هذا. هكذا يضمن النظام إن الأرقام دائماً صحيحة.
+        </p>
+        <Link href="/agents" className="btn-outline mt-5 inline-flex text-sm">
+          شف الوكلاء + tools كل واحد
+          <span aria-hidden className="ms-2">
+            ←
+          </span>
+        </Link>
       </section>
 
       <section className="mb-16">

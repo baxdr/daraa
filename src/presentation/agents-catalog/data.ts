@@ -29,6 +29,9 @@ export interface AgentWorkflow {
   notifies?: AgentId[];
   /** Wave number — used by the system diagram. 0 = pre-pipeline (chat). */
   wave: number;
+  /** Concrete tool function names this agent can call when the engine is
+   *  Claude-powered. Empty for orchestrator/deterministic agents. */
+  tools?: string[];
 }
 
 export interface AgentCardData {
@@ -107,6 +110,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
         'fallback لقائمة محققة لو web_search فشل',
       ],
       notifies: ['sfda', 'civil_defense', 'municipality', 'mohr_gosi', 'zatca'],
+      tools: ['web_search_20250305'],
     },
   },
   {
@@ -126,6 +130,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
         'rule engine: ~10 قواعد تنتج OperationalReport (gaps + overdue + upcoming + healthScore)',
         'Claude narrator: list_gaps + get_gap_details tools → سرد عربي + priorityActions',
       ],
+      tools: ['list_gaps', 'get_gap_details'],
     },
   },
   {
@@ -168,6 +173,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
         'Claude tool loop: get_shop_summary + check_renewal_urgency → EntityInfo',
         'يبثّ `crReady: true` لكل الـ ALL → يفتح الباب لباقي الوكلاء',
       ],
+      tools: ['get_shop_summary', 'check_renewal_urgency'],
     },
   },
   {
@@ -188,6 +194,12 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       outputs: [
         'Claude tool loop: list_safety_requirements + calculate_extinguisher_count + estimate_safety_cost',
         'يمرّر `hasKitchen` + `safetyCertReady` لـ municipality في outbox',
+      ],
+      tools: [
+        'get_shop_summary',
+        'list_safety_requirements',
+        'calculate_extinguisher_count',
+        'estimate_safety_cost',
       ],
     },
   },
@@ -210,6 +222,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
         'لو فيه مطبخ → يضيف ترخيص مطبخ تجاري',
         'لو nitaqat أحمر → critical warning + قيود',
       ],
+      tools: ['get_shop_summary', 'get_balady_licence_label', 'estimate_balady_cost'],
     },
   },
   {
@@ -231,6 +244,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
         'Claude tool loop: list_food_safety_requirements (HACCP إذا hasKitchen)',
         'يطلب شهادات صحية للعاملين الغذائيين من mohr_gosi',
       ],
+      tools: ['get_shop_summary', 'list_food_safety_requirements'],
     },
   },
   {
@@ -251,6 +265,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
         'Claude tool loop: list_health_requirements (vertical-aware)',
         'يطلب شهادات صحية من mohr_gosi عبر outbox',
       ],
+      tools: ['get_shop_summary', 'list_health_requirements'],
     },
   },
   {
@@ -272,6 +287,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
         'Claude tool loop: estimate_nitaqat_zone (≥50 = أحمر، ≥10 = أصفر)',
         'لو أحمر → warning لـ municipality + mci بأن الخدمات تتقيّد',
       ],
+      tools: ['get_shop_summary', 'estimate_nitaqat_zone'],
     },
   },
   {
@@ -292,6 +308,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
         'Claude tool loop: check_vat_threshold (375K SAR)',
         'يدمج research updates في commonMistake field',
       ],
+      tools: ['get_shop_summary', 'check_vat_threshold'],
     },
   },
 ];

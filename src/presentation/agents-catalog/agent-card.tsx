@@ -70,6 +70,21 @@ export function AgentCard({ agent, index }: { agent: AgentCardData; index: numbe
               </li>
             ))}
           </ul>
+          {agent.workflow.tools && agent.workflow.tools.length > 0 && (
+            <div className="mt-3.5 border-t border-rule/60 pt-3">
+              <div className="eyebrow !text-[10px]">tools اللي يستدعيها</div>
+              <div className="mt-2 flex flex-wrap gap-1.5" dir="ltr">
+                {agent.workflow.tools.map((t) => (
+                  <span
+                    key={t}
+                    className="inline-flex items-center border border-rule bg-paper-2/50 px-2 py-0.5 font-mono text-[10px] text-ink-2"
+                  >
+                    {t}()
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

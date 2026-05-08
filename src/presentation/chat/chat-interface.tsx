@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { AgentMessage, UserMessage } from '@/presentation/components/chat-message';
+import { AgentMessage, AgentTyping, UserMessage } from '@/presentation/components/chat-message';
 import { ChatErrorBanner } from './chat-error-banner';
 import { FreeInput } from './chat-input';
 import { ChatSuggestions } from './chat-suggestions';
+import { AgentLaunchTeaser } from './agent-launch-teaser';
 import { computeProgress, computeQuestionCount } from './progress';
 
 const EXPECTED_QUESTIONS = 16;
@@ -72,6 +73,10 @@ export function ChatInterface() {
               <UserMessage key={i} text={turn.text} />
             ),
           )}
+          {/* Typing indicator: show while waiting on the chat-agent reply.
+              Last turn is the user (we already echoed it) — Claude is
+              now extracting + drafting the next question. */}
+          {submitting && !done && turns[turns.length - 1]?.role === 'user' && <AgentTyping />}
           <div ref={bottomRef} />
         </div>
       </div>
@@ -118,12 +123,7 @@ export function ChatInterface() {
           />
         )}
 
-        {done && (
-          <div className="flex items-center gap-3 border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent-strong">
-            <span className="h-2 w-2 animate-pulse-subtle rounded-full bg-accent" aria-hidden />
-            <span className="font-medium">جاري تحضير تقريرك…</span>
-          </div>
-        )}
+        {done && <AgentLaunchTeaser />}
 
         <p className="mt-3 text-xs text-muted">أداة استرشادية — لا تغني عن الاستشارة القانونية.</p>
       </footer>

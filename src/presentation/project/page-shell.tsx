@@ -10,6 +10,7 @@ import { TopWarnings } from './sections/top-warnings';
 import { EstablishmentSummary } from './sections/establishment-summary';
 import { RoadmapSection } from './sections/roadmap-section';
 import { AgentTracesSection } from './sections/agent-traces';
+import { AiActivityStrip } from './sections/ai-activity-strip';
 
 interface ProjectPageShellProps {
   project: ProjectRecord;
@@ -52,9 +53,6 @@ export function ProjectPageShell({
         companyName={companyName}
         verticalLabel={verticalLabel}
         cityLabel={cityLabel}
-        url={null}
-        isCompliance={false}
-        isOperational
       />
 
       <div className="rule-ink mb-10" />
@@ -66,6 +64,10 @@ export function ProjectPageShell({
         isOwnedByMe={Boolean(viewerUserId && project.ownerUserId === viewerUserId)}
         authEnabled={authEnabled}
       />
+
+      {agentTraces && Object.keys(agentTraces).length > 0 && (
+        <AiActivityStrip traces={agentTraces} />
+      )}
 
       <TopWarnings warnings={topWarnings} />
 
@@ -82,12 +84,7 @@ export function ProjectPageShell({
         costMaxSar={costSummary.maxSar}
       />
 
-      <RoadmapSection
-        roadmap={roadmap}
-        messages={messages}
-        costSummary={costSummary}
-        isCompliance={false}
-      />
+      <RoadmapSection roadmap={roadmap} messages={messages} costSummary={costSummary} />
 
       {project.phase === 'active_monitoring' && renewals && renewals.length > 0 && (
         <ActiveMonitoringPanel renewals={renewals} totalEntities={entities.length} />

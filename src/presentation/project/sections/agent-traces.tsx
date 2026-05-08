@@ -9,6 +9,7 @@
 import type { AgentTraceLike } from '@/agents/runtime/types';
 import type { AgentId } from '@/agents/types';
 import { AGENT_LABELS_AR } from '@/agents/types';
+import { AGENTS_CATALOG } from '@/presentation/agents-catalog/data';
 
 const MODE_BADGE: Record<AgentTraceLike['mode'], { label: string; tone: string }> = {
   live: { label: 'Claude — حيّ', tone: 'border-accent/40 bg-accent-soft text-accent-strong' },
@@ -17,6 +18,13 @@ const MODE_BADGE: Record<AgentTraceLike['mode'], { label: string; tone: string }
     tone: 'border-warn/40 bg-warn-soft text-warn-strong',
   },
 };
+
+const WAVE_BY_AGENT = new Map<AgentId, number>(
+  AGENTS_CATALOG.map((a) => [a.id, a.workflow.wave] as const),
+);
+const SOURCE_BY_AGENT = new Map<AgentId, string>(
+  AGENTS_CATALOG.map((a) => [a.id, a.sourcePath] as const),
+);
 
 export function AgentTracesSection({
   traces,
@@ -28,33 +36,41 @@ export function AgentTracesSection({
   );
   if (entries.length === 0) return null;
 
+  // Sort by execution wave so the trace reads in pipeline order.
+  entries.sort(([a], [b]) => (WAVE_BY_AGENT.get(a) ?? 99) - (WAVE_BY_AGENT.get(b) ?? 99));
+
   const totalTokens = entries.reduce(
     (sum, [, t]) => sum + t.totalInputTokens + t.totalOutputTokens,
     0,
   );
   const totalLatency = entries.reduce((sum, [, t]) => sum + t.totalLatencyMs, 0);
   const liveCount = entries.filter(([, t]) => t.mode === 'live').length;
+  const fallbackCount = entries.length - liveCount;
+  const totalToolCalls = entries.reduce(
+    (sum, [, t]) => sum + t.iterations.reduce((s, it) => s + it.toolCalls.length, 0),
+    0,
+  );
 
   return (
-    <section className="mb-12">
+    <section id="agent-traces" className="mb-12 scroll-mt-12">
       <div className="mb-6">
         <span className="eyebrow">شفافية الذكاء الاصطناعي</span>
         <h2 className="mt-2 font-display text-2xl font-extrabold tracking-tight md:text-3xl">
-          ما الذي فكّر فيه كل وكيل؟
+          كيف فكّر الـ AI في تقريرك
         </h2>
         <div className="rule-accent mt-3 w-12" />
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
-          كل وكيل LLM يستدعي tools deterministic للحصول على الحقائق، ثم يصيغ تفسيراً عربياً.
-          <br />
-          هنا تشوف بالضبط شو سأل، شو رجعت له الـ tools، وكم وقت + tokens استهلك.
+          كل وكيل Claude يستدعي tools deterministic للحقائق، ثم يصيغ تفسيراً عربياً. هنا تشوف بالضبط
+          ماذا سأل، ماذا رجّعت له الـ tools، وكم استهلك من tokens + وقت.
         </p>
       </div>
 
-      <div className="mb-6 grid grid-cols-2 gap-0 border border-rule bg-paper-2/40 sm:grid-cols-4">
-        <Stat label="وكيل LLM" value={String(entries.length)} />
-        <Stat label="منهم حيّ" value={`${liveCount} / ${entries.length}`} />
-        <Stat label="إجمالي tokens" value={totalTokens.toLocaleString('ar-SA')} />
-        <Stat label="الزمن الكلي" value={`${(totalLatency / 1000).toFixed(1)} ثانية`} last />
+      <div className="mb-6 grid grid-cols-2 gap-0 border border-rule bg-paper-2/40 sm:grid-cols-5">
+        <Stat label="ايجنت LLM" value={String(entries.length)} />
+        <Stat label="حيّ / fallback" value={`${liveCount} / ${fallbackCount}`} />
+        <Stat label="استدعاء tools" value={String(totalToolCalls)} />
+        <Stat label="إجمالي tokens" value={totalTokens.toLocaleString('en-US')} />
+        <Stat label="الزمن الكلي" value={`${(totalLatency / 1000).toFixed(1)}s`} last />
       </div>
 
       <div className="space-y-4">
@@ -70,11 +86,18 @@ function TraceCard({ agentId, trace }: { agentId: AgentId; trace: AgentTraceLike
   const label = AGENT_LABELS_AR[agentId] ?? agentId;
   const badge = MODE_BADGE[trace.mode];
   const totalToolCalls = trace.iterations.reduce((s, it) => s + it.toolCalls.length, 0);
+  const wave = WAVE_BY_AGENT.get(agentId);
+  const source = SOURCE_BY_AGENT.get(agentId);
 
   return (
     <details className="group border border-rule bg-white">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 hover:bg-paper-2/40 md:p-5">
         <div className="flex flex-wrap items-center gap-2">
+          {wave !== undefined && (
+            <span className="font-mono text-[10px] uppercase tracking-widest text-muted" dir="ltr">
+              wave {wave}
+            </span>
+          )}
           <span className="font-display text-base font-extrabold text-ink md:text-lg">{label}</span>
           <span className="font-mono text-[10px] uppercase tracking-wider text-muted" dir="ltr">
             {agentId}
@@ -121,6 +144,20 @@ function TraceCard({ agentId, trace }: { agentId: AgentId; trace: AgentTraceLike
           >
             {trace.finalText}
           </pre>
+        </div>
+      )}
+
+      {source && (
+        <div className="border-t border-rule px-4 py-2.5 text-right md:px-5">
+          <a
+            href={`https://github.com/baxdr/daraa/blob/main/${source}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono text-[10px] text-muted hover:text-accent"
+            dir="ltr"
+          >
+            view source: {source} ↗
+          </a>
         </div>
       )}
     </details>

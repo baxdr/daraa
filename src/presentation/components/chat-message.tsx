@@ -104,3 +104,46 @@ function AgentMark() {
     </div>
   );
 }
+
+/**
+ * Typing indicator shown while Claude (the chat agent) is composing the
+ * next reply. Mirrors the AgentMessage layout so the bubble lands in the
+ * same column without a layout shift when the real response arrives.
+ */
+export function AgentTyping() {
+  return (
+    <div className="flex animate-fade-rise gap-4" aria-live="polite" aria-label="الوكيل يكتب">
+      <AgentMark />
+      <div className="min-w-0 flex-1">
+        <div className="inline-flex items-center gap-3 border border-rule bg-paper-2 px-5 py-4">
+          <div className="flex gap-1.5" aria-hidden>
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-ink-2"
+              style={{
+                animation: 'pulse-subtle 900ms ease-in-out infinite',
+                animationDelay: '0ms',
+              }}
+            />
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-ink-2"
+              style={{
+                animation: 'pulse-subtle 900ms ease-in-out infinite',
+                animationDelay: '150ms',
+              }}
+            />
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-ink-2"
+              style={{
+                animation: 'pulse-subtle 900ms ease-in-out infinite',
+                animationDelay: '300ms',
+              }}
+            />
+          </div>
+          <span className="font-mono text-[11px] uppercase tracking-widest text-muted">
+            Claude يفكّر…
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}

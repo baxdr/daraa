@@ -92,11 +92,11 @@ export default async function DemoShowcasePage() {
       <section className="mx-auto mt-12 max-w-4xl px-6 md:mt-20 md:px-10">
         <span className="eyebrow">عرض توضيحي</span>
         <h1 className="mt-4 font-display text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
-          ٣ محلات حقيقية — اضغط وشف الداشبورد
+          ٣ محلات حقيقية — شف ايجنتاتنا اشتغلوا عليها
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-ink-2 md:text-lg">
-          كل سيناريو محل حقيقي دخلناه مسبقاً في النظام — الأرقام والتنبيهات من محركّ التحليل الفعلي،
-          مو screenshots. اضغط أي بطاقة تدخل على الداشبورد الكامل.
+          كل سيناريو دخل الـ pipeline الحقيقي: ١٠ ايجنتات Claude، tool calls، A2A messages، traces
+          محفوظة. اضغط أي بطاقة وشف الداشبورد + قسم «شفافية الذكاء الاصطناعي» في الأسفل.
         </p>
         <div className="rule-accent my-8 w-16" />
       </section>
@@ -167,10 +167,20 @@ function ScenarioCard({ s }: { s: (typeof SCENARIOS)[number] & { seeded: boolean
         </div>
 
         {s.seeded ? (
-          <Link href={`/project/${s.id}`} className="btn-ink mt-6 w-full justify-between text-sm">
-            <span>افتح الداشبورد الكاملة</span>
-            <span aria-hidden>←</span>
-          </Link>
+          <>
+            <Link href={`/project/${s.id}`} className="btn-ink mt-6 w-full justify-between text-sm">
+              <span>افتح الداشبورد الكاملة</span>
+              <span aria-hidden>←</span>
+            </Link>
+            <Link
+              href={`/project/${s.id}#agent-traces`}
+              className="mt-2 flex w-full items-center justify-between border border-rule bg-white px-4 py-2.5 font-mono text-[11px] text-ink-2 hover:border-accent hover:text-accent"
+              dir="ltr"
+            >
+              <span>↓ jump to agent traces</span>
+              <span aria-hidden>↗</span>
+            </Link>
+          </>
         ) : (
           <button
             type="button"
