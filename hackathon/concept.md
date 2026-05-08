@@ -1,173 +1,186 @@
-# درع (DARAA) — Agentic Solution Concept
+# درع (Daraa) — Agentic Solution Concept
 
-## Agenticthon 2026 — Round 2 Submission
+## Agenticthon 2026 · Round 2 Submission
 
----
-
-## What the Agent Does
-
-**DARAA** is an Arabic-first, multi-agent AI platform built around the tagline: _"أسّس شركتك بثقة، وامتثل بذكاء"_ — it solves two problems every Saudi business owner faces:
-
-1. **Business Formation** — Navigating 7–15 government entities (Ministry of Commerce, Civil Defense, Municipality, SFDA, ZATCA, MOHR, GOSI…) in the correct sequence, with the correct documents, without missing critical dependencies.
-
-2. **Regulatory Compliance** — Understanding and fixing gaps against Saudi PDPL (Personal Data Protection Law), NCA ECC cybersecurity controls, and ZATCA e-invoicing requirements — before inspectors arrive.
-
-The user speaks to DARAA in free-form Gulf Arabic via a guided chat interface. Claude Sonnet 4.6 extracts up to 10 structured fields from a single sentence. Three entry modes are presented clearly upfront:
-
-- **🏢 أبدأ مشروع جديد** — تأسيس وتسجيل الشركة
-- **🔍 عندي شركة شغّالة** — فحص امتثالها الرقمي (PDPL, NCA)
-- **📋 عندي محل أو مطعم** — تتبّع رخصي وتجديداتي
-
-A multi-agent pipeline then runs and produces either a complete formation roadmap or a compliance gap report with ready-to-use legal documents — all in Arabic.
+> **العرض الحيّ:** [daraa-sandy.vercel.app](https://daraa-sandy.vercel.app)
+> **الكود:** [github.com/baxdr/daraa](https://github.com/baxdr/daraa)
+> **الفريق:** بدر العمري · سفر الدوسري
 
 ---
 
-## What Decisions the Agents Make
+## 1. ما الذي يقوم به النظام (What the agent does)
 
-| Agent                                    | Decision Type         | What It Decides                                                                                                                                                      |
-| ---------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Chat Agent** (Claude 4.6)              | Conversational        | Which field to ask next; whether to trust a free-text extraction or ask for confirmation; when the intake is complete                                                |
-| **Wave Scheduler**                       | Dependency resolution | Which specialist agents can run in parallel vs. which must wait for upstream results; deadlock detection after 3 retry cycles                                        |
-| **Research Agent** (Claude + web_search) | Relevance filtering   | Which live regulatory updates from PDPL/ZATCA/NCA are relevant to this specific business; which specialist agents need to be notified                                |
-| **CivilDefenseAgent**                    | Domain logic          | Whether the business requires a fire safety inspection; emits `{ hasKitchen: true }` payload if applicable                                                           |
-| **MunicipalityAgent**                    | Context-dependent     | Reads its AgentBus inbox; if it finds `hasKitchen: true` from Civil Defense, adds "رخصة المطبخ التجاري" to requirements — a requirement that never appears otherwise |
-| **Analysis Agent**                       | Rule evaluation       | Evaluates 14 deterministic PDPL rules against scan results; calculates fine ceiling; determines severity of each gap                                                 |
-| **Document Agent** (Claude 4.6)          | Personalization       | Which of 4 Arabic legal templates to generate; how to embed company name, sector, city, and data processing details specific to this business                        |
-| **Orchestrator**                         | Session management    | When all waves are complete; how to surface partial results if a scanner times out; phase transition (roadmap → active monitoring)                                   |
+**درع** نظام متعدد الوكلاء يرافق صاحب المحل الصغير في السعودية ـ **مطعم، كوفي، بقالة، مغسلة، صالون** ـ ويتابع رخصه وشهاداته من ٧ جهات حكومية في مكان واحد.
 
----
+ينطلق المستخدم بمحادثة عربية حرّة (`/chat`) فيها **١٦ سؤالاً موجَّهاً بنشاطه**: نوع المحل، تواريخ الرخص الحالية، عدد الطفايات، نظام التهوية، شهادات الموظفين الصحية، اعتماد اللوحة، إلخ. الـ AI يستخرج البيانات حتى لو جاءت كلها في جملة واحدة بالعربية الخليجية.
 
-## Single-Agent or Multi-Agent?
+بعدها يفتح **١٢ ايجنت** للعمل بالتوازي:
 
-**Multi-agent system** — specifically a **19-agent two-tier architecture**:
+- يفحصون بيانات المحل وكل واحد يستدعي **أدوات deterministic** للحقائق (طفايات، شهادات، نطاقات)
+- ينتجون **تقرير امتثال تشغيلي**: ما الذي ينقص، ما الذي يحتاج تجديد، متى تنتهي كل رخصة، تكلفة الحلول
+- يبنون **تقويم تذكيرات بريدية** (Resend + GitHub Actions cron) يرسل تنبيهاً قبل ٣٠ يوم من كل تجديد
 
-### Coordination Layer (8 agents)
-
-Orchestrator · Chat · Research · Scan · Analysis · Report · Document · Regulatory
-
-### Specialist Layer (11 agents — deterministic, no LLM)
-
-MCI · ZATCA · ZATCA E-Invoice · MOHR+GOSI · Civil Defense · Municipality · SFDA · MOH · PDPL+NCA · Maroof · Contractor Classification
-
-### True A2A Communication
-
-Agents communicate via a real message bus (`AgentBus`) with isolated inboxes per agent. The wave scheduler executes agents in dependency order. Messages carry typed payloads that **change receiving agent behavior at runtime**.
-
-**Proof:**
-
-- `CivilDefenseAgent` emits `{ hasKitchen: true }` → `MunicipalityAgent` reads inbox → adds "Commercial Kitchen License" to its requirements
-- `ResearchAgent` discovers a PDPL amendment → broadcasts to relevant specialist agents → they update their guidance
-- Without the Civil Defense message, the Municipality agent never produces the kitchen requirement — the A2A is load-bearing, not decorative
-
-Running `npm run test:agents` shows:
-
-```
-municipality → blocked (wave 1)
-civil_defense → complete (wave 1) [emitted: hasKitchen=true]
-municipality → complete (wave 3) [added: رخصة المطبخ التجاري]
-```
+النتيجة: المالك يفتح داشبورد يومي تظهر فيه «صحّة الرخص ٧٥٪، البلدية تنتهي خلال ١١ يوم، شهادات صحية ناقصة لموظفَين» بدلاً من البحث في ٧ بوابات حكومية.
 
 ---
 
-## Architecture Diagram
+## 2. ما هي القرارات التي يتخذها كل وكيل (Decisions)
 
-```
-User (Gulf Arabic chat)        URL (website scan)
-          │                           │
-    Chat Agent                   4 Web Scanners
-    Claude 4.6                 Privacy · Security
-    10-field NLU               Trackers · Forms
-          │                           │
-          └──────────┬────────────────┘
-                     │
-              AgentBus (A2A)
-           Research Agent (Claude + web_search)
-                     │
-             Wave Scheduler (OrchestratorRuntime)
-        ┌────────────┴──────────────────────────┐
-   Wave 1: MCI · SFDA · MOH · Maroof · Civil Defense
-   Wave 2: ZATCA · E-Invoice · (Municipality blocked ⏳)
-   Wave 3: Municipality ✓ (received Civil Defense payload)
-           MOHR+GOSI ✓ (received Research broadcast)
-                     │
-       ┌─────────────┴───────────────────┐
- Analysis Engine              Document Agent
- 14 PDPL rules                Claude Sonnet 4.6
- Fine ceiling calc            4 Arabic legal docs
- Gap report                   A4 print-ready
+| الوكيل                      | نوع القرار                 | ما الذي يقرّره                                                                                                                      |
+| --------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Chat Agent** (Sonnet 4.6) | محادثة + استخراج           | أي حقل ينقص، هل يثق بالاستخراج من النص الحرّ أم يطلب تأكيد، متى تكتمل المقابلة                                                      |
+| **Orchestrator**            | جدولة + dependencies       | أي ايجنتات تشتغل في موجة، أيها ينتظر outputs الآخرين، متى ينتقل المشروع لـ active_monitoring                                        |
+| **Research Agent** (web)    | تصفية الصلة                | أي تحديثات تنظيمية حديثة (mci.gov.sa، sfda.gov.sa…) ترتبط بنشاط هذا المحل، وأي ايجنت يجب إخطاره                                     |
+| **MCI specialist**          | منطق سجلّ تجاري            | هل السجل سارٍ أم انتهت مدته، احتساب موعد التجديد القادم، رسم أنشطة فرعية مفقودة                                                     |
+| **Civil Defense**           | منطق سلامة                 | عدد الطفايات المطلوبة (`calculate_extinguisher_count(area, vertical)`)، هل المحل يحتاج فحص دوري، هل يبثّ `hasKitchen: true` للبلدية |
+| **Municipality**            | اعتماد على رسائل الـ inbox | يقرأ صندوق رسائله: لو وصلت `hasKitchen: true` من Civil Defense → يضيف «رخصة المطبخ التجاري» (لا تظهر بدون هذي الرسالة)              |
+| **SFDA**                    | متطلبات غذائية             | هل المحل يحتاج ترخيص SFDA (للأكل/الكوفي/البقالة)، صلاحية الشهادة، هل في نظام تتبّع تبريد                                            |
+| **MOH** (وزارة الصحة)       | شهادات الموظفين            | كم موظف يحتاج شهادة صحية حسب نوع النشاط، هل العدد الحالي كافٍ                                                                       |
+| **MOHR + GOSI**             | عمالة + نطاقات             | تقدير نطاقات السعودة، هل المحل ضمن «نطاق أخضر» أم لا                                                                                |
+| **ZATCA**                   | ضرائب                      | هل دخل المحل تجاوز حدّ VAT الإلزامي (٣٧٥ ألف)، هل يحتاج تسجيل في الفوترة الإلكترونية                                                |
+| **Analysis Agent**          | تقييم الحالة               | يقيّم كل entity → فجوة (`critical/high/medium/low`)، يبني الـ topWarnings، ينتج narrative عربي                                      |
+
+---
+
+## 3. هل وكيل واحد أم متعدد (Single vs multi-agent)
+
+**نظام متعدد الوكلاء (Multi-agent) ـ ١٢ ايجنت في طبقتين**
+
+### الطبقة الأولى ـ التنسيق (٥ وكلاء)
+
+`orchestrator` · `chat` · `research` · `analysis` · `report`
+
+### الطبقة الثانية ـ المتخصّصون (٧ وكلاء)
+
+`mci` · `municipality` · `civil_defense` · `sfda` · `moh` · `mohr_gosi` · `zatca`
+
+### تواصل A2A فعلي (Agent-to-Agent)
+
+- كل ايجنت عنده **inbox مستقل** يقرأه قبل ما يبدأ شغله
+- الـ Orchestrator يشغّل الايجنتات في **موجات** حسب الـ dependencies المُعرَّفة في كل ملف
+- الرسائل بينهم تحمل **payload typed** يغيّر سلوك الوكيل المستقبِل في الـ runtime
+
+### دليل أن الـ A2A حقيقي وليس زخرفة
+
+`CivilDefenseAgent` يصدر `outbox: [{ to: 'municipality', type: 'dependency', payload: { hasKitchen: true } }]`. الـ Municipality يقرأ هذي الرسالة من inboxه فيضيف «رخصة المطبخ التجاري» لمتطلباته. **بدون هذي الرسالة الرخصة ما تظهر إطلاقاً** ـ يعني الرسالة تحدّد المخرج النهائي.
+
+```ts
+// src/agents/specialists/civil-defense-agent.ts
+outbox: [
+  {
+    to: 'municipality',
+    type: 'dependency',
+    payload: { safetyCertReady: true, hasKitchen: isFoodVertical(answers) },
+    messageAr: 'شهادة السلامة جاهزة — للبلدية متابعة رخصة المطبخ',
+  },
+];
 ```
 
 ---
 
-## Tracks Covered
+## 4. المعمارية بـ ٦ مكونات
 
-| Track                    | How DARAA Covers It                                                                                                                                   |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Process Automation**   | Full government formation pipeline — 7–15 entities, correct sequence, dependency enforcement, cost estimates, renewal scheduling                      |
-| **Multi-Agent Systems**  | 19 agents across two tiers; wave scheduler; parallel execution within each wave; resilience via Promise.allSettled + AbortController timeouts         |
-| **Agent-to-Agent (A2A)** | Real `AgentBus` — typed payloads, isolated inboxes, chronological message log visible in the UI; messages change receiving agent behaviour at runtime |
-
----
-
-## Tech Stack
-
-| Component    | Technology                                                   |
-| ------------ | ------------------------------------------------------------ |
-| Framework    | Next.js 14 (App Router) + TypeScript strict                  |
-| AI           | Anthropic SDK — `claude-sonnet-4-6` with backup key failover |
-| A2A Runtime  | Custom `AgentBus` + `OrchestratorRuntime` wave scheduler     |
-| Web Scanning | Cheerio (HTML parsing) + HTTP HEAD analysis                  |
-| Validation   | Zod on every API endpoint                                    |
-| Persistence  | File-backed JSON with atomic writes + SHA-256 email index    |
-| Documents    | `window.print()` + print CSS → Arabic A4 PDF                 |
-| Deploy       | Vercel                                                       |
-
----
-
-## UX & Frontend Highlights
-
-The platform went through a deliberate UX pass addressing real usability issues found during testing:
-
-| Issue                                  | Fix Applied                                                   |
-| -------------------------------------- | ------------------------------------------------------------- |
-| Mode selection was ambiguous           | Three clearly-labeled entry modes with icons and descriptions |
-| Progress bar showed misleading %       | Now shows "السؤال ٣/٨" — actual question count                |
-| Error recovery was silent              | Retry button preserves user input; explicit error message     |
-| Mixed Arabic/English text broke layout | `dir="auto"` on all message bubbles                           |
-| Hints had no examples                  | Every numeric/date question has a real-world example          |
-| Project dashboard lacked urgency cues  | Color-coded status badges + urgency tooltips                  |
-| No loading feedback                    | Animated skeleton replaces blank screen on project load       |
-
-The landing page leads with a clear value proposition and two prominent CTAs that directly enter the correct mode — no intermediate step.
-
----
-
-## Architecture: How Agents Receive Information
-
-Every agent receives an **`AgentContext`** object built from the user's chat answers:
-
-```typescript
-interface AgentContext {
-  mode: 'establishment' | 'compliance' | 'operational_compliance'
-  vertical: VerticalId        // restaurant, salon, construction…
-  answers: Answers            // all chat answers
-  cityId, capitalSar, partnerCount, leaseStatus, websiteUrl…
-}
+```
+┌────────────────────┐       ┌──────────────────────────────────────┐
+│   /chat (Next.js)  │──────▶│ Chat Agent                           │
+│   ١٦ سؤال موجَّه    │       │ Sonnet 4.6 — extraction + next-q     │
+└────────────────────┘       └──────────────────────────────────────┘
+                                              │
+                                              ▼
+                              ┌──────────────────────────────────────┐
+                              │ Project Orchestrator                 │
+                              │ Wave Scheduler + AgentBus            │
+                              └──────────────────────────────────────┘
+                                              │
+                       ┌──────────────────────┼──────────────────────┐
+                       ▼                      ▼                      ▼
+              ┌──────────────┐       ┌──────────────┐        ┌──────────────┐
+              │  Research    │       │ 7 Specialist │        │  Analysis    │
+              │  web_search  │       │   Agents     │        │  narrative   │
+              └──────────────┘       └──────┬───────┘        └──────────────┘
+                                            │
+                                ┌───────────┴───────────┐
+                                ▼                       ▼
+                      ┌──────────────────┐    ┌──────────────────┐
+                      │ Deterministic    │    │ AgentBus (A2A)   │
+                      │ Tools (12+)      │    │ inbox per agent  │
+                      └──────────────────┘    └──────────────────┘
+                                            │
+                                            ▼
+                       ┌──────────────────────────────────────┐
+                       │ Supabase (Postgres)                  │
+                       │ daraa_chat_sessions + daraa_projects │
+                       └──────────────────────────────────────┘
+                                            │
+                                            ▼
+                       ┌──────────────────────────────────────┐
+                       │ Resend + GitHub Actions Cron         │
+                       │ تذكير بريدي يومي قبل التجديدات         │
+                       └──────────────────────────────────────┘
 ```
 
-All 11 specialist agents receive the **same context** — they differ in what they do with it. Cross-agent communication happens exclusively via the **AgentBus**, not via shared state.
+### المكوّنات
+
+1. **Frontend** ـ Next.js 14 (App Router) + Tailwind v4 + React. RTL بالكامل، خط Almarai + IBM Plex Sans Arabic.
+2. **Agent Runtime** ـ `OrchestratorRuntime` يدير الـ AgentBus + الـ wave scheduler + الـ telemetry recorder.
+3. **Specialists** ـ كل واحد يرث `LlmSpecialistAgent` (Claude tool-use loop) ويُعلن `tools`، `dependencies`، `systemPrompt`.
+4. **Tools** ـ ١٢ أداة deterministic: `get_shop_summary`, `list_safety_requirements`, `calculate_extinguisher_count`, `check_renewal_urgency`, `add_months_to_date`, `lookup_vertical_requirements`, `check_vat_threshold`, `estimate_nitaqat_zone`, `list_health_requirements`, `list_food_safety_requirements`, `estimate_balady_cost`, `estimate_safety_cost`.
+5. **Persistence** ـ Supabase Postgres مع جدولين بسيطين (`daraa_chat_sessions`, `daraa_projects`) شكل blob jsonb. service-role server-side فقط.
+6. **Reminders** ـ GitHub Actions cron يومي ٧ صباح KSA → `/api/cron/reminders` → Resend.
 
 ---
 
-## Honest Scope (Hackathon MVP)
+## 5. سير العمل الكامل (User Journey)
 
-- No government API integrations (mc.gov.sa, maroof.sa don't offer public APIs)
-- Sessions expire after 1 hour (Supabase schema written but not yet connected)
-- Form scanner is Cheerio-only (client-side React forms not detected)
-- Regulatory fine figures are conservative estimates from published PDPL text; need legal review before production use
+```
+1. User opens /chat
+   │
+2. Chat Agent: "وش اسم محلك؟" → User: "كافيه الأصالة"
+   │
+3. ١٦ سؤال (نوع، مدينة، تاريخ السجل، طفايات، تهوية، شهادات...)
+   │
+4. POST /api/project/start → Orchestrator launches
+   │
+5. Wave 1: research agent يبحث عبر web_search
+   │
+6. Wave 2: ٧ متخصصين بالتوازي
+   ├─ كل واحد يقرأ inbox + يستدعي tools
+   ├─ ينتج EntityCard (متطلبات + تكلفة + خطر)
+   └─ يبثّ رسائل A2A للمتخصصين الآخرين
+   │
+7. Wave 3: analysis agent يبني narrative + topWarnings
+   │
+8. Project saved to Supabase + Renewal calendar built
+   │
+9. User redirected → /project/[id]
+   ├─ Coverage scope (١١ فحص)
+   ├─ Operational dashboard (gaps + dates)
+   └─ Agent traces (transparency: tool calls + tokens + latency)
+   │
+10. Daily cron: لمن أي رخصة < ٣٠ يوم → email reminder
+```
 
 ---
 
-**Team:** بدر العمري · سفر الدوسري
+## 6. الملفات الرئيسية في الكود
 
-_أداة استرشادية — لا تغني عن الاستشارة القانونية_
+| الموضوع           | الملف                                                  |
+| ----------------- | ------------------------------------------------------ |
+| Orchestrator core | `src/agents/runtime/orchestrator-runtime.ts`           |
+| AgentBus + A2A    | `src/agents/runtime/agent-bus.ts`                      |
+| Specialist base   | `src/agents/specialists/llm-base/llm-specialist.ts`    |
+| Tools (shared)    | `src/agents/specialists/llm-base/shared-tools.ts`      |
+| Chat agent        | `src/agents/chat-agent/`                               |
+| Analysis          | `src/agents/operational-analysis/`                     |
+| Persistence       | `src/infrastructure/persistence/supabase/`             |
+| Reminders cron    | `src/app/api/cron/reminders/route.ts`                  |
+| Knowledge base    | `src/knowledge/entities.ts` · `src/knowledge/zatca.ts` |
+
+---
+
+## 7. الإثباتات الجاهزة للعرض المباشر
+
+- **شفافية AI**: كل صفحة مشروع فيها قسم `agent-traces` يعرض كل استدعاء أداة، عدد الـ tokens، الـ latency. مثال: `/project/demo-kafe-rafeh-op#agent-traces`
+- **A2A حقيقي**: حذف `outbox` من `civil-defense-agent.ts` يؤدي مباشرة لاختفاء «رخصة المطبخ التجاري» من تقرير المطعم
+- **Persistence**: الجلسة في Supabase تتحقّق عبر `select * from daraa_chat_sessions` ـ `currentQuestion` يتقدّم خطوة بخطوة
+- **Reminders**: تشغيل يدوي لـ workflow في GitHub Actions يبعث إيميل لكل بريد محفوظ خلال ٦٠ ثانية

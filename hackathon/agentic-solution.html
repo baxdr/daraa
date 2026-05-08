@@ -6,230 +6,430 @@
     <title>درع — Agentic Solution</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <style>
       :root {
         --paper: #f7f3eb;
-        --accent: #1e4d3b;
-        --muted: #635a4e;
         --ink: #14110f;
+        --ink-2: #3a342e;
+        --muted: #6b6357;
+        --rule: #e6dfce;
+        --accent: #1e4d3b;
+        --accent-soft: #def0e3;
+        --display: 'Almarai', system-ui, sans-serif;
+        --body: 'IBM Plex Sans Arabic', system-ui, sans-serif;
         --mono: 'JetBrains Mono', monospace;
-        --font: 'IBM Plex Sans Arabic', system-ui, sans-serif;
       }
       * {
         box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
       html,
       body {
-        height: 100%;
-      }
-      body {
-        font-family: var(--font);
         background: var(--paper);
-        padding: 2.5rem;
         color: var(--ink);
+        font-family: var(--body);
+        line-height: 1.6;
       }
-      .container {
-        max-width: 900px;
+      .page {
+        max-width: 820px;
         margin: 0 auto;
-        background: #fff;
-        border: 1px solid #e6dfce;
-        border-radius: 6px;
-        padding: 2rem;
+        padding: 2.5rem 2rem;
       }
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        margin-bottom: 1.2rem;
+      header {
+        border-bottom: 1px solid var(--rule);
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
       }
-      .h-title {
-        font-size: 1.2rem;
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--accent);
         font-weight: 700;
       }
-      .h-sub {
-        font-family: var(--mono);
-        font-size: 0.78rem;
-        color: var(--muted);
+      h1 {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 2.4rem;
+        line-height: 1.1;
+        margin-top: 0.4rem;
+        letter-spacing: -0.02em;
       }
-      .section {
-        margin-top: 1rem;
-        padding-top: 0.6rem;
-        border-top: 1px dashed #e6dfce;
-      }
-      .section h2 {
-        font-size: 1rem;
-        margin-bottom: 0.4rem;
+      h1 .accent {
         color: var(--accent);
       }
-      .section p,
-      .section ul {
-        font-size: 0.95rem;
-        line-height: 1.6;
+      .lede {
+        font-size: 1.05rem;
+        color: var(--ink-2);
+        margin-top: 0.7rem;
+      }
+      section {
+        background: #fff;
+        border: 1px solid var(--rule);
+        margin-top: 1.25rem;
+        padding: 1.4rem 1.6rem;
+      }
+      h2 {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 1.35rem;
+        color: var(--ink);
+        margin-bottom: 0.85rem;
+        letter-spacing: -0.01em;
+      }
+      h2 .num {
+        font-family: var(--mono);
+        color: var(--accent);
+        font-size: 0.78rem;
+        margin-inline-end: 0.35rem;
+        font-weight: 500;
+      }
+      h3 {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin-top: 1rem;
+        margin-bottom: 0.4rem;
         color: var(--ink);
       }
+      p {
+        font-size: 0.97rem;
+        color: var(--ink-2);
+        margin-bottom: 0.7rem;
+      }
       ul {
-        padding-inline-start: 1.2rem;
+        padding-inline-start: 1.4rem;
+        margin: 0.4rem 0 0.7rem 0;
       }
-      .kv {
-        background: #f0f5f0;
-        border-radius: 6px;
-        padding: 0.6rem;
-        margin: 0.6rem 0;
-        border: 1px solid #e8ede8;
+      ul li {
+        font-size: 0.95rem;
+        margin-bottom: 0.35rem;
+        color: var(--ink-2);
       }
-      .note {
-        font-size: 0.88rem;
+      strong {
+        color: var(--ink);
+        font-weight: 700;
+      }
+      code,
+      .mono {
+        font-family: var(--mono);
+        font-size: 0.85em;
+        background: var(--paper);
+        padding: 0.1em 0.35em;
+        border: 1px solid var(--rule);
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+        border: 1px solid var(--rule);
+        margin: 0.9rem 0;
+      }
+      .stat {
+        padding: 0.85rem 0.75rem;
+        text-align: center;
+      }
+      .stat:not(:last-child) {
+        border-inline-end: 1px solid var(--rule);
+      }
+      .stat .v {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 1.85rem;
+        line-height: 1;
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+      }
+      .stat .l {
+        font-size: 0.72rem;
         color: var(--muted);
-        margin-top: 0.6rem;
+        margin-top: 0.35rem;
+        font-family: var(--mono);
       }
-      /* Print rules for PDF export */
-      @media print {
-        @page {
-          size: A4 portrait;
-          margin: 12mm;
-        }
-        html,
-        body {
-          background: var(--paper);
-          padding: 0;
-        }
-        body {
-          transform: none;
-        }
-        .container {
-          border: none;
-          border-radius: 0;
-          padding: 14mm;
-          margin: 0;
-        }
-        .header {
-          margin-bottom: 8mm;
-        }
-        .h-title {
-          font-size: 18pt;
-        }
-        .h-sub {
-          font-size: 9pt;
-        }
-        .section h2 {
-          font-size: 13pt;
-        }
-        .section p,
-        .section ul {
-          font-size: 11pt;
-        }
-        .kv {
-          page-break-inside: avoid;
-        }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.7rem 0;
+        font-size: 0.9rem;
+      }
+      th,
+      td {
+        text-align: start;
+        padding: 0.55rem 0.7rem;
+        border-bottom: 1px solid var(--rule);
+        vertical-align: top;
+      }
+      th {
+        background: var(--paper);
+        font-weight: 700;
+        color: var(--ink);
+        font-family: var(--display);
+      }
+      td:first-child {
+        font-weight: 700;
+        color: var(--accent);
+        white-space: nowrap;
+      }
+      .pill {
+        display: inline-block;
+        padding: 0.15rem 0.55rem;
+        background: var(--accent-soft);
+        border: 1px solid rgba(30, 77, 59, 0.3);
+        color: var(--accent);
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .quote {
+        background: var(--paper);
+        border-inline-start: 3px solid var(--accent);
+        padding: 0.7rem 0.9rem;
+        margin: 0.7rem 0;
+        font-size: 0.92rem;
+        color: var(--ink-2);
+      }
+      footer {
+        margin-top: 1.75rem;
+        text-align: center;
+        font-size: 0.78rem;
+        color: var(--muted);
+        font-family: var(--mono);
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="header">
-        <div>
-          <div class="h-title">درع — Agentic Solution (موجز)</div>
-          <div class="h-sub">Agenticthon 2026 · DARAA</div>
-        </div>
-        <div style="text-align: left">
-          <div style="font-size: 0.9rem; font-weight: 700">بدر العمري · سفر الدوسري</div>
-          <div style="font-size: 0.78rem; color: var(--muted); font-family: var(--mono)">
-            Next.js · Claude Sonnet 4.6 · TypeScript
+    <div class="page" dir="rtl">
+      <header>
+        <div class="eyebrow">Agenticthon 2026 · Round 2</div>
+        <h1>درع — <span class="accent">Agentic Solution</span></h1>
+        <p class="lede">
+          نظام متعدد الوكلاء عربي يتابع رخص المحلات الصغيرة في السعودية. ١٢ ايجنت يتواصلون عبر A2A
+          messaging، ٧ منهم متخصصون في جهة حكومية، يستدعون أدوات للحقائق ثم يصيغون تفسيراً عربياً
+          واضحاً للمالك.
+        </p>
+        <div class="stat-grid">
+          <div class="stat">
+            <div class="v">١٢</div>
+            <div class="l">ايجنت</div>
+          </div>
+          <div class="stat">
+            <div class="v">٧</div>
+            <div class="l">جهات حكومية</div>
+          </div>
+          <div class="stat">
+            <div class="v">٥</div>
+            <div class="l">فئات محلات</div>
+          </div>
+          <div class="stat">
+            <div class="v">١٢</div>
+            <div class="l">أدوات حقائق</div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div class="section" id="what">
-        <h2>ما الذي يقوم به الوكيل</h2>
+      <section>
+        <h2><span class="num">01</span>ما الذي يقوم به النظام</h2>
         <p>
-          DARAA هو منصة متعددة الوكلاء تركز على العربية وتقدّم مسارين رئيسيين لصاحب العمل السعودي:
+          المالك يفتح <code>/chat</code> ويبدأ محادثة عربية حرّة. الـ Chat Agent (Sonnet 4.6)
+          يستخرج حتى ١٠ حقول من جملة واحدة — اسم المحل، نوعه، تواريخ الرخص، عدد الطفايات، نظام
+          التهوية، شهادات الموظفين الصحية، اعتماد اللوحة.
+        </p>
+        <p>
+          بعد ١٦ سؤال، الـ Project Orchestrator يطلق ١٢ ايجنت في موجات متتالية، كل واحد متخصص في
+          جهة حكومية أو دور تنسيقي، ويتعاونون عبر AgentBus حقيقي بـ inbox مستقل لكل ايجنت.
+        </p>
+        <p>
+          النتيجة: داشبورد يومي فيه «صحة الرخص ٧٥٪، البلدية تنتهي خلال ١١ يوم، شهادات صحية ناقصة
+          لموظفَين» + تذكيرات بريدية تلقائية قبل ٣٠ يوم من أي تجديد.
+        </p>
+
+        <h3>الفئات المدعومة</h3>
+        <ul>
+          <li><strong>كوفي / مقهى</strong> — civil_defense + municipality + sfda</li>
+          <li><strong>مطعم</strong> — civil_defense + municipality + sfda + moh</li>
+          <li><strong>بقالة / سوبرماركت</strong> — civil_defense + municipality + sfda</li>
+          <li><strong>مغسلة ملابس</strong> — civil_defense + municipality</li>
+          <li><strong>صالون</strong> — civil_defense + municipality + moh</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2><span class="num">02</span>القرارات التي يتخذها كل وكيل</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>الوكيل</th>
+              <th>المحرّك</th>
+              <th>القرار</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Chat</td>
+              <td><span class="pill">Sonnet 4.6</span></td>
+              <td>أي حقل ينقص، هل يثق بالاستخراج، متى تكتمل المقابلة</td>
+            </tr>
+            <tr>
+              <td>Orchestrator</td>
+              <td><span class="pill">Code</span></td>
+              <td>جدولة الموجات، dependencies، انتقال phase</td>
+            </tr>
+            <tr>
+              <td>Research</td>
+              <td><span class="pill">Web Search</span></td>
+              <td>تصفية التحديثات التنظيمية، أي ايجنت يحتاج إخطار</td>
+            </tr>
+            <tr>
+              <td>MCI</td>
+              <td><span class="pill">LLM + Tools</span></td>
+              <td>صلاحية السجل، موعد التجديد، أنشطة مفقودة</td>
+            </tr>
+            <tr>
+              <td>Civil Defense</td>
+              <td><span class="pill">LLM + Tools</span></td>
+              <td>عدد الطفايات حسب المساحة والنشاط، فحص دوري، رسالة hasKitchen للبلدية</td>
+            </tr>
+            <tr>
+              <td>Municipality</td>
+              <td><span class="pill">LLM + Tools</span></td>
+              <td>اعتماد اللوحة، رخصة المطبخ (لو وصلت رسالة من Civil Defense)، تكلفة بلدية</td>
+            </tr>
+            <tr>
+              <td>SFDA</td>
+              <td><span class="pill">LLM + Tools</span></td>
+              <td>هل يحتاج ترخيص غذائي، صلاحيته، تتبّع تبريد</td>
+            </tr>
+            <tr>
+              <td>MOH</td>
+              <td><span class="pill">LLM + Tools</span></td>
+              <td>كم موظف يحتاج شهادة صحية، هل العدد كافٍ</td>
+            </tr>
+            <tr>
+              <td>MOHR + GOSI</td>
+              <td><span class="pill">LLM + Tools</span></td>
+              <td>تقدير نطاق السعودة (أخضر/أصفر/أحمر)</td>
+            </tr>
+            <tr>
+              <td>ZATCA</td>
+              <td><span class="pill">LLM + Tools</span></td>
+              <td>هل تجاوز حد VAT (٣٧٥ ألف)، الفوترة الإلكترونية</td>
+            </tr>
+            <tr>
+              <td>Analysis</td>
+              <td><span class="pill">Sonnet 4.6</span></td>
+              <td>تقييم الفجوات (critical/high/medium/low)، topWarnings، narrative عربي</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2><span class="num">03</span>وكيل واحد أم متعدد؟</h2>
+        <p>
+          <strong>متعدد — ١٢ ايجنت في طبقتين:</strong>
         </p>
         <ul>
           <li>
-            <strong>تأسيس الشركة</strong> — توجيه عبر 7–15 جهة حكومية بالترتيب الصحيح، مع المستندات
-            والمتطلبات، وتقدير التكاليف ومواعيد التجديد.
+            <strong>طبقة التنسيق (٥):</strong> orchestrator · chat · research · analysis · report
           </li>
           <li>
-            <strong>الامتثال التنظيمي</strong> — فحص الامتثال الرقمي ضد PDPL وNCA وZATCA، واقتراح
-            إصلاحات وجاهزة للاستخدام قبل التفتيش.
+            <strong>طبقة المتخصصين (٧):</strong> mci · municipality · civil_defense · sfda · moh ·
+            mohr_gosi · zatca
           </li>
         </ul>
-        <p>
-          المستخدم يتحدّث بلهجة خليجية حرة عبر واجهة دردشة؛ يقوم عامل المحادثة (Claude Sonnet 4.6)
-          باستخراج ما يصل إلى 10 حقول من جملة واحدة، ثم تُشغّل سلسلة من الوكلاء المتخصّصين لإنتاج
-          خريطة طريق أو تقرير فجوات ومجموعة مستندات قانونية باللغة العربية.
-        </p>
-      </div>
 
-      <div class="section" id="decisions">
-        <h2>ما هي القرارات التي يتخذها الوكيل</h2>
+        <h3>دليل أن الـ A2A ليس زخرفة</h3>
+        <div class="quote">
+          <strong>CivilDefenseAgent</strong> يصدر outbox فيها <code>hasKitchen: true</code> →
+          <strong>Municipality</strong> يقرأ inboxه → يضيف «رخصة المطبخ التجاري». بدون هذي الرسالة
+          الرخصة لا تظهر إطلاقاً في تقرير المطعم.
+        </div>
         <p>
-          كل وكيل في النظام يتخذ قرارات واضحة مبنية على دوره وبيانات سياق الوكيل (`AgentContext`).
-          أمثلة بارزة:
+          الكود في <code>src/agents/specialists/civil-defense-agent.ts</code> سطر 65. حذف
+          الـ outbox يكسر هذا السلوك مباشرة — يعني الرسالة تحدّد المخرج النهائي وليست logging.
         </p>
-        <div class="kv">
-          <strong>Chat Agent (Claude 4.6)</strong>
-          <div class="note">
-            يقرّر أي الحقول يطلبها لاحقاً، متى يثق باستخراج نص حرّ، ومتى يطلب تأكيداً من المستخدم.
-          </div>
-        </div>
-        <div class="kv">
-          <strong>Wave Scheduler (Orchestrator)</strong>
-          <div class="note">
-            يقرّر أي العوامل تنفّذ بالتوازي وأيها يجب أن تنتظر نتائج سابقة، يكتشف حالات التعطّل
-            ويعيد المحاولة (×3).
-          </div>
-        </div>
-        <div class="kv">
-          <strong>Research Agent</strong>
-          <div class="note">
-            يقرّر أي تحديثات تنظيمية حية مهمة لهذه الحالة ويقرر لأي وكلاء يبث النتائج.
-          </div>
-        </div>
-        <div class="kv">
-          <strong>Specialist Agents (مثال: CivilDefense, Municipality)</strong>
-          <div class="note">
-            يتخذون قرارات نطاقية؛ مثال: `CivilDefenseAgent` يصدر `{ hasKitchen: true }` → عندها
-            `MunicipalityAgent` يضيف رخصة المطبخ التجاري إلى المتطلبات.
-          </div>
-        </div>
-        <div class="kv">
-          <strong>Analysis Agent</strong>
-          <div class="note">يقيّم 14 قاعدة PDPL حتمية، يحسب سقف الغرامة، ويصنّف شدّة كل فجوة.</div>
-        </div>
-      </div>
+      </section>
 
-      <div class="section" id="single-or-multi">
-        <h2>هل هو نظام وكيل واحد أم متعدد الوكلاء؟</h2>
-        <p>نظام DARAA هو نظام متعدد الوكلاء — تصميم من 19 وكيل عبر طبقتين:</p>
+      <section>
+        <h2><span class="num">04</span>المكوّنات التقنية</h2>
+        <table>
+          <tbody>
+            <tr>
+              <td>Frontend</td>
+              <td>Next.js 14 (App Router) + Tailwind v4 + RTL Arabic + Almarai/Plex/Mono</td>
+            </tr>
+            <tr>
+              <td>Agent Runtime</td>
+              <td>OrchestratorRuntime + AgentBus + Wave Scheduler + Telemetry Recorder</td>
+            </tr>
+            <tr>
+              <td>Specialist Base</td>
+              <td>LlmSpecialistAgent — Claude tool-use loop مع fallback deterministic</td>
+            </tr>
+            <tr>
+              <td>Tools</td>
+              <td>
+                ١٢ أداة: get_shop_summary، list_safety_requirements، calculate_extinguisher_count،
+                check_renewal_urgency، add_months_to_date، lookup_vertical_requirements،
+                check_vat_threshold، estimate_nitaqat_zone، list_health_requirements،
+                list_food_safety_requirements، estimate_balady_cost، estimate_safety_cost
+              </td>
+            </tr>
+            <tr>
+              <td>Persistence</td>
+              <td>
+                Supabase Postgres — جدولان: <code>daraa_chat_sessions</code>،
+                <code>daraa_projects</code> (jsonb blob، service-role)
+              </td>
+            </tr>
+            <tr>
+              <td>Reminders</td>
+              <td>GitHub Actions cron يومي ٧ صباح KSA → /api/cron/reminders → Resend SMTP</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2><span class="num">05</span>روابط سريعة للمحكمين</h2>
         <ul>
           <li>
-            <strong>طبقة التنسيق (8 وكلاء)</strong> — Orchestrator, Chat, Research, Scan, Analysis,
-            Report, Document, Regulatory.
+            عرض حيّ:
+            <code>https://daraa-sandy.vercel.app</code>
           </li>
           <li>
-            <strong>طبقة المتخصّصين (11 وكيل)</strong> — MCI, ZATCA, ZATCA E-Invoice, MOHR+GOSI,
-            Civil Defense, Municipality, SFDA, MOH, PDPL+NCA, Maroof, Contractor Classification.
+            ابدأ محادثة:
+            <code>/chat</code>
+          </li>
+          <li>
+            دليل الوكلاء:
+            <code>/agents</code>
+          </li>
+          <li>
+            ديمو ٣ محلات seeded:
+            <code>/demo</code>
+          </li>
+          <li>
+            داشبورد المثال:
+            <code>/project/demo-kafe-rafeh-op</code>
+          </li>
+          <li>
+            شفافية AI (تتبع الايجنتات):
+            <code>/project/demo-kafe-rafeh-op#agent-traces</code>
           </li>
         </ul>
-        <p>
-          التواصل بين الوكلاء يتم عبر <strong>AgentBus</strong> مع صناديق وارد معزولة لكل وكيل،
-          ورسائل تحمل حمولة مُعرّفة تغيّر سلوك المستلم في الزمن الحقيقي. الجدولة الموجية (Wave
-          Scheduler) تحكم التسلسل والتوازيات وتمنع حالات السباق.
-        </p>
-      </div>
+      </section>
 
-      <div class="section" id="notes">
-        <h2>ملاحظات سريعة</h2>
-        <p class="note">
-          ملاحظة: لا يتضمن MVP تكاملات حكومية مباشرة لأن معظم الجهات لا تتيح واجهات برمجة تطبيقات
-          عامة. المستندات الناتجة تُولَّد كقوالب عربية جاهزة للطباعة (A4) — هذه الصفحة مُصمَّمة
-          أيضاً للطباعة إلى PDF بنفس الهوية البصرية.
-        </p>
-      </div>
+      <footer>
+        daraa-sandy.vercel.app · github.com/baxdr/daraa · بدر العمري + سفر الدوسري
+      </footer>
     </div>
   </body>
 </html>

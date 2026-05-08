@@ -1,822 +1,483 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DARAA — Architecture Diagram</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>درع — Architecture Diagram</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <style>
-      *,
-      *::before,
-      *::after {
+      :root {
+        --paper: #f7f3eb;
+        --paper-2: #efe9d9;
+        --ink: #14110f;
+        --ink-2: #3a342e;
+        --muted: #6b6357;
+        --rule: #e6dfce;
+        --accent: #1e4d3b;
+        --accent-soft: #def0e3;
+        --warn: #b88717;
+        --display: 'Almarai', system-ui, sans-serif;
+        --body: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+        --mono: 'JetBrains Mono', monospace;
+      }
+      * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
       }
-
-      :root {
-        --paper: #f7f3eb;
-        --paper2: #efe9db;
-        --paper3: #e6dfce;
-        --ink: #14110f;
-        --ink2: #3a342e;
-        --muted: #635a4e;
-        --rule: #d9d1c3;
-        --white: #ffffff;
-        --accent: #1e4d3b;
-        --asoft: #e8ede8;
-        --warn: #b8571e;
-        --wsoft: #f6e9de;
-        --success: #166534;
-        --ssoft: #f0f5f0;
-        --danger: #9b2c2c;
-        --font: 'IBM Plex Sans Arabic', system-ui, sans-serif;
-        --mono: 'JetBrains Mono', monospace;
-      }
-
+      html,
       body {
         background: var(--paper);
-        font-family: var(--font);
-        padding: 2.5rem 2rem 4rem;
-        direction: ltr;
-      }
-
-      @media print {
-        @page {
-          size: A3 portrait;
-          margin: 8mm 10mm;
-        }
-        * {
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-        body {
-          background: var(--paper) !important;
-          padding: 0 !important;
-          transform: scale(0.92);
-          transform-origin: top center;
-          font-size: 13px;
-        }
-        html {
-          overflow: hidden;
-        }
-        body::before {
-          display: none;
-        }
-        .page {
-          max-width: 100%;
-        }
-        .card {
-          padding: 1.6rem 1.2rem !important;
-        }
-        .hdr {
-          padding-bottom: 0.7rem;
-          margin-bottom: 1.2rem;
-          gap: 0.5rem;
-        }
-        .hdr-ar {
-          font-size: 2.2rem;
-        }
-        .hdr-title {
-          font-size: 0.88rem;
-        }
-        .flow {
-          gap: 0 !important;
-        }
-        .group {
-          padding: 0.7rem 0.8rem 0.8rem !important;
-          gap: 0.5rem !important;
-          margin-bottom: 0.6rem;
-        }
-        .group-title {
-          font-size: 0.55rem;
-          margin-bottom: 0.15rem;
-        }
-        .node {
-          padding: 0.4rem 0.75rem !important;
-          font-size: 0.65rem;
-          min-height: auto;
-        }
-        .node-label {
-          font-size: 0.65rem;
-        }
-        .node-sub {
-          font-size: 0.53rem;
-          margin-top: 0.1rem;
-        }
-        .arrow-down {
-          height: 24px;
-        }
-        .arrow-down::before {
-          height: 16px;
-        }
-        .arrow-down::after {
-          font-size: 0.45rem;
-        }
-        .split {
-          gap: 0.7rem !important;
-        }
-        .wave-wrap {
-          gap: 0 !important;
-          margin-bottom: 0.4rem;
-        }
-        .wave-body {
-          padding: 0.5rem 0.6rem !important;
-          gap: 0.5rem !important;
-        }
-        .msg-arrow {
-          margin: 0.25rem auto !important;
-          padding: 0 !important;
-        }
-        .msg-pill {
-          font-size: 0.53rem;
-          padding: 0.08rem 0.4rem;
-        }
-        .legend {
-          gap: 0.6rem 1.2rem;
-          margin-top: 1rem;
-          padding-top: 0.8rem;
-          font-size: 0.6rem;
-        }
-        .footer {
-          margin-top: 0.6rem;
-          font-size: 0.6rem;
-        }
-        .wave-title {
-          font-size: 0.53rem;
-          padding: 0.2rem 0.5rem;
-        }
-      }
-
-      body::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background-image: radial-gradient(
-          circle at 1px 1px,
-          rgba(20, 17, 15, 0.04) 1px,
-          transparent 0
-        );
-        background-size: 20px 20px;
-        pointer-events: none;
-        z-index: 0;
-      }
-
-      .page {
-        position: relative;
-        z-index: 1;
-        max-width: 980px;
-        margin: 0 auto;
-      }
-
-      /* ── Header ─────────────────────────────────────────────────────── */
-      .hdr {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid var(--ink);
-        margin-bottom: 2rem;
-      }
-      .hdr-logo {
-        display: flex;
-        flex-direction: column;
-        gap: 0.15rem;
-      }
-      .hdr-ar {
-        font-size: 2.8rem;
-        font-weight: 700;
         color: var(--ink);
-        letter-spacing: -0.02em;
-        line-height: 1;
-        direction: rtl;
+        font-family: var(--body);
+        line-height: 1.6;
       }
-      .hdr-en {
-        font-family: var(--mono);
-        font-size: 0.62rem;
-        color: var(--muted);
-        letter-spacing: 0.2em;
+      .page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
       }
-      .hdr-meta {
-        text-align: right;
+      header {
+        margin-bottom: 2.5rem;
+        border-bottom: 1px solid var(--rule);
+        padding-bottom: 1.5rem;
       }
       .eyebrow {
-        display: block;
-        font-size: 0.62rem;
-        font-weight: 700;
-        letter-spacing: 0.16em;
-        color: var(--accent);
-        margin-bottom: 0.3rem;
-      }
-      .hdr-title {
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--ink);
-        letter-spacing: -0.015em;
-      }
-
-      /* ── Diagram card ────────────────────────────────────────────────── */
-      .card {
-        background: var(--white);
-        border: 1px solid var(--rule);
-        padding: 2.5rem 2rem;
-      }
-
-      /* ── Flow layout ─────────────────────────────────────────────────── */
-      .flow {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0;
-      }
-
-      /* ── Nodes ───────────────────────────────────────────────────────── */
-      .node {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 0.55rem 1rem;
-        border: 1.5px solid var(--rule);
-        background: var(--white);
-        border-radius: 3px;
-      }
-      .node-label {
-        font-size: 0.72rem;
-        font-weight: 700;
-        color: var(--ink);
-        line-height: 1.3;
-      }
-      .node-sub {
         font-family: var(--mono);
-        font-size: 0.6rem;
-        color: var(--muted);
-        margin-top: 0.2rem;
-        line-height: 1.3;
-      }
-
-      /* Node variants */
-      .n-user {
-        background: var(--accent);
-        border-color: var(--accent);
-        border-radius: 999px;
-        padding: 0.6rem 1.8rem;
-      }
-      .n-user .node-label {
-        color: var(--paper);
-        font-size: 0.8rem;
-      }
-      .n-user .node-sub {
-        color: rgba(240, 238, 232, 0.7);
-      }
-
-      .n-claude {
-        background: var(--asoft);
-        border-color: var(--accent);
-        border-width: 2px;
-      }
-      .n-scanner {
-        background: var(--wsoft);
-        border-color: var(--warn);
-        border-width: 2px;
-      }
-      .n-bus {
-        background: var(--asoft);
-        border-color: var(--accent);
-        border-width: 2.5px;
-        border-radius: 4px;
-      }
-      .n-bus .node-label {
-        color: var(--accent);
-      }
-      .n-sched {
-        background: var(--asoft);
-        border-color: var(--accent);
-        border-width: 2px;
-      }
-
-      .n-w1 {
-        background: var(--ssoft);
-        border-color: var(--accent);
-      }
-      .n-w2 {
-        background: var(--wsoft);
-        border-color: var(--warn);
-      }
-      .n-w3 {
-        background: #fff8f0;
-        border-color: var(--warn);
-      }
-
-      .n-output {
-        background: var(--white);
-        border-color: var(--muted);
-      }
-      .n-store {
-        background: var(--paper2);
-        border-color: var(--ink2);
-        border-width: 2px;
-        border-radius: 999px;
-      }
-      .n-store .node-label {
-        color: var(--ink);
-      }
-
-      .n-dash {
-        background: var(--ink);
-        border-color: var(--ink);
-      }
-      .n-dash .node-label {
-        color: var(--paper);
-        font-size: 0.78rem;
-      }
-      .n-dash .node-sub {
-        color: rgba(240, 238, 232, 0.6);
-      }
-
-      /* ── Rows ────────────────────────────────────────────────────────── */
-      .row {
-        display: flex;
-        justify-content: center;
-        align-items: stretch;
-        gap: 1rem;
-        width: 100%;
-      }
-      .row-wide {
-        width: 100%;
-        max-width: 780px;
-      }
-
-      /* ── Arrows ──────────────────────────────────────────────────────── */
-      .arrow-down {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        height: 36px;
-        justify-content: center;
-        gap: 0;
-      }
-      .arrow-down::before {
-        content: '';
-        display: block;
-        width: 1.5px;
-        height: 24px;
-        background: var(--muted);
-      }
-      .arrow-down::after {
-        content: '▼';
-        font-size: 0.55rem;
-        color: var(--muted);
-        line-height: 1;
-      }
-      .arrow-label {
-        font-family: var(--mono);
-        font-size: 0.6rem;
-        color: var(--accent);
-        background: var(--paper);
-        border: 1px solid var(--rule);
-        padding: 0.12rem 0.4rem;
-        border-radius: 3px;
-        margin: 0.15rem 0;
-      }
-
-      /* ── Section groups ──────────────────────────────────────────────── */
-      .group {
-        width: 100%;
-        border: 1px solid var(--rule);
-        background: var(--paper);
-        padding: 1rem 1.2rem 1.2rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.8rem;
-      }
-      .group-title {
-        font-family: var(--mono);
-        font-size: 0.62rem;
-        font-weight: 600;
-        letter-spacing: 0.1em;
-        color: var(--muted);
+        font-size: 0.7rem;
         text-transform: uppercase;
-        align-self: flex-start;
-        padding: 0.15rem 0.5rem;
-        border-left: 2px solid var(--rule);
-        margin-bottom: 0.2rem;
+        letter-spacing: 0.18em;
+        color: var(--accent);
+        font-weight: 700;
       }
-      .group-accent > .group-title {
-        border-left-color: var(--accent);
+      h1 {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 2.6rem;
+        line-height: 1.1;
+        margin-top: 0.5rem;
+        letter-spacing: -0.02em;
+      }
+      h1 .accent {
         color: var(--accent);
       }
-      .group-warn > .group-title {
-        border-left-color: var(--warn);
-        color: var(--warn);
+      .lede {
+        font-size: 1.05rem;
+        color: var(--ink-2);
+        margin-top: 0.85rem;
+        max-width: 56rem;
       }
-
-      /* ── Split row (2 equal columns) ─────────────────────────────────── */
-      .split {
+      section {
+        background: #fff;
+        border: 1px solid var(--rule);
+        margin-top: 2rem;
+        padding: 1.75rem 2rem;
+      }
+      h2 {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 1.55rem;
+        color: var(--ink);
+        margin-bottom: 1rem;
+        letter-spacing: -0.01em;
+      }
+      h2 .num {
+        font-family: var(--mono);
+        color: var(--accent);
+        font-size: 0.85rem;
+        margin-inline-end: 0.4rem;
+        font-weight: 500;
+      }
+      .diagram {
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        padding: 1.5rem;
+        margin-top: 1rem;
+        text-align: center;
+      }
+      .mermaid {
+        display: inline-block;
+      }
+      .legend {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+      }
+      .legend-item {
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        padding: 0.7rem 0.9rem;
+        font-size: 0.85rem;
+      }
+      .legend-item strong {
+        display: block;
+        font-family: var(--mono);
+        color: var(--accent);
+        font-size: 0.78rem;
+        margin-bottom: 0.25rem;
+      }
+      .grid-2 {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1rem;
-        width: 100%;
+        margin-top: 1rem;
       }
-      .split-3 {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 0.7rem;
-        width: 100%;
+      .card {
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        padding: 1rem 1.1rem;
       }
-      .split-4 {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.7rem;
-        width: 100%;
+      .card .title {
+        font-weight: 700;
+        margin-bottom: 0.4rem;
       }
-
-      /* ── Wave label ──────────────────────────────────────────────────── */
-      .wave-wrap {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
+      .card .desc {
+        font-size: 0.9rem;
+        color: var(--ink-2);
       }
-      .wave-title {
+      .card.accent {
+        background: var(--accent-soft);
+        border-color: rgba(30, 77, 59, 0.3);
+      }
+      ul {
+        padding-inline-start: 1.4rem;
+        margin-top: 0.5rem;
+      }
+      ul li {
+        margin-bottom: 0.4rem;
+        font-size: 0.95rem;
+      }
+      code,
+      .mono {
         font-family: var(--mono);
-        font-size: 0.6rem;
-        font-weight: 600;
-        color: var(--white);
-        padding: 0.25rem 0.7rem;
-        align-self: flex-start;
-        border-radius: 2px 2px 0 0;
-        letter-spacing: 0.06em;
+        font-size: 0.85em;
+        background: var(--paper);
+        padding: 0.1em 0.3em;
+        border: 1px solid var(--rule);
       }
-      .wt-1 {
-        background: var(--accent);
-      }
-      .wt-2 {
-        background: var(--warn);
-      }
-      .wt-3 {
-        background: var(--warn);
-      }
-
-      .wave-body {
-        border: 1.5px solid;
-        border-top: none;
-        padding: 0.6rem 0.8rem;
-        display: flex;
-        gap: 0.6rem;
-        align-items: stretch;
-      }
-      .wb-1 {
-        border-color: var(--accent);
-        background: var(--ssoft);
-      }
-      .wb-2 {
-        border-color: var(--warn);
-        background: var(--wsoft);
-      }
-      .wb-3 {
-        border-color: var(--warn);
-        background: #fff8f0;
-      }
-
-      .msg-arrow {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.2rem 0.7rem;
-        margin: 0 auto;
-      }
-      .msg-arrow::before,
-      .msg-arrow::after {
-        content: '';
-        display: block;
-        width: 1.5px;
-        height: 20px;
-        background: var(--muted);
-      }
-      .msg-pill {
-        font-family: var(--mono);
-        font-size: 0.6rem;
-        color: var(--accent);
-        background: var(--asoft);
-        border: 1px solid var(--accent);
-        padding: 0.12rem 0.5rem;
-        border-radius: 2px;
-        white-space: nowrap;
-      }
-
-      /* ── Legend ──────────────────────────────────────────────────────── */
-      .legend {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.8rem 1.8rem;
-        margin-top: 1.8rem;
-        padding-top: 1.2rem;
-        border-top: 1px solid var(--rule);
-      }
-      .li {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        font-size: 0.7rem;
-        color: var(--ink2);
-      }
-      .ld {
-        width: 14px;
-        height: 14px;
-        border-radius: 2px;
-        flex-shrink: 0;
-      }
-
-      /* ── Footer ──────────────────────────────────────────────────────── */
-      .footer {
-        margin-top: 1.4rem;
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.7rem;
+      footer {
+        margin-top: 2.5rem;
+        text-align: center;
+        font-size: 0.85rem;
         color: var(--muted);
-      }
-      .footer strong {
-        color: var(--ink);
+        font-family: var(--mono);
       }
     </style>
   </head>
   <body>
-    <div class="page">
-      <!-- Header -->
-      <div class="hdr">
-        <div class="hdr-logo">
-          <span class="hdr-ar">درع</span>
-          <span class="hdr-en">DARAA · SYSTEM ARCHITECTURE</span>
+    <div class="page" dir="rtl">
+      <header>
+        <div class="eyebrow">Agenticthon 2026 · Round 2</div>
+        <h1>
+          درع <span class="accent">Architecture</span>
+        </h1>
+        <p class="lede">
+          نظام متعدد الوكلاء (Multi-agent) لمتابعة رخص المحلات الصغيرة في السعودية. ١٢ ايجنت في
+          طبقتين، يتواصلون عبر AgentBus حقيقي، ويستدعون أدوات deterministic للحقائق ثم يصيغون
+          المخرجات بالعربية.
+        </p>
+      </header>
+
+      <section>
+        <h2><span class="num">01</span>المعمارية الكاملة</h2>
+        <p style="color: var(--ink-2); font-size: 0.95rem">
+          من المحادثة العربية الحرّة إلى تقرير امتثال تشغيلي + تذكيرات بريدية يومية.
+        </p>
+        <div class="diagram">
+          <pre class="mermaid">
+flowchart TB
+  subgraph U[المستخدم]
+    direction RL
+    USER([👤 صاحب المحل])
+  end
+
+  subgraph FE[Next.js · App Router]
+    CHAT[/&#47;chat<br/>١٦ سؤال موجَّه/]
+    PROJ[/&#47;project&#47;id<br/>داشبورد + traces/]
+  end
+
+  subgraph CHAT_AGENT[Chat Agent · Sonnet 4.6]
+    EXTRACT[استخراج البيانات<br/>من النص الحرّ]
+    NEXTQ[اختيار السؤال التالي]
+  end
+
+  subgraph ORCH[Project Orchestrator]
+    BUS[AgentBus<br/>inbox per agent]
+    SCHED[Wave Scheduler<br/>dependencies → موجات]
+    TELEM[Telemetry Recorder<br/>tool calls + tokens]
+  end
+
+  subgraph WAVE1[Wave 1 · بحث]
+    RES[Research Agent<br/>web_search]
+  end
+
+  subgraph WAVE2[Wave 2 · ٧ متخصصين بالتوازي]
+    direction RL
+    MCI[mci]
+    CD[civil_defense]
+    MUNI[municipality]
+    SFDA[sfda]
+    MOH[moh]
+    HR[mohr_gosi]
+    ZAT[zatca]
+  end
+
+  subgraph WAVE3[Wave 3 · تحليل]
+    AN[Analysis Agent<br/>narrative + warnings]
+  end
+
+  subgraph TOOLS[Deterministic Tools · ١٢ أداة]
+    T1[get_shop_summary]
+    T2[list_safety_requirements]
+    T3[calculate_extinguisher_count]
+    T4[check_renewal_urgency]
+    T5[+ ٨ أدوات أخرى]
+  end
+
+  subgraph EXT[خارجي]
+    ANTH[Anthropic API<br/>Sonnet 4.6]
+    SB[(Supabase Postgres<br/>daraa_sessions + projects)]
+    RES_EMAIL[Resend SMTP]
+    GHA[GitHub Actions Cron<br/>٧ صباح KSA]
+  end
+
+  USER --> CHAT
+  CHAT --> EXTRACT
+  EXTRACT --> NEXTQ
+  NEXTQ -->|next-question| CHAT
+  CHAT --> SB
+
+  CHAT -->|done| ORCH
+  ORCH --> SCHED
+  SCHED --> RES
+  RES -->|regulatory updates| BUS
+  SCHED --> WAVE2
+  BUS <--> WAVE2
+  WAVE2 -->|tool calls| TOOLS
+  TOOLS -->|deterministic facts| WAVE2
+  WAVE2 -->|EntityCards| AN
+  AN -->|gaps + warnings| ORCH
+  ORCH --> SB
+
+  TELEM -.-> WAVE2
+  TELEM -.-> AN
+
+  EXTRACT --> ANTH
+  RES --> ANTH
+  WAVE2 --> ANTH
+  AN --> ANTH
+
+  GHA -->|daily 04:00 UTC| EXT
+  EXT --> SB
+  SB -->|projects with renewals| RES_EMAIL
+  RES_EMAIL -->|reminder email| USER
+
+  SB --> PROJ
+  PROJ --> USER
+
+  classDef user fill:#fff,stroke:#14110f,stroke-width:2px,color:#14110f;
+  classDef fe fill:#fff,stroke:#1e4d3b,color:#14110f;
+  classDef agent fill:#def0e3,stroke:#1e4d3b,color:#14110f;
+  classDef tool fill:#f7f3eb,stroke:#6b6357,color:#3a342e;
+  classDef ext fill:#fff,stroke:#b88717,color:#14110f;
+  classDef orch fill:#1e4d3b,stroke:#14110f,color:#fff;
+
+  class USER user;
+  class CHAT,PROJ fe;
+  class EXTRACT,NEXTQ,RES,MCI,CD,MUNI,SFDA,MOH,HR,ZAT,AN agent;
+  class T1,T2,T3,T4,T5 tool;
+  class ANTH,SB,RES_EMAIL,GHA ext;
+  class BUS,SCHED,TELEM orch;
+          </pre>
         </div>
-        <div class="hdr-meta">
-          <span class="eyebrow">AGENTICTHON 2026 · ARCHITECTURE DIAGRAM</span>
-          <div class="hdr-title">Saudi Multi-Agent AI Platform — 19 Agents · Real A2A</div>
-        </div>
-      </div>
 
-      <div class="card">
-        <div class="flow">
-          <!-- USER -->
-          <div class="node n-user">
-            <span class="node-label">👤 المستخدم — User</span>
-            <span class="node-sub">Gulf Arabic · free-form input</span>
-          </div>
-
-          <div class="arrow-down"></div>
-
-          <!-- INPUT LAYER -->
-          <div class="group-accent group" style="max-width: 780px">
-            <div class="group-title">Input Layer · طبقة المدخلات</div>
-            <div class="split" style="max-width: 580px">
-              <div class="node n-claude" style="min-height: 60px">
-                <span class="node-label">💬 Arabic Chat</span>
-                <span class="node-sub">Free-form Gulf Arabic text</span>
-              </div>
-              <div class="node n-scanner" style="min-height: 60px">
-                <span class="node-label">🌐 Website URL</span>
-                <span class="node-sub">Public URL for compliance scan</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="arrow-down"></div>
-
-          <!-- AI LAYER -->
-          <div class="group-accent group" style="max-width: 780px">
-            <div class="group-title">AI Intelligence Layer · طبقة الذكاء</div>
-            <div class="split" style="max-width: 680px">
-              <div class="node n-claude">
-                <span class="node-label">🤖 Chat Agent</span>
-                <span class="node-sub"
-                  >Claude Sonnet 4.6<br />10-field extraction · Gulf Arabic NLU<br />builds
-                  AgentContext</span
-                >
-              </div>
-              <div class="node n-scanner">
-                <span class="node-label">🔍 4 Web Scanners</span>
-                <span class="node-sub"
-                  >Privacy Policy · Security Headers<br />Third-Party Trackers · Data Forms<br />Parallel
-                  execution</span
-                >
-              </div>
-            </div>
-          </div>
-
-          <div class="arrow-down"></div>
-
-          <!-- AGENTBUS -->
-          <div class="group-accent group" style="max-width: 780px">
-            <div class="group-title">A2A Layer · تواصل حقيقي بين الوكلاء</div>
-            <div class="split" style="max-width: 680px">
-              <div class="node n-bus">
-                <span class="node-label">📡 AgentBus</span>
-                <span class="node-sub"
-                  >Isolated inbox per agent<br />Payload-bearing messages<br />Broadcast ALL ·
-                  Chronological log</span
-                >
-              </div>
-              <div class="node n-claude">
-                <span class="node-label">🔬 Research Agent</span>
-                <span class="node-sub"
-                  >Claude Sonnet 4.6 + web_search<br />Finds PDPL · ZATCA · NCA updates<br />Broadcasts
-                  to relevant agents only</span
-                >
-              </div>
-            </div>
-          </div>
-
-          <div class="arrow-down"></div>
-
-          <!-- WAVE SCHEDULER -->
-          <div class="group-accent group" style="max-width: 780px; gap: 0.5rem">
-            <div class="group-title">Wave Scheduler · OrchestratorRuntime</div>
-
-            <div class="node n-sched" style="align-self: stretch">
-              <span class="node-label">⚙️ Wave Scheduler</span>
-              <span class="node-sub"
-                >Dependency resolution · Parallel execution · Deadlock detection · MAX 16 waves ·
-                Retry ×3</span
-              >
-            </div>
-
-            <!-- Wave 1 -->
-            <div class="wave-wrap" style="width: 100%">
-              <div class="wave-title wt-1">Wave 1 — Independent · Run in Parallel</div>
-              <div class="wave-body wb-1">
-                <div class="node n-w1" style="flex: 1">
-                  <span class="node-label">🏛️ MCI</span>
-                  <span class="node-sub">Ministry of Commerce<br />CR + Trade Name</span>
-                </div>
-                <div class="node n-w1" style="flex: 1">
-                  <span class="node-label">🍽️ SFDA</span>
-                  <span class="node-sub">Food &amp; Drug Authority<br />Health Certificate</span>
-                </div>
-                <div class="node n-w1" style="flex: 1">
-                  <span class="node-label">🏥 MOH</span>
-                  <span class="node-sub">Ministry of Health<br />Medical License</span>
-                </div>
-                <div class="node n-w1" style="flex: 1">
-                  <span class="node-label">✅ Maroof</span>
-                  <span class="node-sub">Verification Platform<br />Business Profile</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- A2A Message -->
-            <div class="msg-arrow">
-              <span class="msg-pill">📨 crReady: true — MCI → All</span>
-            </div>
-
-            <!-- Wave 2 -->
-            <div class="wave-wrap" style="width: 100%">
-              <div class="wave-title wt-2">Wave 2 — Awaits MCI Signal</div>
-              <div class="wave-body wb-2">
-                <div class="node n-w2" style="flex: 1">
-                  <span class="node-label">🔥 Civil Defense</span>
-                  <span class="node-sub">Safety Certificate<br />Emits hasKitchen payload</span>
-                </div>
-                <div class="node n-w2" style="flex: 1">
-                  <span class="node-label">💰 ZATCA</span>
-                  <span class="node-sub">Zakat &amp; Tax Authority<br />VAT Registration</span>
-                </div>
-                <div class="node n-w2" style="flex: 1">
-                  <span class="node-label">🧾 ZATCA E-Invoice</span>
-                  <span class="node-sub">Phase 2 Integration<br />Electronic Invoicing</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- A2A Message -->
-            <div class="msg-arrow">
-              <span class="msg-pill">📨 hasKitchen: true — Civil Defense → Municipality</span>
-            </div>
-
-            <!-- Wave 3 -->
-            <div class="wave-wrap" style="width: 100%">
-              <div class="wave-title wt-3">Wave 3 — Unblocked by Civil Defense Payload</div>
-              <div class="wave-body wb-3">
-                <div class="node n-w3" style="flex: 1">
-                  <span class="node-label">🏙️ Municipality</span>
-                  <span class="node-sub">Adds Commercial Kitchen<br />License if hasKitchen</span>
-                </div>
-                <div class="node n-w3" style="flex: 1">
-                  <span class="node-label">👷 MOHR + GOSI</span>
-                  <span class="node-sub">Labor Ministry<br />Social Insurance</span>
-                </div>
-                <div class="node n-w3" style="flex: 1">
-                  <span class="node-label">🔒 PDPL + NCA</span>
-                  <span class="node-sub">Data Protection Law<br />Cybersecurity Controls</span>
-                </div>
-                <div class="node n-w3" style="flex: 1">
-                  <span class="node-label">🏗️ Contractor</span>
-                  <span class="node-sub">Classification<br />Engineering License</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="arrow-down"></div>
-
-          <!-- OUTPUT LAYER -->
-          <div class="group" style="max-width: 780px">
-            <div class="group-title">Output Layer · المخرجات</div>
-            <div class="split" style="max-width: 680px">
-              <div class="node n-output">
-                <span class="node-label">⚖️ Analysis Engine</span>
-                <span class="node-sub"
-                  >14 deterministic PDPL rules<br />Fine ceiling calculator<br />Sector
-                  personalizer</span
-                >
-              </div>
-              <div class="node n-claude">
-                <span class="node-label">📄 Document Agent</span>
-                <span class="node-sub"
-                  >Claude Sonnet 4.6<br />Privacy Policy · DPO Letter<br />Processing Register ·
-                  Incident Plan</span
-                >
-              </div>
-            </div>
-          </div>
-
-          <div class="arrow-down"></div>
-
-          <!-- PROJECT STORE -->
-          <div class="node n-store" style="max-width: 460px; width: 100%; padding: 0.7rem 1.5rem">
-            <span class="node-label">🗄️ Project Store · الذاكرة</span>
-            <span class="node-sub" style="font-family: var(--mono)"
-              >File-backed JSON · Atomic Writes · SHA-256 Email Index · 1h TTL</span
-            >
-          </div>
-
-          <div class="arrow-down"></div>
-
-          <!-- DASHBOARD -->
-          <div class="node n-dash" style="max-width: 560px; width: 100%; padding: 0.8rem 1.5rem">
-            <span class="node-label">📊 لوحة المشروع — Project Dashboard</span>
-            <span class="node-sub"
-              >Roadmap · Costs · Gap Report · Fine Ceiling · Documents · Active Monitoring</span
-            >
-          </div>
-        </div>
-        <!-- /flow -->
-
-        <!-- Legend -->
         <div class="legend">
-          <div class="li">
-            <div class="ld" style="background: var(--accent); border-radius: 999px"></div>
-            User / Entry
+          <div class="legend-item">
+            <strong>FRONTEND</strong>
+            Next.js 14 App Router · Tailwind v4 · RTL Arabic
           </div>
-          <div class="li">
-            <div class="ld" style="background: var(--asoft); border: 2px solid var(--accent)"></div>
-            Claude AI Agents
+          <div class="legend-item">
+            <strong>AGENT RUNTIME</strong>
+            <code>OrchestratorRuntime</code> + AgentBus + Wave Scheduler
           </div>
-          <div class="li">
-            <div class="ld" style="background: var(--wsoft); border: 1.5px solid var(--warn)"></div>
-            Web Scanners
+          <div class="legend-item">
+            <strong>SPECIALIST BASE</strong>
+            <code>LlmSpecialistAgent</code> · Claude tool-use loop
           </div>
-          <div class="li">
-            <div
-              class="ld"
-              style="background: var(--ssoft); border: 1.5px solid var(--accent)"
-            ></div>
-            Wave 1 — Independent
+          <div class="legend-item">
+            <strong>PERSISTENCE</strong>
+            Supabase Postgres · jsonb blob · service-role
           </div>
-          <div class="li">
-            <div class="ld" style="background: var(--wsoft); border: 1.5px solid var(--warn)"></div>
-            Wave 2 — Awaits MCI
+          <div class="legend-item">
+            <strong>REMINDERS</strong>
+            GitHub Actions cron + Resend SMTP
           </div>
-          <div class="li">
-            <div class="ld" style="background: #fff8f0; border: 1.5px solid var(--warn)"></div>
-            Wave 3 — Awaits Civil Defense
-          </div>
-          <div class="li">
-            <div
-              class="ld"
-              style="background: var(--paper2); border: 2px solid var(--ink2); border-radius: 999px"
-            ></div>
-            Memory / Persistence
-          </div>
-          <div class="li">
-            <div class="ld" style="background: var(--ink)"></div>
-            Project Dashboard
+          <div class="legend-item">
+            <strong>KNOWLEDGE</strong>
+            <code>src/knowledge/</code> · entities + ZATCA + terms
           </div>
         </div>
-      </div>
-      <!-- /card -->
+      </section>
 
-      <div class="footer">
-        <span><strong>بدر العمري · سفر الدوسري</strong> — Agenticthon 2026 🇸🇦</span>
-        <span style="font-family: var(--mono); font-size: 0.62rem"
-          >Next.js 14 · Claude Sonnet 4.6 · TypeScript · Custom AgentBus A2A</span
-        >
-      </div>
+      <section>
+        <h2><span class="num">02</span>تدفق التفاعل (Sequence)</h2>
+        <p style="color: var(--ink-2); font-size: 0.95rem">
+          من «وش اسم محلك؟» إلى تقرير كامل + تقويم تذكيرات في أقل من ٤٠ ثانية.
+        </p>
+        <div class="diagram">
+          <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant U as 👤 User
+  participant FE as Next.js
+  participant CA as Chat Agent
+  participant SB as Supabase
+  participant O as Orchestrator
+  participant R as Research
+  participant S as 7 Specialists
+  participant A as Analysis
+  participant E as Resend
+
+  U->>FE: GET /chat
+  FE->>CA: POST /api/chat/start
+  CA->>SB: insert daraa_chat_sessions
+  CA-->>FE: opener question
+  FE-->>U: «وش اسم محلك؟»
+
+  loop ١٦ سؤال
+    U->>FE: text answer (Gulf Arabic)
+    FE->>CA: POST /api/chat/message
+    CA->>CA: extract → validate → next-question
+    CA->>SB: update session
+    CA-->>FE: agent message + suggestions
+  end
+
+  U->>FE: complete
+  FE->>O: POST /api/project/start
+  O->>SB: insert daraa_projects (status=pending)
+
+  par Wave 1
+    O->>R: run research
+    R->>R: web_search regulatory updates
+    R-->>O: regulatory updates
+  and
+    O->>O: build inboxes for specialists
+  end
+
+  par Wave 2 — ٧ متخصصين
+    O->>S: run civil_defense
+    S->>S: tools: list_safety_requirements + calculate_extinguisher_count
+    S-->>O: EntityCard + outbox(municipality)
+    Note right of S: outbox: hasKitchen=true
+    O->>S: run municipality (reads inbox)
+    S->>S: tools: estimate_balady_cost
+    S-->>O: EntityCard (with kitchen license)
+  end
+
+  O->>A: run analysis
+  A->>A: evaluate gaps + topWarnings
+  A-->>O: report
+
+  O->>SB: upsert project (status=complete)
+  O-->>FE: redirect /project/id
+  FE-->>U: dashboard + agent traces
+
+  Note over E,U: Daily cron · 7am KSA
+  E->>SB: select projects with renewals
+  E-->>U: 📧 reminder email
+          </pre>
+        </div>
+      </section>
+
+      <section>
+        <h2><span class="num">03</span>تواصل A2A — مثال حيّ</h2>
+        <p style="color: var(--ink-2); font-size: 0.95rem">
+          الرسالة تغيّر المخرج النهائي. هذا ما يجعل الـ A2A فعلياً وليس زخرفة.
+        </p>
+        <div class="diagram">
+          <pre class="mermaid">
+flowchart RL
+  CD[civil_defense<br/>وكيل الدفاع المدني]
+  MUNI[municipality<br/>وكيل البلدية]
+  OUT[(Municipality Output)]
+
+  CD -->|outbox: dependency<br/>payload: hasKitchen: true| MUNI
+  MUNI -->|reads inbox| MUNI
+  MUNI -->|+ رخصة المطبخ التجاري| OUT
+
+  classDef agent fill:#def0e3,stroke:#1e4d3b,color:#14110f;
+  classDef out fill:#fff,stroke:#b88717,color:#14110f;
+  class CD,MUNI agent;
+  class OUT out;
+          </pre>
+        </div>
+        <ul>
+          <li><strong>بدون</strong> رسالة Civil Defense → Municipality لا يصدر «رخصة المطبخ»</li>
+          <li><strong>مع</strong> الرسالة → الرخصة تظهر في تقرير المطعم تلقائياً</li>
+          <li>الكود: <code>src/agents/specialists/civil-defense-agent.ts</code> سطر 65 (outbox)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2><span class="num">04</span>طبقات المعرفة (Knowledge layers)</h2>
+        <div class="grid-2">
+          <div class="card accent">
+            <div class="title">Knowledge Base (Static)</div>
+            <div class="desc">
+              <code>src/knowledge/entities.ts</code> — ٧ جهات حكومية × ٥ verticals · مواعيد تجديد ·
+              متطلبات أساسية · مصطلحات
+            </div>
+          </div>
+          <div class="card accent">
+            <div class="title">Tools (Deterministic)</div>
+            <div class="desc">
+              ١٢ أداة محسوبة من البيانات الفعلية. مثال: <code>calculate_extinguisher_count</code>
+              يعطي عدد الطفايات حسب المساحة والنشاط.
+            </div>
+          </div>
+          <div class="card accent">
+            <div class="title">Live Web Search</div>
+            <div class="desc">
+              Research Agent يستخدم Anthropic <code>web_search</code> لاستجلاب آخر التحديثات
+              التنظيمية من mci.gov.sa، sfda.gov.sa، إلخ.
+            </div>
+          </div>
+          <div class="card accent">
+            <div class="title">User-Provided State</div>
+            <div class="desc">
+              من المحادثة: نوع المحل، تواريخ الرخص الحالية، حالة البنية التحتية (طفايات، تهوية،
+              تبريد، شهادات صحية، لوحة).
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        daraa-sandy.vercel.app · github.com/baxdr/daraa · بدر العمري + سفر الدوسري
+      </footer>
     </div>
+
+    <script type="module">
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+          fontFamily: 'IBM Plex Sans Arabic, system-ui, sans-serif',
+          background: '#f7f3eb',
+          primaryColor: '#fff',
+          primaryBorderColor: '#1e4d3b',
+          primaryTextColor: '#14110f',
+          lineColor: '#3a342e',
+          secondaryColor: '#def0e3',
+          tertiaryColor: '#efe9d9',
+        },
+      });
+    </script>
   </body>
 </html>
