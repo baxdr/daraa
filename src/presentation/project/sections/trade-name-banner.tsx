@@ -1,5 +1,44 @@
 import type { NameCheckResult } from '@/agents/runtime/types';
 
+function StatusIcon({ status }: { status: NameCheckResult['status'] }) {
+  if (status === 'likely_available') {
+    return (
+      <svg aria-hidden className="h-5 w-5 shrink-0 text-accent" viewBox="0 0 20 20" fill="none">
+        <path
+          d="M5 10 L9 14 L15 7"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+  if (status === 'likely_taken') {
+    return (
+      <svg aria-hidden className="h-5 w-5 shrink-0 text-danger" viewBox="0 0 20 20" fill="none">
+        <path
+          d="M6 6 L14 14 M14 6 L6 14"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+  return (
+    <svg aria-hidden className="h-5 w-5 shrink-0 text-ink-2" viewBox="0 0 20 20" fill="none">
+      <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
+      <path
+        d="M10 6 L10 11 M10 14 L10 14.01"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function bannerPalette(check: NameCheckResult, companyName: string) {
   if (check.status === 'likely_available') {
     return {
@@ -37,9 +76,10 @@ export function TradeNameBanner({
         <div>
           <div className="eyebrow !text-[10px]">نتيجة فحص الاسم التجاري</div>
           <h2
-            className={`mt-1 font-display text-xl font-extrabold tracking-tight md:text-2xl ${palette.accent}`}
+            className={`mt-1 flex items-center gap-2 font-display text-xl font-extrabold tracking-tight md:text-2xl ${palette.accent}`}
           >
-            {palette.heading}
+            <StatusIcon status={check.status} />
+            <span>{palette.heading}</span>
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-ink">{check.summaryAr}</p>
         </div>
