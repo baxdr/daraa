@@ -13,6 +13,7 @@ import type { AgentId } from '@/agents/types';
 export type AgentEngine =
   | 'orchestrator' // Coordinates other agents — no LLM, runs the bus
   | 'claude_llm' // Pure Claude conversation
+  | 'claude_llm_tools' // Claude + per-agent deterministic tools (LlmSpecialistAgent)
   | 'claude_web_search' // Claude + web_search_20250305 tool
   | 'deterministic' // Pure function — rules + dates, no LLM
   | 'inbox_driven'; // Reads inbox messages, applies vertical-aware logic
@@ -114,16 +115,16 @@ export const AGENTS_CATALOG: AgentCardData[] = [
     layer: 'coordination',
     group: 'analysis',
     roleAr:
-      'يطبّق قواعد تشغيل المحل على إجاباتك ليكشف الفجوات (تجديدات متأخرة، طفايات ناقصة، شهادات صحية، تهوية، تبريد، لوحة).',
-    outputsAr: ['نسبة صحة الرخص %', 'فجوات مرتّبة بالأولوية', 'سقف الغرامات المحتمل'],
-    engine: 'deterministic',
-    sourcePath: 'src/agents/operational-analysis/runner.ts',
+      'هجين: قواعد deterministic لكشف الفجوات + Claude لقراءة الصورة الكاملة وكتابة سرد عربي + ٣ أولويات.',
+    outputsAr: ['نسبة صحة الرخص %', 'فجوات مرتّبة بالأولوية', 'سرد AI + ٣ أولويات هذا الأسبوع'],
+    engine: 'claude_llm',
+    sourcePath: 'src/agents/operational-analysis/narrator.ts',
     workflow: {
       wave: 4,
       inputs: ['إجابات chat (op3-op10)', 'تاريخ اليوم', 'vertical'],
       outputs: [
-        'يطبّق ~10 قواعد: CR/balady/civil_defense/SFDA expiry + extinguishers + emergency exit + ventilation + refrigeration + hygiene + signage + nitaqat + lease',
-        'يولّد OperationalReport: gaps + overdue + upcoming + healthScore',
+        'rule engine: ~10 قواعد تنتج OperationalReport (gaps + overdue + upcoming + healthScore)',
+        'Claude narrator: list_gaps + get_gap_details tools → سرد عربي + priorityActions',
       ],
     },
   },
@@ -156,15 +157,15 @@ export const AGENTS_CATALOG: AgentCardData[] = [
     group: 'shop',
     roleAr: 'يتابع السجل التجاري — تجديد سنوي، تحديث النشاط، إشعار قبل الانتهاء.',
     outputsAr: ['موعد تجديد السجل', 'متطلبات التحديث', 'روابط منصة الأعمال'],
-    engine: 'inbox_driven',
+    engine: 'claude_llm_tools',
     sourcePath: 'src/agents/specialists/mci-agent.ts',
     workflow: {
       wave: 3,
-      inputs: ['vertical من الـ context (no inbox)'],
+      inputs: ['context.vertical', 'context.answers (CR issue date)'],
       dependsOn: [],
       notifies: ['zatca', 'mohr_gosi', 'civil_defense'],
       outputs: [
-        'EntityInfo: السجل التجاري (renewal=12mo، رسوم 200-400 ريال)',
+        'Claude tool loop: get_shop_summary + check_renewal_urgency → EntityInfo',
         'يبثّ `crReady: true` لكل الـ ALL → يفتح الباب لباقي الوكلاء',
       ],
     },
@@ -177,7 +178,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
     roleAr:
       'يحدّد متطلبات السلامة (طفايات، مخارج طوارئ، إنذار، تهوية للمطابخ) ومن سريان شهادة السلامة السنوية.',
     outputsAr: ['شهادة السلامة وموعد تجديدها', 'قائمة طفايات الحريق', 'متطلبات أنظمة الإنذار'],
-    engine: 'inbox_driven',
+    engine: 'claude_llm_tools',
     sourcePath: 'src/agents/specialists/civil-defense-agent.ts',
     workflow: {
       wave: 3,
@@ -185,8 +186,8 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       dependsOn: ['mci'],
       notifies: ['municipality'],
       outputs: [
-        'requirements تتكيّف للـ vertical (مطعم → نظام إطفاء تلقائي للمطبخ)',
-        'يمرّر `hasKitchen` لـ municipality في outbox',
+        'Claude tool loop: list_safety_requirements + calculate_extinguisher_count + estimate_safety_cost',
+        'يمرّر `hasKitchen` + `safetyCertReady` لـ municipality في outbox',
       ],
     },
   },
@@ -197,7 +198,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
     group: 'shop',
     roleAr: 'يتابع رخصة البلدية حسب نوع نشاط المحل — اشتراطات الموقع، اللوحة الإعلانية، التصنيف.',
     outputsAr: ['موعد تجديد رخصة البلدية', 'اشتراطات اللوحة', 'تنبيهات النطاقات'],
-    engine: 'inbox_driven',
+    engine: 'claude_llm_tools',
     sourcePath: 'src/agents/specialists/municipality-agent.ts',
     workflow: {
       wave: 4,
@@ -205,7 +206,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       dependsOn: ['civil_defense'],
       notifies: ['sfda', 'moh'],
       outputs: [
-        'licenceLabel حسب الـ vertical (نشاط غذائي / صالون / مغسلة)',
+        'Claude tool loop: get_balady_licence_label + estimate_balady_cost',
         'لو فيه مطبخ → يضيف ترخيص مطبخ تجاري',
         'لو nitaqat أحمر → critical warning + قيود',
       ],
@@ -219,7 +220,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
     roleAr:
       'للمنشآت الغذائية فقط (مطعم، كوفي، بقالة) — اشتراطات النظافة، التبريد، التخزين، شهادات صحية.',
     outputsAr: ['ترخيص SFDA حسب النشاط', 'متطلبات الشهادات الصحية', 'جدول الفحص الدوري'],
-    engine: 'inbox_driven',
+    engine: 'claude_llm_tools',
     sourcePath: 'src/agents/specialists/sfda-agent.ts',
     workflow: {
       wave: 5,
@@ -227,7 +228,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       dependsOn: ['municipality'],
       notifies: ['mohr_gosi'],
       outputs: [
-        'requirements تتكيّف (مطبخ ↔ HACCP plan)',
+        'Claude tool loop: list_food_safety_requirements (HACCP إذا hasKitchen)',
         'يطلب شهادات صحية للعاملين الغذائيين من mohr_gosi',
       ],
     },
@@ -239,7 +240,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
     group: 'shop',
     roleAr: 'للصالونات والمطاعم — تعقيم الأدوات، شهادات صحية للعاملين، تأهيل الكادر.',
     outputsAr: ['الترخيص الصحي وموعد تجديده', 'متطلبات الكوادر المعتمدة', 'اشتراطات التعقيم'],
-    engine: 'inbox_driven',
+    engine: 'claude_llm_tools',
     sourcePath: 'src/agents/specialists/moh-agent.ts',
     workflow: {
       wave: 5,
@@ -247,8 +248,8 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       dependsOn: ['municipality'],
       notifies: ['mohr_gosi'],
       outputs: [
-        'requirements مختلفة بين صالون (تعقيم Autoclave) ومطعم (نظافة المشترك)',
-        'يطلب شهادات صحية من mohr_gosi',
+        'Claude tool loop: list_health_requirements (vertical-aware)',
+        'يطلب شهادات صحية من mohr_gosi عبر outbox',
       ],
     },
   },
@@ -260,7 +261,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
     roleAr:
       'يتابع ملف المنشأة في وزارة الموارد البشرية + اشتراك التأمينات الشهري للموظفين، ويُنبّه عن نطاقات.',
     outputsAr: ['تسجيل GOSI', 'نسبة السعودة المستهدفة', 'حساب اشتراك التأمينات'],
-    engine: 'inbox_driven',
+    engine: 'claude_llm_tools',
     sourcePath: 'src/agents/specialists/mohr-gosi-agent.ts',
     workflow: {
       wave: 3,
@@ -268,7 +269,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       dependsOn: ['mci'],
       notifies: ['municipality', 'mci'],
       outputs: [
-        'يقدّر نطاقات بالـ headcount (≥50 = أحمر، ≥10 = أصفر)',
+        'Claude tool loop: estimate_nitaqat_zone (≥50 = أحمر، ≥10 = أصفر)',
         'لو أحمر → warning لـ municipality + mci بأن الخدمات تتقيّد',
       ],
     },
@@ -281,13 +282,16 @@ export const AGENTS_CATALOG: AgentCardData[] = [
     roleAr:
       'يحدّد التزامات ضريبة القيمة المضافة (VAT) — متى تتجاوز ٣٧٥ ألف ريال، الإقرارات الدورية.',
     outputsAr: ['تسجيل VAT', 'جدول الإقرارات', 'حساب الزكاة المتوقّع'],
-    engine: 'inbox_driven',
+    engine: 'claude_llm_tools',
     sourcePath: 'src/agents/specialists/zatca-agent.ts',
     workflow: {
       wave: 3,
       inputs: ['inbox: mci.crReady', 'inbox: research updates عن VAT'],
       dependsOn: ['mci'],
-      outputs: ['requirements VAT حسب حد ٣٧٥K SAR', 'يدمج research updates في commonMistake field'],
+      outputs: [
+        'Claude tool loop: check_vat_threshold (375K SAR)',
+        'يدمج research updates في commonMistake field',
+      ],
     },
   },
 ];
@@ -307,6 +311,7 @@ export const AGENT_GROUP_LABEL: Record<AgentCardData['group'], string> = {
 export const ENGINE_LABEL: Record<AgentEngine, string> = {
   orchestrator: 'منسّق الـ pipeline',
   claude_llm: 'Claude — محادثة',
+  claude_llm_tools: 'Claude + tool use',
   claude_web_search: 'Claude + web_search',
   deterministic: 'دالة حتمية (no LLM)',
   inbox_driven: 'inbox-driven (AgentBus)',
@@ -315,6 +320,7 @@ export const ENGINE_LABEL: Record<AgentEngine, string> = {
 export const ENGINE_TONE: Record<AgentEngine, string> = {
   orchestrator: 'border-ink/30 bg-ink/5 text-ink',
   claude_llm: 'border-accent/40 bg-accent-soft text-accent-strong',
+  claude_llm_tools: 'border-accent/40 bg-accent-soft text-accent-strong',
   claude_web_search: 'border-accent/40 bg-accent-soft text-accent-strong',
   deterministic: 'border-warn/40 bg-warn-soft text-warn-strong',
   inbox_driven: 'border-warn/40 bg-warn-soft text-warn-strong',

@@ -7,6 +7,8 @@
  *   - project-orchestrator.ts (runOperationalAnalysis return type)
  */
 
+import type { AgentTraceLike } from '../runtime/types';
+
 export type OpCategory =
   | 'municipal'
   | 'civil_defense'
@@ -41,4 +43,11 @@ export interface OperationalReport {
   upcomingRenewals: OperationalGap[];
   healthScore: number;
   computedAt: string;
+  /** Optional LLM-narrated summary in Arabic — produced by `enrichOperationalReport`.
+   *  Falls back to undefined when Claude is unreachable. */
+  narrative?: string;
+  /** Top-3 actions the LLM picked from the gap list — Arabic, action-oriented. */
+  priorityActions?: string[];
+  /** Reasoning trace from the narrator pass (mirrors AgentTraceLike shape). */
+  trace?: AgentTraceLike;
 }

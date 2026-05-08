@@ -50,6 +50,21 @@ const ENGINE_ICON: Record<AgentEngine, JSX.Element> = {
       <path d="M9 10 h6 M9 13 h4" />
     </svg>
   ),
+  claude_llm_tools: (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 6 a2 2 0 0 1 2 -2 h10 a2 2 0 0 1 2 2 v6 a2 2 0 0 1 -2 2 h-6 l-3 3 v-3 h-1 a2 2 0 0 1 -2 -2 z" />
+      <path d="M14 14 l4 4 M16 14 l3 3 M19.5 19.5 a1 1 0 1 0 1.5 1.5 a1 1 0 0 0 -1.5 -1.5" />
+    </svg>
+  ),
   claude_web_search: (
     <svg
       width="18"
@@ -110,6 +125,12 @@ const ENGINE_THEME: Record<
     ring: 'ring-ink/20',
   },
   claude_llm: {
+    bg: 'bg-accent',
+    border: 'border-accent',
+    text: 'text-paper',
+    ring: 'ring-accent/30',
+  },
+  claude_llm_tools: {
     bg: 'bg-accent',
     border: 'border-accent',
     text: 'text-paper',

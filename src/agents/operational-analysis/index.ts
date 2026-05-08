@@ -6,4 +6,5 @@
  */
 
 export { runOperationalAnalysis } from './runner';
+export { enrichOperationalReport } from './narrator';
 export type { OpCategory, OperationalGap, OperationalReport } from './types';

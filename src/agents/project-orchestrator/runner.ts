@@ -9,12 +9,12 @@
  */
 
 import { runResearchAgent } from '../research-agent';
-import { runOperationalAnalysis } from '../operational-analysis';
+import { runOperationalAnalysis, enrichOperationalReport } from '../operational-analysis';
 import { buildRoadmap, summariseCosts } from '@/knowledge/entities';
 import { emit, send, type RunRef } from '@/lib/agent-bus';
 import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { runAgents } from '../runtime/orchestrator-runtime';
-import type { AgentContext } from '../runtime/types';
+import type { AgentContext, AgentId, AgentTraceLike } from '../runtime/types';
 import { getAgentsForVertical } from '../specialists';
 import { CITY_LABELS, computeTopWarnings } from './warnings';
 import { buildEntitiesFromAgents, costLabel } from './entity-builder';
@@ -97,7 +97,8 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
     /* 3. Operational analysis — license renewal + infrastructure gaps. */
     emit(run, 'analysis', 'started', 'جاري تقييم حالة الرخص والتجديدات…');
     try {
-      const opReport = runOperationalAnalysis({ answers });
+      const baseReport = runOperationalAnalysis({ answers });
+      const opReport = await enrichOperationalReport(baseReport, answers);
       emit(
         run,
         'analysis',
@@ -136,6 +137,21 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
     const topWarnings = computeTopWarnings(vertical, answers);
     const renewals = computeRenewalsForProject(answers, entities);
 
+    // Collect any traces emitted by LLM-powered specialists. The base class
+    // (LlmSpecialistAgent) attaches a trace to every AgentResult; here we
+    // gather them keyed by agent id so the UI can render reasoning panels.
+    const agentTraces: Partial<Record<AgentId, AgentTraceLike>> = {};
+    for (const [agentId, result] of runResult.results) {
+      if ((result.status === 'complete' || result.status === 'error') && result.trace) {
+        agentTraces[agentId] = result.trace;
+      }
+    }
+    // The analysis narrator runs outside the AgentBus, so its trace lives
+    // on the operationalReport; mirror it into agentTraces for a unified view.
+    const updatedProject = await repos.projects.findById(projectId);
+    const analysisTrace = updatedProject?.operationalReport?.trace;
+    if (analysisTrace) agentTraces.analysis = analysisTrace;
+
     emit(
       run,
       'report',
@@ -152,6 +168,7 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
       costSummary,
       topWarnings,
       renewals,
+      agentTraces,
     });
     emit(run, 'orchestrator', 'completed', 'المشروع جاهز — بنحوّلك للداشبورد.');
   } catch (err) {

@@ -1,46 +1,165 @@
-import type { Agent, AgentContext, AgentId, AgentMessage, AgentResult } from '../runtime/types';
-
 /**
- * Civil Defense — tailors requirements to the vertical AND forwards the
- * physical-site signals (kitchen presence, floor) on the safety-cert
- * message so Municipality can reason about them in the next wave.
+ * Civil Defense — LLM-powered specialist (Sonnet + tool use).
  *
- * Also absorbs any research-agent regulatory update addressed to
- * civil_defense and tags it as "new" on the requirement list.
+ * Calls Claude with a focused tool palette: shop summary, vertical
+ * fire-safety baseline, extinguisher math, regulatory updates from the
+ * inbox. Claude composes the requirements list + Arabic explanation +
+ * outbox messages. Falls back to deterministic logic if Claude is
+ * unreachable.
  */
-export class CivilDefenseAgent implements Agent {
+
+import type { AgentContext, AgentId, AgentMessage, EntityInfo } from '../runtime/types';
+import { LlmSpecialistAgent, parseAgentJson } from './llm-base/llm-specialist';
+import type { LlmAgentOutput } from './llm-base/llm-specialist';
+import type { AgentTool } from './llm-base/types';
+import {
+  getShopSummaryTool,
+  summariseAnswers,
+  verticalMeta,
+  type VerticalMeta,
+} from './llm-base/shared-tools';
+
+interface CivilDefenseRawOutput {
+  data: Pick<
+    EntityInfo,
+    | 'explainAr'
+    | 'estimatedCostSar'
+    | 'estimatedTimeAr'
+    | 'requirements'
+    | 'criticalWarningAr'
+    | 'commonMistakeAr'
+  > & {
+    /** Optional override; defaults to 12. */
+    renewalMonths?: number;
+  };
+  outbox: Array<{
+    to: AgentId | 'ALL';
+    type: AgentMessage['type'];
+    payload: Record<string, unknown>;
+    messageAr: string;
+  }>;
+}
+
+export class CivilDefenseAgent extends LlmSpecialistAgent {
   readonly id: AgentId = 'civil_defense';
   readonly dependencies: readonly AgentId[] = ['mci'];
 
-  async run(context: AgentContext, inbox: AgentMessage[]): Promise<AgentResult> {
-    const mciSignal = inbox.find(
+  protected override blockedReason(_ctx: AgentContext, inbox: AgentMessage[]): string | null {
+    const mci = inbox.find(
       (m) => m.from === 'mci' && m.type === 'data_share' && m.payload?.crReady === true,
     );
-    if (!mciSignal) {
-      return { status: 'blocked', reason: 'بانتظار إشعار جاهزية السجل التجاري' };
+    return mci ? null : 'بانتظار إشعار جاهزية السجل التجاري';
+  }
+
+  protected systemPrompt(): string {
+    return [
+      'أنت متخصّص الدفاع المدني السعودي. مهمّتك تحديد متطلبات السلامة لمحلّ صغير (مطعم/كوفي/بقالة/مغسلة/صالون)',
+      'ثم صياغة شهادة السلامة المطلوبة وتفسيرها بعربية واضحة للمالك.',
+      '',
+      'القواعد:',
+      '- لا تخترع أرقاماً. كل عدد طفايات أو تكلفة أو متطلب يجي من الـ tools.',
+      '- استخدم get_shop_summary أولاً لفهم المحل.',
+      '- استخدم list_safety_requirements للقاعدة، ثم calculate_extinguisher_count لو في الإجابة عدد ناقص.',
+      '- لو في رسالة من وكيل البحث (research) في الـ inbox فيها تحديث تنظيمي، أضفه كـ "جديد —" في requirements.',
+      '- اكتب explainAr في جملتين بعربية بسيطة.',
+      '- في outbox: أرسل dependency message لـ municipality فيها safetyCertReady + hasKitchen + estimatedTimeAr.',
+      '',
+      'صيغة الإخراج النهائية: JSON واحد بدون نص قبل أو بعد:',
+      '{',
+      '  "data": {',
+      '    "explainAr": "...",',
+      '    "estimatedCostSar": { "min": ١, "max": ٢ },',
+      '    "estimatedTimeAr": "...",',
+      '    "requirements": ["...", "..."],',
+      '    "criticalWarningAr": "...",',
+      '    "renewalMonths": 12',
+      '  },',
+      '  "outbox": [',
+      '    { "to": "municipality", "type": "dependency", "payload": { "safetyCertReady": true, "hasKitchen": true, "nonGroundFloor": false, "estimatedTimeAr": "..." }, "messageAr": "..." }',
+      '  ]',
+      '}',
+    ].join('\n');
+  }
+
+  protected userPrompt(context: AgentContext, inbox: AgentMessage[]): string {
+    const updates = inbox
+      .filter((m) => m.from === 'research' && m.type === 'update')
+      .map((m) => `- ${m.messageAr}`)
+      .join('\n');
+    const updatesBlock = updates ? `\n\nتحديثات تنظيمية وصلتك من وكيل البحث:\n${updates}` : '';
+    return [
+      `النشاط: ${verticalMeta(context.vertical).labelAr}`,
+      context.cityLabelAr ? `المدينة: ${context.cityLabelAr}` : '',
+      'استخدم الـ tools لجمع الحقائق ثم أخرج JSON النهائي.',
+      updatesBlock,
+    ]
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  protected tools(context: AgentContext): AgentTool[] {
+    const summary = summariseAnswers(context.answers, context.vertical, context.cityLabelAr);
+    return [
+      getShopSummaryTool(summary),
+      this.listSafetyRequirementsTool(),
+      this.calculateExtinguisherCountTool(),
+      this.estimateSafetyCostTool(),
+    ];
+  }
+
+  protected parseOutput(finalText: string, context: AgentContext): LlmAgentOutput {
+    const parsed = parseAgentJson<CivilDefenseRawOutput>(finalText);
+    if (!parsed.data || !Array.isArray(parsed.data.requirements)) {
+      throw new Error('civil_defense: missing data.requirements');
+    }
+    if (!Array.isArray(parsed.outbox)) {
+      throw new Error('civil_defense: missing outbox array');
     }
 
-    const requirements = this.requirementsFor(context.vertical);
+    const meta = verticalMeta(context.vertical);
+    return {
+      data: {
+        entityId: 'civil_defense',
+        nameAr: 'الدفاع المدني',
+        nameSimpleAr: 'شهادة السلامة',
+        explainAr: parsed.data.explainAr,
+        estimatedCostSar: parsed.data.estimatedCostSar,
+        estimatedTimeAr: parsed.data.estimatedTimeAr,
+        officialUrl: 'https://www.998.gov.sa',
+        renewalMonths: parsed.data.renewalMonths ?? 12,
+        ...(parsed.data.criticalWarningAr
+          ? { criticalWarningAr: parsed.data.criticalWarningAr }
+          : {}),
+        ...(parsed.data.commonMistakeAr ? { commonMistakeAr: parsed.data.commonMistakeAr } : {}),
+        requirements: parsed.data.requirements,
+      },
+      outbox: parsed.outbox.map((m) => ({
+        from: 'civil_defense' as AgentId,
+        to: m.to,
+        type: m.type,
+        payload: {
+          // Ensure the canonical kitchen signal even if Claude forgot it.
+          hasKitchen: meta.hasKitchen,
+          nonGroundFloor: false,
+          ...m.payload,
+          safetyCertReady: true,
+        },
+        messageAr: m.messageAr,
+      })),
+    };
+  }
 
-    // Absorb any research update targeted at civil_defense.
+  protected fallback(context: AgentContext, inbox: AgentMessage[]): LlmAgentOutput {
+    const meta = verticalMeta(context.vertical);
+    const baseRequirements = this.deterministicRequirements(meta);
     const updates = inbox.filter((m) => m.from === 'research' && m.type === 'update');
     for (const u of updates) {
       const summary = String(u.payload?.summary ?? u.messageAr ?? '').trim();
-      if (summary) requirements.push(`جديد — ${summary.slice(0, 120)}`);
+      if (summary) baseRequirements.push(`جديد — ${summary.slice(0, 120)}`);
     }
-
-    const cost = this.estimateCost(context.vertical);
+    const cost = this.deterministicCost(meta);
     const estimatedTimeAr = '٣ إلى ١٤ يوم (يحتاج زيارة ميدانية)';
-
-    const criticalWarningAr =
-      'شهادة السلامة غالباً تسبق رخصة البلدية — تأكّد من التسلسل الصحيح لحيّك على منصة بلدي قبل التقديم.';
-
-    // Forward the kitchen/floor signals to Municipality.
-    const hasKitchen = context.vertical === 'restaurant' || context.vertical === 'coffee';
-    const nonGroundFloor = false; // reserved — not collected yet in chat
-
     return {
-      status: 'complete',
       data: {
         entityId: 'civil_defense',
         nameAr: 'الدفاع المدني',
@@ -52,8 +171,9 @@ export class CivilDefenseAgent implements Agent {
         estimatedTimeAr,
         officialUrl: 'https://www.998.gov.sa',
         renewalMonths: 12,
-        criticalWarningAr,
-        requirements,
+        criticalWarningAr:
+          'شهادة السلامة غالباً تسبق رخصة البلدية — تأكّد من التسلسل الصحيح لحيّك على منصة بلدي قبل التقديم.',
+        requirements: baseRequirements,
       },
       outbox: [
         {
@@ -63,8 +183,8 @@ export class CivilDefenseAgent implements Agent {
           payload: {
             safetyCertReady: true,
             estimatedTimeAr,
-            hasKitchen,
-            nonGroundFloor,
+            hasKitchen: meta.hasKitchen,
+            nonGroundFloor: false,
           },
           messageAr: 'شهادة السلامة جاهزة للإصدار — تقدر تبدأ طلب رخصة البلدية.',
         },
@@ -72,7 +192,9 @@ export class CivilDefenseAgent implements Agent {
     };
   }
 
-  private requirementsFor(vertical: AgentContext['vertical']): string[] {
+  /* ─── Tool handlers (also reused by fallback path) ────────────────────── */
+
+  private deterministicRequirements(meta: VerticalMeta): string[] {
     const base = [
       'طفايات حريق بعدد يناسب المساحة',
       'مخارج طوارئ واضحة ومضاءة',
@@ -80,30 +202,76 @@ export class CivilDefenseAgent implements Agent {
       'لوحات إرشادية (مخرج، طفاية، نقطة تجمع)',
       'صندوق إسعافات أولية',
     ];
-    switch (vertical) {
-      case 'restaurant':
-      case 'coffee':
-        return [...base, 'نظام إطفاء تلقائي للمطبخ', 'غطاء شفط مقاوم للحريق'];
-      case 'salon':
-        return [...base, 'تهوية مناسبة لمنع تراكم أبخرة المواد الكيميائية'];
-      case 'laundry':
-        return [...base, 'تأريض الأجهزة الكهربائية + عزل دوائر الغسالات'];
-      case 'grocery':
-        return [...base, 'تخزين المنتجات بعيد عن مصادر الحرارة'];
-    }
+    if (meta.hasKitchen) return [...base, 'نظام إطفاء تلقائي للمطبخ', 'غطاء شفط مقاوم للحريق'];
+    if (meta.id === 'salon') return [...base, 'تهوية مناسبة لمنع تراكم أبخرة المواد الكيميائية'];
+    if (meta.id === 'laundry') return [...base, 'تأريض الأجهزة الكهربائية + عزل دوائر الغسالات'];
+    return [...base, 'تخزين المنتجات بعيد عن مصادر الحرارة'];
   }
 
-  private estimateCost(vertical: AgentContext['vertical']): { min: number; max: number } {
-    switch (vertical) {
-      case 'restaurant':
-      case 'coffee':
-        return { min: 200, max: 1000 };
-      case 'salon':
-        return { min: 200, max: 800 };
-      case 'laundry':
-        return { min: 200, max: 700 };
-      case 'grocery':
-        return { min: 200, max: 700 };
-    }
+  private deterministicCost(meta: VerticalMeta): { min: number; max: number } {
+    if (meta.id === 'restaurant' || meta.id === 'coffee') return { min: 200, max: 1000 };
+    if (meta.id === 'salon') return { min: 200, max: 800 };
+    return { min: 200, max: 700 };
+  }
+
+  private listSafetyRequirementsTool(): AgentTool {
+    return {
+      name: 'list_safety_requirements',
+      description:
+        'يرجع قائمة متطلبات السلامة الأساسية حسب نوع النشاط (طفايات، مخارج، كواشف، وإضافات حسب المطبخ/الكيماويات/الكهرباء).',
+      input_schema: {
+        type: 'object',
+        properties: {
+          vertical: {
+            type: 'string',
+            enum: ['coffee', 'restaurant', 'grocery', 'laundry', 'salon'],
+          },
+        },
+        required: ['vertical'],
+      },
+      handler: (input) => {
+        const v = String(input.vertical) as VerticalMeta['id'];
+        return { requirements: this.deterministicRequirements(verticalMeta(v)) };
+      },
+    };
+  }
+
+  private calculateExtinguisherCountTool(): AgentTool {
+    return {
+      name: 'calculate_extinguisher_count',
+      description:
+        'يحسب الحد الأدنى للطفايات بناءً على المساحة (m²). كل ١٠٠م² تحتاج طفاية واحدة على الأقل، وأي محل لا يقل عن ٢ طفايات.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          area_sqm: { type: 'number', description: 'مساحة المحل بالأمتار المربعة' },
+        },
+        required: ['area_sqm'],
+      },
+      handler: (input) => {
+        const area = Number(input.area_sqm);
+        const required = Math.max(2, Math.ceil(area / 100));
+        return { required_minimum: required, formula: 'max(2, ceil(area / 100))' };
+      },
+    };
+  }
+
+  private estimateSafetyCostTool(): AgentTool {
+    return {
+      name: 'estimate_safety_cost',
+      description: 'تقدير تكلفة شهادة الدفاع المدني بناءً على نوع النشاط (SAR).',
+      input_schema: {
+        type: 'object',
+        properties: {
+          vertical: {
+            type: 'string',
+            enum: ['coffee', 'restaurant', 'grocery', 'laundry', 'salon'],
+          },
+        },
+        required: ['vertical'],
+      },
+      handler: (input) =>
+        this.deterministicCost(verticalMeta(String(input.vertical) as VerticalMeta['id'])),
+    };
   }
 }

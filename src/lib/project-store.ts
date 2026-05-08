@@ -13,6 +13,7 @@ import type { Answers } from '@/agents/chat-flow';
 import type { AgentActivity, AgentId, AgentMessage } from '@/agents/types';
 import { AGENT_LABELS_AR } from '@/agents/types';
 import type { OperationalReport } from '@/agents/operational-analysis';
+import type { AgentTraceLike } from '@/agents/runtime/types';
 import type { CostSummary, GovEntity, RoadmapWeek, VerticalId } from '@/knowledge/entities';
 import {
   scanAllProjectsSync,
@@ -94,6 +95,10 @@ export interface ProjectRecord {
 
   /** Renewal calendar — drives the email reminder cron + UI timeline. */
   renewals?: Renewal[];
+
+  /** Reasoning traces — one per LLM-powered agent that ran. Powers the
+   *  /project/[id]/agents-live transparency view. */
+  agentTraces?: Partial<Record<AgentId, AgentTraceLike>>;
 
   errorMessage?: string;
 }

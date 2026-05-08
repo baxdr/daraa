@@ -13,9 +13,42 @@ export function OperationalDashboard({ report }: { report: OperationalReport }) 
   return (
     <div className="space-y-10">
       <OperationalSummary report={report} />
+      {report.narrative && <NarrativeBlock report={report} />}
       <LicenseTimeline report={report} />
       <OperationalAlerts report={report} />
     </div>
+  );
+}
+
+function NarrativeBlock({ report }: { report: OperationalReport }) {
+  return (
+    <section className="border-s-4 border-accent bg-accent-soft px-6 py-5 md:px-7 md:py-6">
+      <div className="mb-2 flex items-center gap-2">
+        <span className="eyebrow !text-accent-strong">قراءة المحلّل بالـ AI</span>
+        <span className="font-mono text-[10px] uppercase tracking-widest text-accent-strong/70">
+          Claude Sonnet
+        </span>
+      </div>
+      <p className="text-sm leading-relaxed text-ink-2 md:text-base">{report.narrative}</p>
+      {report.priorityActions && report.priorityActions.length > 0 && (
+        <div className="mt-4 border-t border-accent/30 pt-4">
+          <div className="eyebrow !text-[10px] !text-accent-strong">أولوياتك هذا الأسبوع</div>
+          <ol className="mt-2 space-y-1.5">
+            {report.priorityActions.map((action, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                <span
+                  aria-hidden
+                  className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent font-mono text-[10px] font-bold text-white"
+                >
+                  {i + 1}
+                </span>
+                <span>{action}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+    </section>
   );
 }
 

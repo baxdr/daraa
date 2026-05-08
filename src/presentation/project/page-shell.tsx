@@ -9,6 +9,7 @@ import { ProjectMasthead } from './sections/project-masthead';
 import { TopWarnings } from './sections/top-warnings';
 import { EstablishmentSummary } from './sections/establishment-summary';
 import { RoadmapSection } from './sections/roadmap-section';
+import { AgentTracesSection } from './sections/agent-traces';
 
 interface ProjectPageShellProps {
   project: ProjectRecord;
@@ -39,6 +40,7 @@ export function ProjectPageShell({
     messages,
     operationalReport,
     renewals,
+    agentTraces,
   } = project;
   const cityLabel = cityId ? (CITY_LABELS[cityId] ?? cityId) : null;
   const verticalLabel = verticalDisplayLabel(vertical);
@@ -89,6 +91,10 @@ export function ProjectPageShell({
 
       {project.phase === 'active_monitoring' && renewals && renewals.length > 0 && (
         <ActiveMonitoringPanel renewals={renewals} totalEntities={entities.length} />
+      )}
+
+      {agentTraces && Object.keys(agentTraces).length > 0 && (
+        <AgentTracesSection traces={agentTraces} />
       )}
 
       <LegalDisclaimer />

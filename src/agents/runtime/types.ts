@@ -86,11 +86,43 @@ export interface EntityInfo {
 
 /* ─── Run outcome ──────────────────────────────────────────────────────── */
 
+/**
+ * Reasoning trace emitted by LLM-powered specialists. The runtime treats
+ * it as an opaque structured value — the dependency on `llm-base/types`
+ * stays one-way (specialists depend on runtime, not the reverse).
+ */
+export interface AgentTraceLike {
+  agentId: AgentId;
+  mode: 'live' | 'fallback';
+  model: string;
+  totalLatencyMs: number;
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  iterations: Array<{
+    reasoning?: string;
+    toolCalls: Array<{
+      name: string;
+      input: Record<string, unknown>;
+      output: unknown;
+      durationMs: number;
+      errored: boolean;
+    }>;
+    inputTokens: number;
+    outputTokens: number;
+    latencyMs: number;
+    stopReason: string;
+  }>;
+  finalText?: string;
+  fallbackReason?: string;
+}
+
 export type AgentResult =
   | {
       status: 'complete';
       data: EntityInfo;
       outbox: AgentMessage[];
+      /** Present when the agent ran via Claude (LlmSpecialistAgent). */
+      trace?: AgentTraceLike;
     }
   | {
       status: 'blocked';
@@ -102,6 +134,7 @@ export type AgentResult =
       status: 'error';
       error: string;
       outbox?: AgentMessage[];
+      trace?: AgentTraceLike;
     };
 
 /* ─── The Agent contract ───────────────────────────────────────────────── */
