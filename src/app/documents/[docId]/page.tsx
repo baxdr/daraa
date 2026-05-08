@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getRepositories } from '@/infrastructure/persistence/persistence-router';
-import { PolicyDocumentView } from '@/components/policy-document';
+import { PolicyDocumentView } from '@/presentation/components/policy-document';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getRepositories } from '@/infrastructure/persistence/persistence-router';
-import { ProjectAgentsView } from '@/components/project-agents-view';
+import { ProjectAgentsView } from '@/presentation/components/project-agents-view';
 
 export const dynamic = 'force-dynamic';
 

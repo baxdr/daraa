@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ReturnLookup } from '@/components/return-lookup';
+import { ReturnLookup } from '@/presentation/components/return-lookup';
 
 export const dynamic = 'force-dynamic';
 
