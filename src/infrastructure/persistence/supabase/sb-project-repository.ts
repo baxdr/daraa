@@ -15,7 +15,7 @@
  * (filesystem is read-only on Vercel but reading bundled files is fine).
  */
 
-import { promises as fs, readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   createProject as storeCreateProject,
@@ -162,6 +162,3 @@ export class SupabaseProjectRepository implements ProjectRepository {
     if (error) throw new Error(`project upsert failed: ${error.message}`);
   }
 }
-
-// Re-export `fs` so the bundler keeps it (read-only access to demo JSONs).
-void fs;
