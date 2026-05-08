@@ -183,13 +183,13 @@
       }
 
       /* ─────────────────────────────────────────────────────────────
-       * Print / PDF
-       * Each <section> gets its own A4 landscape page so diagrams
-       * never get split across pages or shrunk to thumbnails.
+       * Print / PDF — exactly 3 landscape pages (one per diagram).
+       * The screen-only header chrome and supporting bullet lists
+       * are hidden so the diagrams get the whole sheet.
        * ───────────────────────────────────────────────────────────── */
       @page {
         size: A4 landscape;
-        margin: 14mm 12mm;
+        margin: 10mm;
       }
 
       @media print {
@@ -204,58 +204,44 @@
           padding: 0;
           margin: 0;
         }
-        header {
-          page-break-after: always;
-          break-after: page;
-          margin-bottom: 0;
-          padding-bottom: 0;
-          border-bottom: none;
+        /* Drop the cover header + legend + bullet lists + footer to
+         * keep the PDF lean — only the 3 diagrams ship. */
+        header,
+        .legend,
+        section ul,
+        .sub,
+        footer {
+          display: none !important;
         }
         section {
           page-break-before: always;
           break-before: page;
           page-break-inside: avoid;
           break-inside: avoid;
-          margin-top: 0;
-          padding: 1rem 0;
+          margin: 0;
+          padding: 0;
           border: none;
         }
         section:first-of-type {
           page-break-before: auto;
         }
-        h1 {
-          font-size: 2.2rem;
-        }
         h2 {
-          font-size: 1.45rem;
+          font-size: 1.25rem;
+          margin: 0 0 0.5rem 0;
         }
         .diagram {
           background: #fff;
           border: 1px solid var(--rule);
-          padding: 0.75rem 0.5rem;
-          page-break-inside: avoid;
-          break-inside: avoid;
+          padding: 0.5rem;
           overflow: visible;
         }
-        /* Force the SVG to take the full available width and scale
-         * down vertically rather than overflow horizontally. */
         .mermaid {
           width: 100%;
         }
         .mermaid svg {
           width: 100% !important;
           height: auto !important;
-          max-height: 165mm; /* A4 landscape minus margins minus header */
-        }
-        .legend,
-        .key-row {
-          page-break-inside: avoid;
-          break-inside: avoid;
-        }
-        footer {
-          margin-top: 0.5rem;
-          page-break-before: avoid;
-          break-before: avoid;
+          max-height: 175mm; /* fits A4 landscape minus heading + margins */
         }
       }
     </style>
