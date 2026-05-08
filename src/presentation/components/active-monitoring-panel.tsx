@@ -1,23 +1,21 @@
-import type { RenewalEntry } from '@/lib/renewals';
+import type { Renewal } from '@/lib/project-store';
+import { daysUntil } from '@/lib/renewals';
 
 /**
  * Active-monitoring panel — shown on every project's dashboard once the
- * initial pipeline finishes, regardless of mode. Each entity with a
- * recurring `renewalPeriodAr` gets a row in a license-status grid plus a
- * horizontal 180-day timeline.
+ * initial pipeline finishes. Each renewal entry gets a row in a license-
+ * status grid plus a compact summary at the top.
  *
- * Urgency thresholds (60 / 30 / 7 days) drive the colour coding:
+ * Urgency thresholds (30 / 7 days) drive the colour coding:
  *   - overdue (red)     — < 0 days
  *   - urgent  (red)     — < 7 days
  *   - soon    (amber)   — 7–30 days
- *   - notice  (yellow)  — 30–60 days
- *   - ok      (green)   — > 60 days
+ *   - ok      (green)   — > 30 days
  */
 
 interface ActiveMonitoringPanelProps {
-  renewals: RenewalEntry[];
-  /** If any entity never sets renewalPeriod → it's excluded from the grid.
-   *  The count is shown so the user knows we considered the full set. */
+  renewals: Renewal[];
+  /** Total entity count for context — shown next to "X من Y جهة". */
   totalEntities: number;
 }
 
@@ -32,9 +30,6 @@ export function ActiveMonitoringPanel({ renewals, totalEntities }: ActiveMonitor
         </div>
         <div className="rule mb-6" />
         <div className="rounded-md border border-accent/20 bg-accent-soft px-6 py-10 text-center">
-          <div className="mb-3 text-4xl" aria-hidden>
-            ✓
-          </div>
           <h3 className="font-display text-lg font-extrabold text-accent-strong">
             لا توجد رخص تحتاج تجديد دوري
           </h3>
@@ -46,15 +41,15 @@ export function ActiveMonitoringPanel({ renewals, totalEntities }: ActiveMonitor
     );
   }
 
-  const critical = renewals.filter((r) => r.urgency === 'urgent' || r.urgency === 'overdue').length;
-  const upcoming = renewals.filter((r) => r.urgency === 'soon' || r.urgency === 'notice').length;
-  const healthy = renewals.filter((r) => r.urgency === 'ok').length;
+  const critical = renewals.filter((r) => r.status === 'urgent' || r.status === 'overdue').length;
+  const upcoming = renewals.filter((r) => r.status === 'soon').length;
+  const healthy = renewals.filter((r) => r.status === 'ok').length;
 
   return (
     <section className="mb-12">
       <div className="mb-4 flex items-baseline justify-between">
         <div>
-          <span className="eyebrow">مرحلة التشغيل</span>
+          <span className="eyebrow">جدول التذكيرات</span>
           <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">
             المراقبة المستمرة
           </h2>
@@ -66,14 +61,12 @@ export function ActiveMonitoringPanel({ renewals, totalEntities }: ActiveMonitor
       </div>
       <div className="rule mb-6" />
 
-      {/* Summary pills */}
       <div className="mb-6 grid grid-cols-3 gap-0 border border-rule">
         <SummaryPill count={critical} label="تحتاج إجراء الآن" tone="danger" />
         <SummaryPill count={upcoming} label="قرب موعد التجديد" tone="warn" />
         <SummaryPill count={healthy} label="سارية" tone="ok" last />
       </div>
 
-      {/* Status rows */}
       <ul className="space-y-3">
         {renewals.map((r) => (
           <RenewalRow key={r.entityId} renewal={r} />
@@ -81,11 +74,8 @@ export function ActiveMonitoringPanel({ renewals, totalEntities }: ActiveMonitor
       </ul>
 
       <p className="mt-4 text-[11px] text-muted">
-        التنبيهات محسوبة على افتراض أن كل الرخص أُصدرت يوم إنشاء المشروع. لو عندك تواريخ دقيقة،{' '}
-        <a href="/chat" className="font-semibold text-accent hover:text-accent-strong">
-          ابدأ مساراً تشغيلياً جديداً
-        </a>{' '}
-        للحصول على تنبيهات بتواريخ حقيقية.
+        التذكيرات بالإيميل تُرسَل تلقائياً قبل ٧ و ٣ أيام من كل تجديد. لو حدّثت تواريخ في حساب
+        المحل، الجدول يتحدّث تلقائياً.
       </p>
     </section>
   );
@@ -116,19 +106,16 @@ function SummaryPill({
   );
 }
 
-function RenewalRow({ renewal: r }: { renewal: RenewalEntry }) {
-  const style = urgencyStyle(r.urgency);
-  const dateLabel = r.nextDueAt.toLocaleDateString('ar-SA-u-ca-gregory', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+function RenewalRow({ renewal: r }: { renewal: Renewal }) {
+  const style = urgencyStyle(r.status);
+  const days = daysUntil(r.dueDate);
+  const dateLabel = formatArabicDate(r.dueDate);
 
   return (
     <li
       className="grid grid-cols-[6px_1fr] overflow-hidden border border-rule bg-white"
       role="region"
-      aria-label={`${r.nameSimpleAr} - ${style.label}`}
+      aria-label={`${r.entityNameAr} - ${style.label}`}
     >
       <div className={style.bar} aria-hidden title={style.label} />
       <div className="px-5 py-4">
@@ -136,38 +123,18 @@ function RenewalRow({ renewal: r }: { renewal: RenewalEntry }) {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <div
-                className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-[11px] font-bold tracking-widest ${
-                  r.urgency === 'overdue' || r.urgency === 'urgent'
-                    ? 'border-danger/40 bg-danger/10 text-danger'
-                    : r.urgency === 'soon'
-                      ? 'border-warn/40 bg-warn-soft text-warn-strong'
-                      : r.urgency === 'notice'
-                        ? 'border-warn/30 bg-warn/10 text-warn-strong'
-                        : 'border-accent/30 bg-accent-soft text-accent-strong'
-                }`}
+                className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-[11px] font-bold tracking-widest ${style.badge}`}
                 role="status"
-                aria-label={style.label}
-                title={
-                  r.urgency === 'overdue'
-                    ? 'متأخر عن موعد التجديد — جدّد فوراً'
-                    : r.urgency === 'urgent'
-                      ? 'عاجل جداً — ابدأ الإجراءات الآن'
-                      : r.urgency === 'soon'
-                        ? 'سيأتي قريباً — خطّط الآن'
-                        : r.urgency === 'notice'
-                          ? 'للتذكير — خطّط مبكراً'
-                          : 'سارية وآمنة'
-                }
               >
                 <span aria-hidden className="h-2 w-2 rounded-full bg-current" />
-                {style.icon}
+                {style.label}
               </div>
               <h3 className="font-display text-lg font-extrabold leading-tight tracking-tight text-ink">
-                {r.nameSimpleAr}
+                {r.entityNameAr}
               </h3>
             </div>
             <div className="mt-1 text-xs text-muted">
-              دورة: {r.renewalPeriodAr}
+              دورة التجديد: كل {r.renewalMonths} شهر
               <span className="mx-2 text-rule">·</span>
               موعد التجديد:{' '}
               <span className="font-mono" dir="ltr">
@@ -179,12 +146,12 @@ function RenewalRow({ renewal: r }: { renewal: RenewalEntry }) {
             <div
               className={`font-display text-2xl font-extrabold tabular-nums leading-none ${style.numColor}`}
             >
-              {r.daysRemaining < 0 ? `-${Math.abs(r.daysRemaining)}` : r.daysRemaining}
+              {days < 0 ? `-${Math.abs(days)}` : days}
             </div>
             <div className="mt-0.5 text-[11px] text-muted">يوم متبقي</div>
           </div>
         </div>
-        {r.urgency !== 'ok' && r.officialUrl && (
+        {r.status !== 'ok' && r.officialUrl && (
           <div className="mt-3 border-t border-rule pt-3">
             <a
               href={r.officialUrl}
@@ -202,10 +169,20 @@ function RenewalRow({ renewal: r }: { renewal: RenewalEntry }) {
   );
 }
 
-function urgencyStyle(u: RenewalEntry['urgency']): {
+function formatArabicDate(iso: string): string {
+  const ts = Date.parse(iso);
+  if (Number.isNaN(ts)) return iso;
+  return new Date(ts).toLocaleDateString('ar-SA-u-ca-gregory', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+function urgencyStyle(u: Renewal['status']): {
   bar: string;
   label: string;
-  icon: string;
+  badge: string;
   numColor: string;
   actionLabel: string;
 } {
@@ -213,41 +190,33 @@ function urgencyStyle(u: RenewalEntry['urgency']): {
     case 'overdue':
       return {
         bar: 'bg-danger',
-        label: 'text-danger',
-        icon: '🔴',
+        label: 'متأخر',
+        badge: 'border-danger/40 bg-danger/10 text-danger',
         numColor: 'text-danger',
-        actionLabel: 'متأخّر — جدّد فوراً ↗',
+        actionLabel: 'متأخّر — جدّد فوراً',
       };
     case 'urgent':
       return {
         bar: 'bg-danger',
-        label: 'text-danger',
-        icon: '⚠️',
+        label: 'عاجل',
+        badge: 'border-danger/40 bg-danger/10 text-danger',
         numColor: 'text-danger',
         actionLabel: 'عاجل جداً — ابدأ الآن',
       };
     case 'soon':
       return {
         bar: 'bg-warn',
-        label: 'text-warn-strong',
-        icon: '⏳',
+        label: 'قريب',
+        badge: 'border-warn/40 bg-warn-soft text-warn-strong',
         numColor: 'text-warn-strong',
         actionLabel: 'ابدأ إجراءات التجديد',
-      };
-    case 'notice':
-      return {
-        bar: 'bg-warn/60',
-        label: 'text-warn-strong',
-        icon: '📅',
-        numColor: 'text-ink',
-        actionLabel: 'خطّط للتجديد مبكراً',
       };
     case 'ok':
     default:
       return {
         bar: 'bg-accent',
-        label: 'text-accent-strong',
-        icon: '✓',
+        label: 'ساري',
+        badge: 'border-accent/30 bg-accent-soft text-accent-strong',
         numColor: 'text-ink-2',
         actionLabel: 'افتح البوابة',
       };

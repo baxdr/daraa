@@ -15,11 +15,10 @@ export interface ProjectRepository {
    * timestamp, and persist atomically.
    */
   create(input: {
-    mode: ProjectRecord['mode'];
+    mode?: ProjectRecord['mode'];
     vertical: ProjectRecord['vertical'];
     companyName: string;
     cityId?: string | undefined;
-    url: string | null;
     answers: ProjectRecord['answers'];
     email?: string | undefined;
     ownerUserId?: string | undefined;

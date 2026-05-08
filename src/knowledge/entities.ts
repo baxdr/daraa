@@ -1,22 +1,20 @@
 /**
- * Saudi government entities knowledge base for the establishment-path.
+ * Saudi government entities knowledge base — small-shop edition.
  *
  * LIABILITY NOTE — read before touching this file.
  *
- * Every cost and duration in this file is a *rough range* copied from the v3
- * brief. These are NOT authoritative figures. The UI renders them with a
- * "تقديري — راجع الجهة الرسمية" label, and the establishment page leads with
- * a legal disclaimer. Do not widen the confident-sounding claims here without
- * a verified source document.
+ * Every cost and duration in this file is a *rough range* for guidance only.
+ * They are NOT authoritative figures. The UI renders them with a "تقديري —
+ * راجع الجهة الرسمية" label. Do not widen the confident-sounding claims here
+ * without a verified source document.
  *
  * The "commonMistake" / "criticalWarning" copy is phrased as caution plus a
- * link to the official portal — never as a directive. This is regulatory
- * advice territory; we can guide but cannot decide.
+ * link to the official portal — never as a directive.
  */
 
 import type { NameCheckResult } from '@/agents/runtime/types';
 
-export type VerticalId = 'restaurant' | 'tech' | 'salon' | 'construction' | 'services';
+export type VerticalId = 'coffee' | 'restaurant' | 'grocery' | 'laundry' | 'salon';
 
 export interface GovEntity {
   id: string;
@@ -35,387 +33,169 @@ export interface GovEntity {
   dependencies: string[];
   /** Optional caution to surface on the entity card. */
   commonMistakeAr?: string;
-  /** More prominent orange-banner caution (used for the lease-signing warning). */
+  /** More prominent orange-banner caution. */
   criticalWarningAr?: string;
-  /** Renewal cadence — drives the future renewal-tracker UI. */
+  /** Months between consecutive renewals. null = continuous (no fixed cadence). */
+  renewalMonths: number | null;
+  /** Pretty Arabic phrase for the renewal cadence — derived from renewalMonths. */
   renewalPeriodAr?: string;
-  /** Official portal link — users are directed here for the actual filing. */
+  /** Official portal link. */
   officialUrl?: string;
-  /** Checklist of what the user needs to gather/have in place for this entity.
-   *  Populated by each specialist agent (class-based runtime). */
+  /** Checklist of what the user needs in place. Populated by each specialist. */
   requirements?: string[];
-  /** Trade-name availability finding. Currently only populated by the MCI
-   *  specialist in establishment mode. */
+  /** Trade-name availability — reserved field, currently unused. */
   nameCheck?: NameCheckResult;
 }
 
 export interface Vertical {
   id: VerticalId;
   labelAr: string;
-  /** True when the vertical has a populated entity list. Reserved for any
-   *  future vertical that ships without the full detail layer. */
-  shipsInMvp: boolean;
   /** Extra entities on top of the always-required baseline. */
   entities: GovEntity[];
 }
 
 /* ------------------------------------------------------------------------- */
-/* Baseline — applies to every establishment regardless of vertical           */
+/* Renewal helpers                                                            */
+/* ------------------------------------------------------------------------- */
+
+/** Format a renewal cadence (in months) as a short Arabic phrase. */
+export function formatRenewalAr(months: number | null): string {
+  if (months === null) return 'مستمر';
+  if (months === 1) return 'شهري';
+  if (months === 12) return 'سنوي';
+  if (months % 12 === 0) return `كل ${months / 12} سنوات`;
+  return `كل ${months} أشهر`;
+}
+
+/** Stamp `renewalPeriodAr` consistently from `renewalMonths`. */
+function withRenewalLabel(e: Omit<GovEntity, 'renewalPeriodAr'>): GovEntity {
+  return { ...e, renewalPeriodAr: formatRenewalAr(e.renewalMonths) };
+}
+
+/* ------------------------------------------------------------------------- */
+/* Baseline — applies to every shop regardless of vertical                    */
 /* ------------------------------------------------------------------------- */
 
 export const ALWAYS_REQUIRED: readonly GovEntity[] = [
-  {
+  withRenewalLabel({
     id: 'mci',
     nameAr: 'وزارة التجارة',
     nameSimpleAr: 'السجل التجاري',
-    explainAr: 'أول خطوة لأي مشروع — تسجّل شركتك رسمياً. فكّر فيه مثل شهادة الميلاد للمشروع.',
-    estimatedCostSar: { min: 200, max: 1600 },
+    explainAr: 'الوثيقة الأم للمحل — تُسجَّل عند بدء النشاط، وتُجدَّد سنوياً.',
+    estimatedCostSar: { min: 200, max: 400 },
     estimatedTimeAr: 'يوم واحد (إلكتروني)',
     order: 1,
     dependencies: [],
-    renewalPeriodAr: 'سنوي',
+    renewalMonths: 12,
     officialUrl: 'https://mc.gov.sa',
-  },
-  {
+  }),
+  withRenewalLabel({
     id: 'zatca',
     nameAr: 'هيئة الزكاة والضريبة والجمارك',
     nameSimpleAr: 'التسجيل الضريبي',
-    explainAr: 'تسجّل ضريبياً عشان تقدر تصدر فواتير رسمية. إلزامي لكل شركة.',
+    explainAr: 'تسجيل ضريبي للمنشأة — VAT يصير إلزامي عند تجاوز ٣٧٥ ألف ريال إيراد سنوي.',
     estimatedCostSar: { min: 0, max: 0 },
     estimatedTimeAr: 'يوم واحد (إلكتروني)',
     order: 2,
     dependencies: ['mci'],
+    renewalMonths: null,
     officialUrl: 'https://zatca.gov.sa',
-  },
-  {
-    id: 'mol',
-    nameAr: 'وزارة الموارد البشرية',
-    nameSimpleAr: 'ملف المنشأة + نطاقات',
-    explainAr: 'تفتح ملف لمنشأتك عشان تقدر توظف ناس — سعوديين أو غيرهم.',
+  }),
+  withRenewalLabel({
+    id: 'mohr_gosi',
+    nameAr: 'وزارة الموارد البشرية + التأمينات الاجتماعية',
+    nameSimpleAr: 'ملف المنشأة + تأمينات',
+    explainAr: 'فتح ملف منشأة لتوظيف موظفين + اشتراك التأمينات الشهري.',
     estimatedCostSar: { min: 0, max: 0 },
     estimatedTimeAr: 'يوم واحد (إلكتروني)',
     order: 3,
     dependencies: ['mci'],
+    renewalMonths: 1,
     officialUrl: 'https://www.hrsd.gov.sa',
-  },
-  {
-    id: 'gosi',
-    nameAr: 'المؤسسة العامة للتأمينات الاجتماعية',
-    nameSimpleAr: 'تسجيل التأمينات',
-    explainAr: 'تسجّل موظفينك في التأمينات — حقهم النظامي وإلزامي عليك.',
-    estimatedCostSar: { min: 0, max: 0 },
-    estimatedTimeAr: 'يوم واحد (إلكتروني)',
-    order: 4,
-    dependencies: ['mol'],
-    renewalPeriodAr: 'اشتراك شهري',
-    officialUrl: 'https://www.gosi.gov.sa',
-  },
+  }),
 ];
 
 /* ------------------------------------------------------------------------- */
-/* Cross-vertical specialists — added Phase 6 (KB) for use by Phase 5c agents */
+/* Shared entity factories                                                    */
 /* ------------------------------------------------------------------------- */
 
-/** Tax strategy specialist's KB entry — applies across all verticals.
- *  Distinct from `zatca` (which handles the registration + filing mechanics).
- *  This entry surfaces *strategic* tax decisions: VAT timing, foreign-share
- *  treatment, Zakat vs corporate-tax mix, withholding obligations. */
-const TAX_STRATEGY_ENTITY: GovEntity = {
-  id: 'tax_strategy',
-  nameAr: 'التخطيط الضريبي',
-  nameSimpleAr: 'استراتيجية الضرائب',
-  explainAr:
-    'مراجعة شاملة لالتزاماتك الضريبية المتوقعة — متى تتجاوز حد VAT (375 ألف)، حصص الزكاة مقابل ضريبة الدخل (للملاك الأجانب)، الاستقطاع الضريبي على المدفوعات الدولية، والتخطيط لتقليل المخاطر الضريبية مع الالتزام الكامل.',
-  estimatedCostSar: { min: 0, max: 5_000 },
-  estimatedTimeAr: 'مراجعة أولية ساعة، تنفيذ ١-٢ أسبوع',
-  order: 8,
-  dependencies: ['mci', 'zatca'],
-  commonMistakeAr:
-    'كثير من المؤسسين يتفاجؤون بالاستقطاع الضريبي 5-15% على مدفوعاتهم لمزودين أجانب (AWS، Stripe، إلخ). خطّط لها من البداية.',
-  renewalPeriodAr: 'مراجعة سنوية',
-  officialUrl: 'https://zatca.gov.sa',
-};
-
-/** Saudi Authority for Intellectual Property — for tech, ecommerce, and any
- *  business with a brand worth protecting. */
-const SAIP_IP_ENTITY: GovEntity = {
-  id: 'saip_ip',
-  nameAr: 'الهيئة السعودية للملكية الفكرية',
-  nameSimpleAr: 'حماية الملكية الفكرية',
-  explainAr:
-    'تسجيل العلامة التجارية وبراءات الاختراع وحقوق المصنفات. حماية اسمك، شعارك، وابتكاراتك من النسخ. للشركات التقنية والمتاجر الإلكترونية — حماية أساسية، ليست رفاهية.',
-  estimatedCostSar: { min: 1_000, max: 7_000 },
-  estimatedTimeAr: '٣ إلى ٦ أشهر للاعتماد',
-  order: 8,
+const civilDefenseEntity = withRenewalLabel({
+  id: 'civil_defense',
+  nameAr: 'الدفاع المدني',
+  nameSimpleAr: 'شهادة السلامة',
+  explainAr: 'تتأكد من وجود طفايات حريق + مخارج طوارئ + كواشف دخان. تُجدَّد سنوياً.',
+  estimatedCostSar: { min: 200, max: 1_000 },
+  estimatedTimeAr: '٣ إلى ١٤ يوم (يحتاج زيارة ميدانية)',
+  order: 5,
   dependencies: ['mci'],
-  commonMistakeAr:
-    'سجّل علامتك التجارية قبل الإطلاق العام — لو أحد سجّلها قبلك (حتى لو سيئ النية)، استرجاعها يتطلب نزاعاً قانونياً مكلفاً.',
-  renewalPeriodAr: 'كل ١٠ سنوات للعلامات التجارية',
-  officialUrl: 'https://saip.gov.sa',
-};
-
-/** Customs / Import-Export — for businesses dealing in physical goods that
- *  cross borders (ecommerce importers, construction with imported materials). */
-const CUSTOMS_ENTITY: GovEntity = {
-  id: 'customs',
-  nameAr: 'الجمارك السعودية + Saber/FASAH',
-  nameSimpleAr: 'الاستيراد والتصدير',
-  explainAr:
-    'كل ما تحتاجه لإدخال أو إخراج البضائع: حساب FASAH للتخليص الجمركي، ومنصة Saber للتأكد من مطابقة المنتجات للمواصفات السعودية، ورمز GS1 الباركود، ومتطلبات الفسح حسب نوع المنتج.',
-  estimatedCostSar: { min: 500, max: 3_000 },
-  estimatedTimeAr: '٧ إلى ٢١ يوم لإكمال التسجيلات',
-  order: 9,
-  dependencies: ['mci', 'zatca'],
+  renewalMonths: 12,
   criticalWarningAr:
-    'لكل منتج يدخل المملكة لازم شهادة مطابقة سعودية (CoC) عبر Saber — بدونها ترجع الشحنة من الميناء. تأكّد قبل أي طلب.',
-  renewalPeriodAr: 'حسب نوع التسجيل',
-  officialUrl: 'https://customs.gov.sa',
-};
+    'شهادة السلامة غالباً تسبق رخصة البلدية — تأكّد من التسلسل الصحيح لحيّك على منصة بلدي قبل التقديم.',
+  officialUrl: 'https://www.998.gov.sa',
+});
 
-/** NCA-ECC compliance specialist — for B2G + critical infra entities only.
- *  Distinct from `pdpl_nca` which focuses on PDPL (data privacy);
- *  this entry covers the full 114-control NCA-ECC framework. */
-const NCA_ECC_ENTITY: GovEntity = {
-  id: 'nca_ecc',
-  nameAr: 'الهيئة الوطنية للأمن السيبراني — ECC',
-  nameSimpleAr: 'الالتزام بضوابط NCA-ECC',
-  explainAr:
-    'ضوابط الأمن السيبراني الأساسية (114 ضابط) إلزامية للجهات الحكومية ومن يعمل معها كمورد أو شريك. تغطي الحوكمة، الدفاع، الصمود، الأطراف الخارجية، وأنظمة التحكم الصناعي. للشركات التقنية اللي تستهدف القطاع العام — ضرورية للتأهل.',
-  estimatedCostSar: { min: 30_000, max: 150_000 },
-  estimatedTimeAr: '٦ إلى ١٢ شهر للالتزام الكامل',
-  order: 9,
-  dependencies: ['pdpl_readiness'],
+const municipalityEntity = withRenewalLabel({
+  id: 'municipality',
+  nameAr: 'أمانة المنطقة (بلدي)',
+  nameSimpleAr: 'رخصة البلدية',
+  explainAr: 'الرخصة اللي تسمح لك تشغّل المحل في الموقع. بدونها لا يحق التشغيل.',
+  estimatedCostSar: { min: 500, max: 3_000 },
+  estimatedTimeAr: '٣ إلى ٧ أيام',
+  order: 6,
+  dependencies: ['civil_defense'],
+  renewalMonths: 12,
   commonMistakeAr:
-    'كثير من الشركات تظن أن PDPL = NCA-ECC. هما إطاران مختلفان: PDPL للخصوصية، ECC للأمن السيبراني العام. الالتزام بـ ECC شرط للتعاقد مع كثير من الجهات الحكومية.',
-  renewalPeriodAr: 'مراجعة سنوية',
-  officialUrl: 'https://nca.gov.sa',
-};
+    'تحقّق من تطابق نشاطك مع نوع رخصة البلدية على منصة بلدي قبل أي تجديد — تغيير النشاط بدون تحديث الرخصة يعرّضك لمخالفات.',
+  officialUrl: 'https://balady.gov.sa',
+});
+
+const sfdaEntity = withRenewalLabel({
+  id: 'sfda',
+  nameAr: 'الهيئة العامة للغذاء والدواء',
+  nameSimpleAr: 'ترخيص الغذاء (SFDA)',
+  explainAr: 'إلزامي للمنشآت الغذائية — يُجدَّد سنوياً، انتهاؤه يوقف النشاط فوراً.',
+  estimatedCostSar: { min: 1_000, max: 3_000 },
+  estimatedTimeAr: '٧ إلى ١٤ يوم',
+  order: 7,
+  dependencies: ['municipality'],
+  renewalMonths: 12,
+  officialUrl: 'https://sfda.gov.sa',
+});
+
+const mohEntity = withRenewalLabel({
+  id: 'moh',
+  nameAr: 'وزارة الصحة',
+  nameSimpleAr: 'الترخيص الصحي',
+  explainAr: 'يطلب فحصاً ميدانياً + شهادات صحية للعاملين — يُجدَّد سنوياً.',
+  estimatedCostSar: { min: 500, max: 2_000 },
+  estimatedTimeAr: '٧ إلى ١٤ يوم',
+  order: 8,
+  dependencies: ['municipality'],
+  renewalMonths: 12,
+  officialUrl: 'https://www.moh.gov.sa',
+});
 
 /* ------------------------------------------------------------------------- */
-/* Vertical-specific entities                                                 */
+/* Vertical-specific entity bundles                                           */
 /* ------------------------------------------------------------------------- */
 
+const COFFEE_ENTITIES: GovEntity[] = [civilDefenseEntity, municipalityEntity, sfdaEntity];
 const RESTAURANT_ENTITIES: GovEntity[] = [
-  {
-    id: 'civil_defense',
-    nameAr: 'الدفاع المدني',
-    nameSimpleAr: 'شهادة السلامة',
-    explainAr: 'يفحصون محلك ويتأكدون إن فيه طفايات حريق ومخارج طوارئ وكل متطلبات السلامة.',
-    estimatedCostSar: { min: 200, max: 1000 },
-    estimatedTimeAr: '٣ إلى ١٤ يوم (يحتاج زيارة ميدانية)',
-    order: 5,
-    dependencies: ['mci'],
-    criticalWarningAr:
-      'هذي الخطوة غالباً تجي قبل رخصة البلدية — كثير ناس يتفاجؤون بهذا الترتيب. تأكّد من موقع البلدية بخصوص التسلسل الصحيح لحيّك.',
-    renewalPeriodAr: 'سنوي',
-    officialUrl: 'https://www.998.gov.sa',
-  },
-  {
-    id: 'municipality',
-    nameAr: 'أمانة المنطقة (بلدي)',
-    nameSimpleAr: 'رخصة البلدية',
-    explainAr: 'الرخصة اللي تسمح لك تفتح محلك في هالموقع. بدونها ما تقدر تشغّل.',
-    estimatedCostSar: { min: 500, max: 3000 },
-    estimatedTimeAr: '٣ إلى ٧ أيام',
-    order: 6,
-    dependencies: ['civil_defense'],
-    commonMistakeAr:
-      'لا تعتمد على وعد شفهي من المالك إن الموقع "يطلع له رخصة". تحقّق من منصة بلدي بنفسك قبل التوقيع.',
-    renewalPeriodAr: 'سنوي',
-    officialUrl: 'https://balady.gov.sa',
-  },
-  {
-    id: 'sfda',
-    nameAr: 'الهيئة العامة للغذاء والدواء',
-    nameSimpleAr: 'ترخيص الغذاء (SFDA)',
-    explainAr: 'لأنك بتقدم أكل ومشروبات — هالجهة تتأكد إن المكان نظيف وآمن صحياً.',
-    estimatedCostSar: { min: 1000, max: 3000 },
-    estimatedTimeAr: '٧ إلى ١٤ يوم',
-    order: 7,
-    dependencies: ['municipality'],
-    renewalPeriodAr: 'سنوي',
-    officialUrl: 'https://sfda.gov.sa',
-  },
-  TAX_STRATEGY_ENTITY,
+  civilDefenseEntity,
+  municipalityEntity,
+  sfdaEntity,
+  mohEntity,
 ];
-
-const TECH_ENTITIES: GovEntity[] = [
-  {
-    id: 'pdpl_readiness',
-    nameAr: 'نظام حماية البيانات الشخصية (PDPL)',
-    nameSimpleAr: 'جاهزية PDPL',
-    explainAr:
-      'لأن تطبيقك سيجمع بيانات مستخدمين سعوديين، لازم من اليوم الأول تكون عندك سياسة خصوصية ومسار موافقة وخطة استجابة. المخالفة غرامتها تصل ٥ ملايين ريال.',
-    estimatedCostSar: { min: 0, max: 0 },
-    estimatedTimeAr: 'مستمر — يبدأ قبل أول إطلاق',
-    order: 5,
-    dependencies: ['mci'],
-    renewalPeriodAr: 'مستمر',
-    officialUrl: 'https://sdaia.gov.sa',
-  },
-  {
-    id: 'zatca_einvoice_onboarding',
-    nameAr: 'ZATCA — الفوترة الإلكترونية (المرحلة الثانية)',
-    nameSimpleAr: 'ربط الفوترة الإلكترونية',
-    explainAr:
-      'بعد التسجيل الضريبي الأساسي، منصّتك لازم ترتبط فنياً مع نظام ZATCA (Fatoora) — إصدار XML، ختم رقمي معتمد، وربط مباشر في المرحلة الثانية. هذا غير التسجيل الضريبي العادي.',
-    estimatedCostSar: { min: 500, max: 3_000 },
-    estimatedTimeAr: '٧ إلى ١٤ يوم (تطوير الربط + اعتماد)',
-    order: 6,
-    dependencies: ['zatca'],
-    commonMistakeAr:
-      'الربط ليس مجرد تسجيل — هو تطوير تقني فعلي في الـ POS أو نظام الفوترة، واختبار مع بيئة ZATCA التجريبية قبل الإنتاج.',
-    renewalPeriodAr: 'مستمر',
-    officialUrl: 'https://zatca.gov.sa',
-  },
-  SAIP_IP_ENTITY,
-  NCA_ECC_ENTITY,
-  TAX_STRATEGY_ENTITY,
-];
-
-const SALON_ENTITIES: GovEntity[] = [
-  {
-    id: 'civil_defense_salon',
-    nameAr: 'الدفاع المدني',
-    nameSimpleAr: 'شهادة السلامة',
-    explainAr:
-      'الصالونات تحتاج متطلبات سلامة أساسية: طفايات حريق، مخرج طوارئ واضح، تهوية جيدة خاصة مع استخدام مواد كيميائية (صبغات، مذيبات).',
-    estimatedCostSar: { min: 200, max: 800 },
-    estimatedTimeAr: '٣ إلى ١٤ يوم (يحتاج زيارة ميدانية)',
-    order: 5,
-    dependencies: ['mci'],
-    criticalWarningAr:
-      'شهادة السلامة غالباً تسبق رخصة البلدية — تحقق من التسلسل الصحيح لحيّك على منصة بلدي قبل البدء.',
-    renewalPeriodAr: 'سنوي',
-    officialUrl: 'https://www.998.gov.sa',
-  },
-  {
-    id: 'municipality_salon',
-    nameAr: 'أمانة المنطقة (بلدي) — نشاط صالون/تجميل',
-    nameSimpleAr: 'رخصة البلدية',
-    explainAr:
-      'رخصة تشغيل الصالون من الأمانة. البلدية تشترط مساحة دنيا لكل كرسي، فصل بين قسم النساء والرجال في بعض الأنشطة، ومعايير صحية أساسية.',
-    estimatedCostSar: { min: 500, max: 2_000 },
-    estimatedTimeAr: '٣ إلى ٧ أيام',
-    order: 6,
-    dependencies: ['civil_defense_salon'],
-    commonMistakeAr:
-      'تأكد من مطابقة نشاط المحل على منصة بلدي قبل التوقيع على الإيجار — مش كل المواقع مرخّصة لنشاط تجميلي.',
-    renewalPeriodAr: 'سنوي',
-    officialUrl: 'https://balady.gov.sa',
-  },
-  {
-    id: 'moh_salon_license',
-    nameAr: 'وزارة الصحة — الترخيص الصحي',
-    nameSimpleAr: 'الترخيص الصحي',
-    explainAr:
-      'لأن الصالون يتعامل مع البشرة والشعر — الوزارة تتطلب ترخيص صحي يتأكد من النظافة وتعقيم الأدوات وتأهيل الكادر.',
-    estimatedCostSar: { min: 500, max: 2_000 },
-    estimatedTimeAr: '٧ إلى ١٤ يوم',
-    order: 7,
-    dependencies: ['municipality_salon'],
-    renewalPeriodAr: 'سنوي',
-    officialUrl: 'https://www.moh.gov.sa',
-  },
-  TAX_STRATEGY_ENTITY,
-];
-
-const CONSTRUCTION_ENTITIES: GovEntity[] = [
-  {
-    id: 'civil_defense_office',
-    nameAr: 'الدفاع المدني',
-    nameSimpleAr: 'شهادة سلامة المكتب',
-    explainAr:
-      'حتى لو مكتب إداري بسيط للمقاولات — الدفاع المدني يتطلب معايير سلامة أساسية: طفايات، مخرج طوارئ، ولوحات إرشادية.',
-    estimatedCostSar: { min: 150, max: 500 },
-    estimatedTimeAr: '٣ إلى ١٠ أيام',
-    order: 5,
-    dependencies: ['mci'],
-    renewalPeriodAr: 'سنوي',
-    officialUrl: 'https://www.998.gov.sa',
-  },
-  {
-    id: 'municipality_office',
-    nameAr: 'أمانة المنطقة (بلدي)',
-    nameSimpleAr: 'رخصة مكتب مقاولات',
-    explainAr:
-      'رخصة تشغيل المكتب. بعض الأمانات تطلب موقفاً مخصّصاً أو مساحة دنيا حسب نوع التصنيف المطلوب.',
-    estimatedCostSar: { min: 500, max: 2_000 },
-    estimatedTimeAr: '٣ إلى ٧ أيام',
-    order: 6,
-    dependencies: ['civil_defense_office'],
-    renewalPeriodAr: 'سنوي',
-    officialUrl: 'https://balady.gov.sa',
-  },
-  {
-    id: 'contractor_classification',
-    nameAr: 'تصنيف المقاولين',
-    nameSimpleAr: 'شهادة التصنيف',
-    explainAr:
-      'من وكالة التصنيف في وزارة البلديات والإسكان. التصنيف يحدد الفئات والحدود المالية للمشاريع اللي تقدر تاخذها — خصوصاً للمشاريع الحكومية. بدون تصنيف، خيارات المنافسة على مشاريع كبيرة محدودة جداً.',
-    estimatedCostSar: { min: 1_000, max: 5_000 },
-    estimatedTimeAr: '١٤ إلى ٣٠ يوم',
-    order: 7,
-    dependencies: ['municipality_office'],
-    commonMistakeAr:
-      'التصنيف يتطلب إثبات كفاءات فنية وإدارية ورأس مال — جهّز المستندات مسبقاً لتقليل دورات الاستكمال.',
-    renewalPeriodAr: 'كل 3 سنوات',
-    officialUrl: 'https://momrah.gov.sa',
-  },
-  TAX_STRATEGY_ENTITY,
-  CUSTOMS_ENTITY,
-];
-
-// ECOMMERCE includes everything tech needs (PDPL, e-invoicing, IP, NCA-ECC, tax)
-// PLUS Maroof (storefront verification) and customs (cross-border goods).
-const ECOMMERCE_ENTITIES: GovEntity[] = [
-  {
-    id: 'maroof',
-    nameAr: 'منصة معروف',
-    nameSimpleAr: 'توثيق المتجر',
-    explainAr:
-      'منصة من وزارة التجارة توثّق متجرك الإلكتروني — تزيد ثقة العملاء وتساعدك في حل النزاعات.',
-    estimatedCostSar: { min: 0, max: 0 },
-    estimatedTimeAr: 'يوم واحد',
-    order: 3,
-    dependencies: ['mci'],
-    officialUrl: 'https://maroof.sa',
-  },
-  ...TECH_ENTITIES,
-  CUSTOMS_ENTITY,
-];
+const GROCERY_ENTITIES: GovEntity[] = [civilDefenseEntity, municipalityEntity, sfdaEntity];
+const LAUNDRY_ENTITIES: GovEntity[] = [civilDefenseEntity, municipalityEntity];
+const SALON_ENTITIES: GovEntity[] = [civilDefenseEntity, municipalityEntity, mohEntity];
 
 export const VERTICALS: Record<VerticalId, Vertical> = {
-  restaurant: {
-    id: 'restaurant',
-    labelAr: 'مطعم / كوفي شوب',
-    shipsInMvp: true,
-    entities: RESTAURANT_ENTITIES,
-  },
-  tech: {
-    id: 'tech',
-    labelAr: 'شركة تقنية / تطبيق',
-    shipsInMvp: true,
-    entities: TECH_ENTITIES,
-  },
-  services: {
-    id: 'services',
-    labelAr: 'متجر إلكتروني',
-    shipsInMvp: true,
-    entities: ECOMMERCE_ENTITIES,
-  },
-  salon: {
-    id: 'salon',
-    labelAr: 'صالون / مركز تجميل',
-    shipsInMvp: true,
-    entities: SALON_ENTITIES,
-  },
-  construction: {
-    id: 'construction',
-    labelAr: 'مقاولات / بناء',
-    shipsInMvp: true,
-    entities: CONSTRUCTION_ENTITIES,
-  },
+  coffee: { id: 'coffee', labelAr: 'كوفي شوب / مقهى', entities: COFFEE_ENTITIES },
+  restaurant: { id: 'restaurant', labelAr: 'مطعم', entities: RESTAURANT_ENTITIES },
+  grocery: { id: 'grocery', labelAr: 'بقالة / سوبر ماركت', entities: GROCERY_ENTITIES },
+  laundry: { id: 'laundry', labelAr: 'مغسلة ملابس', entities: LAUNDRY_ENTITIES },
+  salon: { id: 'salon', labelAr: 'صالون / مركز تجميل', entities: SALON_ENTITIES },
 };
 
 /* ------------------------------------------------------------------------- */
@@ -424,17 +204,16 @@ export const VERTICALS: Record<VerticalId, Vertical> = {
 
 export function resolveEntities(verticalId: VerticalId): GovEntity[] {
   const vertical = VERTICALS[verticalId];
-  if (!vertical || !vertical.shipsInMvp) return [];
+  if (!vertical) return [];
   return [...ALWAYS_REQUIRED, ...vertical.entities].sort((a, b) => a.order - b.order);
 }
 
 /**
  * Group the entity list into weekly buckets the UI can render as a roadmap.
- * We use dependencies + order to compute a simple critical-path schedule:
- * each week contains entities whose deps are satisfied by the previous week.
+ * Uses dependencies + order to compute a simple critical-path schedule.
  */
 export interface RoadmapWeek {
-  label: string; // "الأسبوع الأول" …
+  label: string;
   entities: GovEntity[];
 }
 
@@ -456,7 +235,6 @@ export function buildRoadmap(entities: GovEntity[]): RoadmapWeek[] {
   while (remaining.length) {
     const batch = remaining.filter((e) => e.dependencies.every((d) => completed.has(d)));
     if (batch.length === 0) {
-      // Graph issue — shove remaining into a final bucket rather than loop.
       weeks.push({ label: 'خطوات لاحقة', entities: [...remaining] });
       break;
     }

@@ -2,15 +2,11 @@ import Link from 'next/link';
 import type { ProjectRecord } from '@/lib/project-store';
 
 const MODE_LABEL: Record<ProjectRecord['mode'], string> = {
-  establishment: 'تأسيس',
-  compliance: 'فحص امتثال',
-  operational_compliance: 'امتثال تشغيلي',
+  operational_compliance: 'متابعة رخص',
 };
 
 const MODE_STYLE: Record<ProjectRecord['mode'], string> = {
-  establishment: 'border-accent/30 bg-accent-soft text-accent-strong',
-  compliance: 'border-warn/30 bg-warn-soft text-warn-strong',
-  operational_compliance: 'border-danger/30 bg-danger/5 text-danger',
+  operational_compliance: 'border-accent/30 bg-accent-soft text-accent-strong',
 };
 
 const STATUS_LABEL: Record<ProjectRecord['status'], string> = {

@@ -1,26 +1,15 @@
 import Link from 'next/link';
-import { PDPL_RULES, PDPL_DATA_SUBJECT_RIGHTS } from '@/knowledge/pdpl';
-import { ECC_DOMAINS, ECC_CONTROLS, getControlsForDomain } from '@/knowledge/nca-ecc';
-import { VAT, E_INVOICE_PHASES, ZATCA_RULES } from '@/knowledge/zatca';
+import { ALWAYS_REQUIRED, VERTICALS } from '@/knowledge/entities';
+import { VAT } from '@/knowledge/zatca';
 import { TERMS } from '@/knowledge/terms';
 
-const FEATURED_TERMS = ['PDPL', 'DPO', 'NCA_ECC', 'ZATCA', 'SDAIA', 'privacy_policy'] as const;
-
-const SEVERITY_STYLE: Record<string, string> = {
-  critical: 'border-danger/40 bg-danger/5 text-danger',
-  high: 'border-warn/40 bg-warn-soft text-warn-strong',
-  medium: 'border-ink/30 bg-paper-2 text-ink-2',
-  low: 'border-rule bg-paper-2 text-muted',
-};
-const SEVERITY_LABEL: Record<string, string> = {
-  critical: 'حرج',
-  high: 'مرتفع',
-  medium: 'متوسط',
-  low: 'منخفض',
-};
+const FEATURED_TERMS = ['ZATCA', 'tax_VAT', 'gov_GOSI', 'license_CR'] as const;
 
 export function KnowledgeCatalogPage() {
   const totalTerms = Object.keys(TERMS).length;
+  const totalEntities =
+    ALWAYS_REQUIRED.length +
+    Object.values(VERTICALS).reduce((acc, v) => acc + v.entities.length, 0);
 
   return (
     <main className="relative mx-auto max-w-6xl px-6 py-12 md:px-10 md:py-16">
@@ -35,159 +24,51 @@ export function KnowledgeCatalogPage() {
       <header className="mb-10">
         <span className="eyebrow">قاعدة المعرفة · Knowledge Base</span>
         <h1 className="mt-3 font-display text-4xl font-extrabold leading-[1.1] tracking-tighter md:text-6xl">
-          قاعدة معرفة سعودية
+          مرجع المحلات الصغيرة
           <br />
-          <span className="text-accent">شاملة وحيّة</span>
+          <span className="text-accent">في السعودية</span>
         </h1>
         <div className="rule-accent mt-6 w-16" />
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-2">
-          كل قاعدة، كل ضابط، كل مصطلح — مدمج في الكود، مغطّى باختبارات، ومرجَع إلى المصدر النظامي.
-          القائمة كاملة هنا — هذي اللي تنبني عليها قرارات الوكلاء.
+          الجهات التنظيمية لكل نوع محل + متطلباتها + مواعيد التجديد. كل ما تحتاج معرفته في مكان واحد
+          — مرجَع للمصادر الرسمية.
         </p>
       </header>
 
       <section className="mb-16 grid grid-cols-2 gap-0 border border-rule bg-white sm:grid-cols-4">
-        <Stat label="قاعدة PDPL" value={PDPL_RULES.length.toString()} />
-        <Stat label="ضابط NCA-ECC" value={ECC_CONTROLS.length.toString()} />
-        <Stat label="قاعدة ZATCA" value={ZATCA_RULES.length.toString()} />
-        <Stat label="مصطلح موضَّح" value={totalTerms.toString()} last />
+        <Stat label="فئات محلات" value={Object.keys(VERTICALS).length.toString()} />
+        <Stat label="جهات تنظيمية" value={totalEntities.toString()} />
+        <Stat label="مصطلح موضّح" value={totalTerms.toString()} />
+        <Stat
+          label="حد VAT"
+          value={`${(VAT.mandatoryRegistrationSar / 1000).toFixed(0)}K SAR`}
+          last
+        />
       </section>
 
-      {/* PDPL */}
       <section className="mb-16">
         <SectionHeader
-          eyebrow="نظام حماية البيانات الشخصية"
-          title="PDPL — Royal Decree M/19"
-          desc="نظام حماية البيانات الشخصية الصادر بالمرسوم الملكي رقم م/19 وتعديلاته. ٥ حقوق لصاحب البيانات + قواعد إفصاح + سقوف غرامات."
-          count={PDPL_RULES.length}
+          eyebrow="الفئات المدعومة"
+          title="٥ أنواع محلات"
+          subtitle="كل فئة لها مجموعة جهات تنظيمية فريدة + متطلبات تشغيلية محددة."
         />
-
-        <div className="mb-8 grid gap-4 md:grid-cols-5">
-          {PDPL_DATA_SUBJECT_RIGHTS.map((r, i) => (
-            <div key={r.id} className="border border-rule bg-paper-2 p-4">
-              <span className="font-mono text-[10px] tabular-nums text-muted">
-                {String(i + 1).padStart(2, '0')}
-              </span>
-              <h3 className="mt-1 font-display text-base font-extrabold tracking-tight">
-                {r.nameAr}
-              </h3>
-              <p className="mt-2 text-xs leading-relaxed text-ink-2">{r.descriptionAr}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="space-y-3">
-          {PDPL_RULES.map((rule, i) => (
-            <article
-              key={rule.id}
-              className="border border-rule bg-white p-5 transition-colors hover:border-ink"
+        <div className="mt-8 grid grid-cols-1 gap-0 border border-rule bg-white md:grid-cols-2">
+          {Object.values(VERTICALS).map((v, i) => (
+            <div
+              key={v.id}
+              className={`p-6 ${i % 2 === 0 ? 'md:border-e' : ''} ${i < Object.values(VERTICALS).length - 2 ? 'border-b' : ''} border-rule`}
             >
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <div className="flex items-baseline gap-3">
-                  <span className="font-mono text-[11px] tabular-nums text-muted">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <h3 className="font-display text-base font-extrabold tracking-tight md:text-lg">
-                    {rule.titleAr}
-                  </h3>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`pill border text-[10px] font-bold tracking-widest ${SEVERITY_STYLE[rule.severity]}`}
-                  >
-                    {SEVERITY_LABEL[rule.severity] ?? rule.severity}
-                  </span>
-                  <span className="font-mono text-xs tabular-nums text-ink-2">
-                    حتى {rule.fineCapSar.toLocaleString('en-US')} ر.س
-                  </span>
-                </div>
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-ink-2">{rule.requirementAr}</p>
-              <p className="mt-2 font-mono text-[10px] uppercase tracking-wider text-muted">
-                {rule.id}
+              <h3 className="font-display text-2xl font-extrabold tracking-tight">{v.labelAr}</h3>
+              <p className="mt-2 text-sm text-ink-2">
+                {[...ALWAYS_REQUIRED, ...v.entities].length} جهة تنظيمية مطلوبة
               </p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      {/* NCA-ECC */}
-      <section className="mb-16">
-        <SectionHeader
-          eyebrow="ضوابط الأمن السيبراني الأساسية"
-          title="NCA-ECC — 5 محاور · 114 ضابط"
-          desc="ضوابط الأمن السيبراني الأساسية للهيئة الوطنية للأمن السيبراني (ECC-1:2018). إلزامية للجهات الحكومية ومُورّديها وأي شركة تتعامل مع البنية التحتية الحساسة."
-          count={ECC_CONTROLS.length}
-        />
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {ECC_DOMAINS.map((d) => {
-            const controls = getControlsForDomain(d.id);
-            return (
-              <div key={d.id} className="border border-rule bg-white p-5">
-                <div className="flex items-baseline justify-between">
-                  <span className="font-mono text-[11px] tracking-wider text-muted">
-                    ECC-{d.prefix}
-                  </span>
-                  <span className="font-display text-2xl font-extrabold tabular-nums text-accent">
-                    {controls.length}
-                  </span>
-                </div>
-                <h3 className="mt-2 font-display text-lg font-extrabold tracking-tight">
-                  {d.titleAr}
-                </h3>
-                <p className="mt-2 text-xs leading-relaxed text-ink-2">{d.descriptionAr}</p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ZATCA */}
-      <section className="mb-16">
-        <SectionHeader
-          eyebrow="الضرائب والفوترة الإلكترونية"
-          title="ZATCA — VAT · Fatoora"
-          desc="الزكاة والضريبة والجمارك. عتبات تسجيل VAT، مراحل الفوترة الإلكترونية، الاستقطاع، والأنظمة الفرعية."
-          count={ZATCA_RULES.length}
-        />
-
-        <div className="mb-6 grid gap-4 md:grid-cols-3">
-          <div className="border-s-2 border-accent bg-accent-soft px-5 py-4">
-            <div className="eyebrow !text-[10px]">تسجيل VAT إلزامي</div>
-            <div className="mt-2 font-display text-3xl font-extrabold tabular-nums tracking-tight text-accent-strong">
-              {VAT.mandatoryRegistrationSar.toLocaleString('en-US')}
-            </div>
-            <div className="mt-1 text-xs text-ink-2">ريال سنوياً</div>
-          </div>
-          <div className="border-s-2 border-ink bg-paper-2 px-5 py-4">
-            <div className="eyebrow !text-[10px]">تسجيل اختياري</div>
-            <div className="mt-2 font-display text-3xl font-extrabold tabular-nums tracking-tight text-ink">
-              {VAT.voluntaryRegistrationSar.toLocaleString('en-US')}
-            </div>
-            <div className="mt-1 text-xs text-ink-2">ريال سنوياً</div>
-          </div>
-          <div className="border-s-2 border-warn bg-warn-soft px-5 py-4">
-            <div className="eyebrow !text-[10px]">معدّل ضريبة القيمة المضافة</div>
-            <div className="mt-2 font-display text-3xl font-extrabold tabular-nums tracking-tight text-warn-strong">
-              {VAT.standardRatePercent}٪
-            </div>
-            <div className="mt-1 text-xs text-ink-2">على السلع والخدمات</div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {E_INVOICE_PHASES.map((phase) => (
-            <div key={phase.id} className="border border-rule bg-white p-5">
-              <h3 className="font-display text-lg font-extrabold tracking-tight">{phase.nameAr}</h3>
-              <p className="mt-1 text-xs text-muted">{phase.mandatoryFromAr}</p>
-              <ul className="mt-4 space-y-2">
-                {phase.requirementsAr.map((r) => (
-                  <li key={r} className="flex items-start gap-2 text-sm text-ink-2">
-                    <span aria-hidden className="mt-1 text-accent">
-                      ▸
-                    </span>
-                    <span>{r}</span>
+              <ul className="mt-4 flex flex-wrap gap-1.5">
+                {[...ALWAYS_REQUIRED, ...v.entities].map((e) => (
+                  <li
+                    key={e.id}
+                    className="border border-ink/10 bg-paper-2 px-2.5 py-1 font-mono text-[11px]"
+                  >
+                    {e.nameSimpleAr}
                   </li>
                 ))}
               </ul>
@@ -196,98 +77,97 @@ export function KnowledgeCatalogPage() {
         </div>
       </section>
 
-      {/* Terms glossary */}
-      <section className="mb-12">
+      <section className="mb-16">
         <SectionHeader
-          eyebrow="القاموس المُبسَّط"
-          title="مصطلحات بالعربي الواضح"
-          desc="كل مصطلح ممكن نستخدمه شُرح بجُملة واحدة بالعامية الخليجية، مع تشبيه من الحياة اليومية."
-          count={totalTerms}
+          eyebrow="المتطلبات الأساسية"
+          title="جهات يلزم على كل محل"
+          subtitle="بغض النظر عن نوع النشاط — هذي الجهات تنطبق على أي محل تجاري في السعودية."
         />
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {FEATURED_TERMS.map((id) => {
-            const t = TERMS[id];
-            return (
-              <article key={id} className="border border-rule bg-white p-5">
-                <div className="flex items-baseline justify-between gap-2">
-                  <h3 className="font-display text-base font-extrabold tracking-tight">
-                    {t.termAr}
-                  </h3>
-                  <span className="font-mono text-[10px] tabular-nums text-muted" dir="ltr">
-                    {t.term}
-                  </span>
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-ink-2">{t.simpleExplanation}</p>
-                {t.analogy && (
-                  <p className="mt-3 border-t border-rule pt-3 text-xs italic text-muted">
-                    💡 {t.analogy}
-                  </p>
+        <ul className="mt-8 space-y-3">
+          {ALWAYS_REQUIRED.map((e) => (
+            <li key={e.id} className="border border-rule bg-white p-5">
+              <div className="flex flex-wrap items-baseline justify-between gap-3">
+                <h3 className="font-display text-xl font-extrabold tracking-tight">{e.nameAr}</h3>
+                {e.officialUrl && (
+                  <a
+                    href={e.officialUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-accent hover:text-accent-strong"
+                  >
+                    افتح البوابة الرسمية ↗
+                  </a>
                 )}
-              </article>
+              </div>
+              <p className="mt-2 text-sm leading-relaxed text-ink-2">{e.explainAr}</p>
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted">
+                <span>التجديد: {e.renewalPeriodAr ?? 'مستمر'}</span>
+                {e.estimatedTimeAr && (
+                  <>
+                    <span aria-hidden className="text-rule">
+                      ·
+                    </span>
+                    <span>{e.estimatedTimeAr}</span>
+                  </>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mb-16">
+        <SectionHeader
+          eyebrow="مفاهيم أساسية"
+          title="مصطلحات شائعة"
+          subtitle="مفاهيم تتكرر في الإجراءات الحكومية — شرحناها بالعربي السهل."
+        />
+        <ul className="mt-8 grid grid-cols-1 gap-3 md:grid-cols-2">
+          {FEATURED_TERMS.filter((t) => TERMS[t]).map((t) => {
+            const term = TERMS[t];
+            return (
+              <li key={t} className="border border-rule bg-white p-5">
+                <div className="font-display text-lg font-extrabold tracking-tight">
+                  {term.termAr}
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-ink-2">{term.simpleExplanation}</p>
+              </li>
             );
           })}
-        </div>
-        <p className="mt-6 text-xs text-muted">
-          * عرض {FEATURED_TERMS.length} من أصل {totalTerms} مصطلح. تظهر الباقي تلقائياً عند ذكرها في
-          المحادثة أو التقارير.
-        </p>
-      </section>
-
-      <section className="border-s-2 border-ink bg-paper-2 px-6 py-7">
-        <h2 className="font-display text-2xl font-extrabold tracking-tight">شغّل القواعد عملياً</h2>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
-          كل قاعدة هنا تُشغّل تلقائياً على مشروعك. ابدأ فحص امتثال وراح تشوف فجواتك ضد الـ 35 قاعدة
-          + 114 ضابط، مع سقف الغرامة المتوقَّع.
-        </p>
-        <Link href="/chat?mode=compliance" className="btn-ink mt-6 inline-flex text-sm">
-          ابدأ فحص امتثال
-          <span aria-hidden className="ms-2">
-            ←
-          </span>
-        </Link>
+        </ul>
       </section>
     </main>
+  );
+}
+
+function Stat({ label, value, last }: { label: string; value: string; last?: boolean }) {
+  return (
+    <div className={`px-6 py-5 text-center ${last ? '' : 'border-e border-rule'}`}>
+      <div className="font-display text-3xl font-extrabold tabular-nums leading-none md:text-4xl">
+        {value}
+      </div>
+      <div className="mt-2 text-[11px] text-muted">{label}</div>
+    </div>
   );
 }
 
 function SectionHeader({
   eyebrow,
   title,
-  desc,
-  count,
+  subtitle,
 }: {
   eyebrow: string;
   title: string;
-  desc: string;
-  count: number;
+  subtitle: string;
 }) {
   return (
-    <div className="mb-8">
-      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <span className="eyebrow">{eyebrow}</span>
-        <span className="font-mono text-xs tabular-nums text-muted">
-          {String(count).padStart(2, '0')} عنصر
-        </span>
-      </div>
-      <h2 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">{title}</h2>
-      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-2">{desc}</p>
-      <div className="rule mt-6" />
-    </div>
-  );
-}
-
-function Stat({ label, value, last }: { label: string; value: string; last?: boolean }) {
-  return (
-    <div
-      className={`px-5 py-5 md:px-6 md:py-6 ${
-        last ? '' : 'border-b border-rule sm:border-b-0 sm:border-s'
-      }`}
-    >
-      <div className="font-display text-3xl font-extrabold tabular-nums leading-none tracking-tighter text-ink md:text-4xl">
-        {value}
-      </div>
-      <div className="mt-2 text-xs text-ink-2">{label}</div>
+    <div>
+      <span className="eyebrow">{eyebrow}</span>
+      <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight md:text-4xl">
+        {title}
+      </h2>
+      <div className="rule-accent mt-4 w-12" />
+      <p className="mt-4 max-w-2xl text-base leading-relaxed text-ink-2">{subtitle}</p>
     </div>
   );
 }

@@ -28,52 +28,35 @@ export class MohAgent implements Agent {
       return { status: 'blocked', reason: 'بانتظار رخصة البلدية قبل الترخيص الصحي' };
     }
 
-    // Branch 1 — vertical sanity check.
     const isSalon = context.vertical === 'salon';
 
-    // Branch 2 — first license vs renewal framing.
-    const isRenewal = context.mode === 'operational_compliance';
+    const requirements: string[] = isSalon
+      ? [
+          'شهادات صحية سارية لكل العاملين (تجدد سنوياً)',
+          'تعقيم أدوات القص والتجميل بأنظمة معتمدة (Autoclave مفضّل)',
+          'تصريف صحي منفصل لمياه الحمامات + غرف العمليات',
+          'دورة تدريبية معتمدة في الصحة العامة للمدير',
+          'لوحة إرشادات الإسعافات الأولية في موقع ظاهر',
+        ]
+      : [
+          'شهادات صحية سارية لكل العاملين في تحضير وتقديم الطعام',
+          'فصل مساحة التحضير عن منطقة العملاء',
+          'صرف صحي للنفايات الغذائية',
+          'برنامج تنظيف يومي موثّق',
+        ];
 
-    const requirements: string[] = [
-      'شهادات صحية سارية لكل العاملين (تجدد سنوياً)',
-      'تعقيم أدوات القص والتجميل بأنظمة معتمدة (Autoclave مفضّل)',
-      'تصريف صحي منفصل لمياه الحمامات + غرف العمليات',
-      'دورة تدريبية معتمدة في الصحة العامة للمدير',
-      'لوحة إرشادات الإسعافات الأولية في موقع ظاهر',
-    ];
-    if (!isSalon) {
-      requirements.push('ملاحظة: الترخيص الصحي مرتبط بنشاط الصالون — راجع تطابق نشاطك المسجّل');
-    }
-
-    const explainAr = isRenewal
+    const explainAr = isSalon
       ? 'تجديد الترخيص الصحي السنوي يتطلب فحص ميداني + تحديث الشهادات الصحية للعاملين. لا تنتظر آخر شهر.'
-      : 'الصالون يتعامل مع البشرة والشعر — الوزارة تتأكد من النظافة وتعقيم الأدوات وتأهيل الكادر قبل منح الترخيص.';
+      : 'الترخيص الصحي للمطاعم يكمّل ترخيص SFDA — يركّز على نظافة الأماكن المشتركة والتدريب الصحي للعاملين.';
 
     const outbox: AgentMessage[] = [
-      {
-        from: 'moh',
-        to: 'ALL',
-        type: 'data_share',
-        payload: { healthLicenseRequired: isSalon, isRenewal },
-        messageAr: isSalon
-          ? 'الترخيص الصحي إلزامي قبل التشغيل — رتّب الفحص الميداني مع البلدية بالتنسيق.'
-          : 'الترخيص الصحي مرتبط بنشاط الصالون — تحقّق من أن نشاطك المسجّل يتطلبه فعلاً.',
-      },
       {
         from: 'moh',
         to: 'mohr_gosi',
         type: 'dependency',
         payload: { staffNeedHealthCerts: true },
         messageAr:
-          'كل عامل في الصالون يحتاج شهادة صحية سارية — لا توظف بدونها وضع التحقق ضمن إجراءات الـ onboarding.',
-      },
-      {
-        from: 'moh',
-        to: 'document',
-        type: 'data_share',
-        payload: { inspectionChecklist: true },
-        messageAr:
-          'قبل زيارة المفتش — يجهّز وكيل المستندات قائمة جاهزية تشمل التعقيم، الشهادات، التهوية، ومخزن الأدوات.',
+          'كل عامل يحتاج شهادة صحية سارية — لا توظف بدونها وضع التحقق ضمن إجراءات الـ onboarding.',
       },
     ];
 
@@ -85,12 +68,13 @@ export class MohAgent implements Agent {
         nameSimpleAr: 'الترخيص الصحي',
         explainAr,
         estimatedCostSar: { min: 500, max: 2_000 },
-        estimatedTimeAr: isRenewal ? 'تجديد سنوي — ابدأ قبل انتهاء الترخيص بشهر' : '٧ إلى ١٤ يوم',
+        estimatedTimeAr: 'تجديد سنوي — ابدأ قبل انتهاء الترخيص بشهر',
         officialUrl: 'https://www.moh.gov.sa',
-        renewalPeriodAr: 'سنوي',
+        renewalMonths: 12,
         requirements,
-        commonMistakeAr:
-          'كثير من الصالونات تفوّت تجديد الشهادات الصحية للعاملين — وقتها يتعطّل العمل لأسبوعين بسبب توقّف الترخيص.',
+        commonMistakeAr: isSalon
+          ? 'كثير من الصالونات تفوّت تجديد الشهادات الصحية للعاملين — وقتها يتعطّل العمل لأسبوعين بسبب توقّف الترخيص.'
+          : 'الشهادات الصحية للعاملين تُجدَّد سنوياً — موظف بدون شهادة سارية يكفي لإيقاف نشاط المطعم.',
       },
       outbox,
     };

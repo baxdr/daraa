@@ -3,7 +3,7 @@
  * Pure helper — no I/O.
  */
 
-import type { GovEntity } from '@/knowledge/entities';
+import { formatRenewalAr, type GovEntity } from '@/knowledge/entities';
 import type { Agent, AgentResult } from '../runtime/types';
 import type { AgentId } from '../runtime/types';
 
@@ -26,9 +26,10 @@ export function buildEntitiesFromAgents(
       estimatedTimeAr: d.estimatedTimeAr,
       order: order++,
       dependencies: [...agent.dependencies],
+      renewalMonths: d.renewalMonths,
+      renewalPeriodAr: d.renewalPeriodAr ?? formatRenewalAr(d.renewalMonths),
       ...(d.criticalWarningAr ? { criticalWarningAr: d.criticalWarningAr } : {}),
       ...(d.commonMistakeAr ? { commonMistakeAr: d.commonMistakeAr } : {}),
-      ...(d.renewalPeriodAr ? { renewalPeriodAr: d.renewalPeriodAr } : {}),
       ...(d.officialUrl ? { officialUrl: d.officialUrl } : {}),
       ...(d.requirements ? { requirements: [...d.requirements] } : {}),
       ...(d.nameCheck ? { nameCheck: d.nameCheck } : {}),

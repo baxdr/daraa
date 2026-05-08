@@ -37,14 +37,6 @@ export interface RegulatoryUpdate {
 /* ------------------------------------------------------------------------- */
 const FALLBACK_UPDATES: RegulatoryUpdate[] = [
   {
-    entity: 'pdpl_nca',
-    summaryAr:
-      'SDAIA أصدرت نسخة محدثة من اللائحة التنفيذية لنظام حماية البيانات الشخصية؛ تفاصيل إضافية حول متطلبات الإشعار بالحوادث وتدريب DPO.',
-    date: '2026-03-18',
-    source: 'sdaia.gov.sa',
-    fromFallback: true,
-  },
-  {
     entity: 'sfda',
     summaryAr: 'SFDA: اشتراط عرض السعرات الحرارية للمشروبات في قوائم المقاهي دخل حيز التنفيذ.',
     date: '2026-02-01',
@@ -52,11 +44,19 @@ const FALLBACK_UPDATES: RegulatoryUpdate[] = [
     fromFallback: true,
   },
   {
-    entity: 'zatca',
+    entity: 'civil_defense',
     summaryAr:
-      'ZATCA: الموجة الجديدة من الفوترة الإلكترونية (المرحلة الثانية) تطبّق على المنشآت التي تجاوزت إيراداتها 2 مليون ريال.',
-    date: '2026-01-15',
-    source: 'zatca.gov.sa',
+      'الدفاع المدني: تشديد متطلبات أنظمة الإطفاء التلقائي للمطابخ التجارية + لزوم فحص دوري كل 6 أشهر للطفايات.',
+    date: '2026-03-10',
+    source: '998.gov.sa',
+    fromFallback: true,
+  },
+  {
+    entity: 'municipality',
+    summaryAr:
+      'أمانة الرياض: تحديث الاشتراطات البلدية للمحلات الغذائية يشمل تجديد لوحة المحل بمواصفات جديدة.',
+    date: '2026-02-20',
+    source: 'balady.gov.sa',
     fromFallback: true,
   },
   {
@@ -120,13 +120,13 @@ function relevantFallback(activeAgents: AgentId[]): RegulatoryUpdate[] {
 /* ------------------------------------------------------------------------- */
 async function fetchWithClaudeWebSearch(activeAgents: AgentId[]): Promise<RegulatoryUpdate[]> {
   const QUERIES: Partial<Record<AgentId, string>> = {
-    pdpl_nca: 'آخر تحديثات SDAIA نظام حماية البيانات الشخصية 2026',
     sfda: 'تحديثات هيئة الغذاء والدواء السعودية اشتراطات جديدة 2026',
     municipality: 'تحديثات رخص البلدية أمانة الرياض 2026',
-    zatca: 'تحديثات الفوترة الإلكترونية ZATCA 2026',
+    zatca: 'تحديثات ضريبة القيمة المضافة VAT للمحلات السعودية 2026',
     mohr_gosi: 'تحديثات نطاقات وزارة الموارد البشرية 2026',
     civil_defense: 'اشتراطات الدفاع المدني السعودي 2026',
-    mci: 'تحديثات وزارة التجارة السعودية 2026',
+    mci: 'تحديثات وزارة التجارة السعودية للسجل التجاري 2026',
+    moh: 'الترخيص الصحي للصالونات والمطاعم 2026',
   };
   const queries = activeAgents
     .map((a) => ({ agent: a, query: QUERIES[a] }))

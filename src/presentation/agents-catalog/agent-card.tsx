@@ -4,11 +4,8 @@ import { AGENT_GROUP_LABEL } from './data';
 const GROUP_ACCENT: Record<AgentCardData['group'], string> = {
   flow: 'border-accent/40 bg-accent-soft text-accent-strong',
   analysis: 'border-ink/30 bg-paper-2 text-ink',
-  establishment: 'border-accent/30 bg-accent-soft text-accent-strong',
+  shop: 'border-accent/30 bg-accent-soft text-accent-strong',
   tax: 'border-warn/40 bg-warn-soft text-warn-strong',
-  compliance: 'border-warn/40 bg-warn-soft text-warn-strong',
-  cybersecurity: 'border-danger/30 bg-danger/5 text-danger',
-  industry: 'border-ink/30 bg-paper-2 text-ink-2',
 };
 
 export function AgentCard({ agent, index }: { agent: AgentCardData; index: number }) {

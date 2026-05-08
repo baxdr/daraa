@@ -10,16 +10,16 @@ export const CITY_LABELS: Record<string, string> = {
 
 export function verticalDisplayLabel(v: string): string {
   switch (v) {
+    case 'coffee':
+      return 'كوفي شوب / مقهى';
     case 'restaurant':
-      return 'مطعم / كوفي شوب';
+      return 'مطعم';
+    case 'grocery':
+      return 'بقالة / سوبر ماركت';
+    case 'laundry':
+      return 'مغسلة ملابس';
     case 'salon':
       return 'صالون / مركز تجميل';
-    case 'tech':
-      return 'شركة تقنية';
-    case 'services':
-      return 'متجر إلكتروني';
-    case 'construction':
-      return 'مقاولات / بناء';
     default:
       return v;
   }

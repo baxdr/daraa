@@ -7,7 +7,18 @@
  *   - project-orchestrator.ts (runOperationalAnalysis return type)
  */
 
-export type OpCategory = 'municipal' | 'civil_defense' | 'sfda' | 'cr' | 'labor' | 'lease';
+export type OpCategory =
+  | 'municipal'
+  | 'civil_defense'
+  | 'sfda'
+  | 'cr'
+  | 'labor'
+  | 'lease'
+  | 'extinguishers'
+  | 'ventilation'
+  | 'refrigeration'
+  | 'hygiene'
+  | 'signage';
 
 export interface OperationalGap {
   id: string;

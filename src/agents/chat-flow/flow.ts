@@ -1,57 +1,42 @@
 /**
- * Flow resolver — given the current question and prior answers, picks the next question id.
+ * Flow resolver — given the current question and prior answers, picks the
+ * next question id. Returns `null` when the flow is done; the caller
+ * (orchestrator) then produces the project record.
  *
- * Returns `null` when the flow is done; the caller (orchestrator) then
- * produces the project record.
+ * Single linear branch with vertical-conditional skips:
+ *   - SFDA / ventilation / refrigeration → only relevant for food verticals
+ *   - Hygiene certs → coffee, restaurant, grocery, salon (skip for laundry)
  */
 
 import type { Answers, QuestionId } from './types';
 
+type FoodVertical = 'coffee' | 'restaurant' | 'grocery';
+
+function isFood(vertical: Answers['op1_vertical']): vertical is FoodVertical {
+  return vertical === 'coffee' || vertical === 'restaurant' || vertical === 'grocery';
+}
+
+function hasHotKitchen(vertical: Answers['op1_vertical']): boolean {
+  return vertical === 'coffee' || vertical === 'restaurant';
+}
+
+function hasRefrigeration(vertical: Answers['op1_vertical']): boolean {
+  return vertical === 'restaurant' || vertical === 'grocery';
+}
+
+function needsHygieneCerts(vertical: Answers['op1_vertical']): boolean {
+  return (
+    vertical === 'coffee' ||
+    vertical === 'restaurant' ||
+    vertical === 'grocery' ||
+    vertical === 'salon'
+  );
+}
+
 export function nextQuestion(current: QuestionId, answers: Answers): QuestionId | null {
   switch (current) {
-    /* ---- mode selector ---- */
-    case 'q0_mode':
-      return 'q_company_name';
     case 'q_company_name':
-      if (answers.q0_mode === 'establishment') return 'est1_vertical';
-      if (answers.q0_mode === 'operational_compliance') return 'op1_vertical';
-      return 'q1_company_type';
-
-    /* ---- establishment branch ---- */
-    case 'est1_vertical':
-      return 'est2_city';
-    case 'est2_city':
-      return 'est3_partner_count';
-    case 'est3_partner_count':
-      return 'est4_capital_sar';
-    case 'est4_capital_sar':
-      return 'est5_foreign_partner';
-    case 'est5_foreign_partner':
-      return 'est6_lease_status';
-    case 'est6_lease_status':
-      return null; // establishment flow ends here; resolver produces the roadmap
-
-    /* ---- compliance branch ---- */
-    case 'q1_company_type':
-      return 'q2_employee_count';
-    case 'q2_employee_count':
-      return 'q3_processes_personal_data';
-    case 'q3_processes_personal_data':
-      return answers.q3_processes_personal_data === 'no'
-        ? 'q7_government_clients'
-        : 'q4_user_count';
-    case 'q4_user_count':
-      return answers.q4_user_count === 'over_100k' ? 'q5_dpo_appointed' : 'q6_data_location';
-    case 'q5_dpo_appointed':
-      return 'q6_data_location';
-    case 'q6_data_location':
-      return 'q7_government_clients';
-    case 'q7_government_clients':
-      return 'q8_website_url';
-    case 'q8_website_url':
-      return null;
-
-    /* ---- operational-compliance branch ---- */
+      return 'op1_vertical';
     case 'op1_vertical':
       return 'op2_city';
     case 'op2_city':
@@ -61,17 +46,39 @@ export function nextQuestion(current: QuestionId, answers: Answers): QuestionId 
     case 'op4_municipal_last_renewed':
       return 'op5_civil_defense_last';
     case 'op5_civil_defense_last':
-      // SFDA only applies to restaurants.
-      return answers.op1_vertical === 'restaurant' ? 'op6_sfda_cert_date' : 'op7_employee_count';
+      return 'op5b_extinguishers_count';
+    case 'op5b_extinguishers_count':
+      return 'op5c_extinguishers_last_check';
+    case 'op5c_extinguishers_last_check':
+      return 'op5d_emergency_exit';
+    case 'op5d_emergency_exit':
+      return isFood(answers.op1_vertical) ? 'op6_sfda_cert_date' : nextAfterSfda(answers);
     case 'op6_sfda_cert_date':
-      return 'op7_employee_count';
-    case 'op7_employee_count':
-      return 'op8_lease_expiry';
-    case 'op8_lease_expiry':
-      return 'op9_has_website';
-    case 'op9_has_website':
-      return answers.op9_has_website === 'yes' ? 'op10_website_url' : null;
-    case 'op10_website_url':
+      return nextAfterSfda(answers);
+    case 'op6b_ventilation':
+      return hasRefrigeration(answers.op1_vertical)
+        ? 'op6c_refrigeration_check'
+        : nextAfterRefrigeration(answers);
+    case 'op6c_refrigeration_check':
+      return nextAfterRefrigeration(answers);
+    case 'op7_hygiene_certs':
+      return 'op8_employee_count';
+    case 'op8_employee_count':
+      return 'op9_lease_expiry';
+    case 'op9_lease_expiry':
+      return 'op10_signage_approved';
+    case 'op10_signage_approved':
       return null;
   }
+}
+
+function nextAfterSfda(answers: Answers): QuestionId {
+  if (hasHotKitchen(answers.op1_vertical)) return 'op6b_ventilation';
+  if (hasRefrigeration(answers.op1_vertical)) return 'op6c_refrigeration_check';
+  return nextAfterRefrigeration(answers);
+}
+
+function nextAfterRefrigeration(answers: Answers): QuestionId {
+  if (needsHygieneCerts(answers.op1_vertical)) return 'op7_hygiene_certs';
+  return 'op8_employee_count';
 }

@@ -16,8 +16,6 @@ const STATION_ROW: Array<{ id: AgentId; label: string }> = [
   { id: 'municipality', label: 'البلدية' },
   { id: 'sfda', label: 'الغذاء والدواء' },
   { id: 'moh', label: 'الصحة' },
-  { id: 'pdpl_nca', label: 'حماية البيانات' },
-  { id: 'scan', label: 'الفحص' },
   { id: 'analysis', label: 'التحليل' },
 ];
 

@@ -21,22 +21,22 @@ import {
 } from '@/agents/chat-flow';
 
 const QUESTION_ORDER: readonly QuestionId[] = [
-  'q0_mode',
   'q_company_name',
-  'est1_vertical',
-  'est2_city',
-  'est3_partner_count',
-  'est4_capital_sar',
-  'est5_foreign_partner',
-  'est6_lease_status',
-  'q1_company_type',
-  'q2_employee_count',
-  'q3_processes_personal_data',
-  'q4_user_count',
-  'q5_dpo_appointed',
-  'q6_data_location',
-  'q7_government_clients',
-  'q8_website_url',
+  'op1_vertical',
+  'op2_city',
+  'op3_cr_issue_date',
+  'op4_municipal_last_renewed',
+  'op5_civil_defense_last',
+  'op5b_extinguishers_count',
+  'op5c_extinguishers_last_check',
+  'op5d_emergency_exit',
+  'op6_sfda_cert_date',
+  'op6b_ventilation',
+  'op6c_refrigeration_check',
+  'op7_hygiene_certs',
+  'op8_employee_count',
+  'op9_lease_expiry',
+  'op10_signage_approved',
 ];
 
 export interface ChatSession {

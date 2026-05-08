@@ -58,9 +58,7 @@ export class MunicipalityAgent implements Agent {
     }
 
     const commonMistakeAr =
-      context.leaseStatus === 'not_signed'
-        ? 'لا تعتمد على وعد شفهي من المالك إن الموقع "يطلع له رخصة". تحقّق من منصة بلدي بنفسك قبل التوقيع.'
-        : undefined;
+      'تحقّق من تطابق نشاطك المسجّل مع نوع رخصة البلدية على منصة بلدي قبل أي تجديد — تغيير النشاط بدون تحديث الرخصة يعرّضك لمخالفات.';
 
     const criticalWarningAr = warnings.length > 0 ? warnings.join(' ') : undefined;
 
@@ -79,13 +77,6 @@ export class MunicipalityAgent implements Agent {
         payload: { municipalityLicense: 'pending-issuance', licenceLabel },
         messageAr: `${licenceLabel} قيد الإصدار — تقدر تبدأ الترخيص الصحي.`,
       },
-      {
-        from: 'municipality',
-        to: 'contractor_classification',
-        type: 'dependency',
-        payload: { municipalityLicense: 'pending-issuance', licenceLabel },
-        messageAr: `${licenceLabel} قيد الإصدار — تقدر تبدأ التصنيف.`,
-      },
     ];
 
     return {
@@ -98,8 +89,8 @@ export class MunicipalityAgent implements Agent {
         estimatedCostSar: cost,
         estimatedTimeAr: '٣ إلى ٧ أيام',
         officialUrl: 'https://balady.gov.sa',
-        renewalPeriodAr: 'سنوي',
-        ...(commonMistakeAr !== undefined ? { commonMistakeAr } : {}),
+        renewalMonths: 12,
+        commonMistakeAr,
         ...(criticalWarningAr !== undefined ? { criticalWarningAr } : {}),
         requirements,
       },
@@ -110,13 +101,14 @@ export class MunicipalityAgent implements Agent {
   private licenceLabel(vertical: AgentContext['vertical']): string {
     switch (vertical) {
       case 'restaurant':
+      case 'coffee':
         return 'رخصة بلدية (نشاط غذائي)';
+      case 'grocery':
+        return 'رخصة بلدية (تجزئة غذائية)';
       case 'salon':
         return 'رخصة بلدية (صالون / تجميل)';
-      case 'construction':
-        return 'رخصة مكتب مقاولات';
-      default:
-        return 'رخصة البلدية';
+      case 'laundry':
+        return 'رخصة بلدية (مغسلة)';
     }
   }
 
@@ -127,13 +119,14 @@ export class MunicipalityAgent implements Agent {
     const base = (() => {
       switch (vertical) {
         case 'restaurant':
+        case 'coffee':
           return { min: 500, max: 3000 };
+        case 'grocery':
+          return { min: 500, max: 2500 };
         case 'salon':
           return { min: 500, max: 2000 };
-        case 'construction':
+        case 'laundry':
           return { min: 500, max: 2000 };
-        default:
-          return { min: 500, max: 2500 };
       }
     })();
     if (hasKitchen) return { min: base.min + 500, max: base.max + 1500 };

@@ -239,6 +239,11 @@ const CATEGORY_LABEL: Record<OperationalGap['category'], string> = {
   cr: 'السجل التجاري',
   labor: 'العمل والنطاقات',
   lease: 'عقد الإيجار',
+  extinguishers: 'الطفايات والسلامة',
+  ventilation: 'التهوية والشفط',
+  refrigeration: 'التبريد',
+  hygiene: 'الشهادات الصحية',
+  signage: 'لوحة المحل',
 };
 
 function OperationalAlerts({ report }: { report: OperationalReport }) {

@@ -3,84 +3,13 @@
  * Kept intentionally flat so it can be consumed in both server code and the UI.
  */
 
-import type { SecurityHeaderCheck } from '@/scanner/security-headers';
-import type { ThirdPartyCheck } from '@/scanner/third-party';
-import type { FormScanResult } from '@/scanner/forms';
-
-export type Severity = 'critical' | 'medium' | 'low';
-export type Regulation = 'PDPL' | 'NCA_ECC' | 'ZATCA';
-
-export interface ScanResult {
-  url: string;
-  scannedAt: string;
-  privacyPolicy: PrivacyPolicyCheck;
-  securityHeaders?: SecurityHeaderCheck;
-  thirdParty?: ThirdPartyCheck;
-  dataForms?: FormScanResult;
-  // Still pending Puppeteer work:
-  cookieConsent?: unknown;
-}
-
-export interface PrivacyPolicyCheck {
-  found: boolean;
-  policyUrl?: string;
-  language?: 'ar' | 'en' | 'both' | 'unknown';
-  hasArabicVersion?: boolean;
-  rawTextExcerpt?: string;
-  analysis?: PrivacyPolicyAnalysis;
-  error?: string;
-}
-
-export interface PrivacyPolicyAnalysis {
-  mentionsPdpl: boolean;
-  dataSubjectRights: { covered: string[]; missing: string[] };
-  purposeStated: boolean;
-  legalBasis: boolean;
-  retentionPeriod: boolean;
-  dpoContact: boolean;
-  crossBorder: boolean;
-  thirdParty: boolean;
-  notes?: string;
-}
-
-export interface Gap {
-  id: string;
-  severity: Severity;
-  regulation: Regulation;
-  ruleId: string; // e.g. 'pdpl_art4_rights'
-  ruleLabel: string; // Arabic display label — the source of truth for what the user sees
-  title: string;
-  titleAr: string;
-  description: string;
-  descriptionAr: string;
-  evidence: string;
-  fineEstimateSar: number;
-  fixComplexity: 'easy' | 'medium' | 'hard';
-  canAutoGenerate: boolean;
-  requiresHumanReview: boolean;
-}
-
 /**
- * Honest naming (see v4 design, §9):
- *   - 3 LLM agents:      chat, research, document
- *   - 4 coordination:    orchestrator, scan, regulatory, analysis, report
- *                        (scan/regulatory/analysis are deterministic modules
- *                         presented as agents in the UI timeline)
- *   - 7 entity specialists: mci, municipality, civil_defense, sfda,
- *                            mohr_gosi, zatca, pdpl_nca
+ * Honest naming (post-pivot): a small-shop compliance tracker.
  *
- * Grouping in code: we keep a single `AgentId` union so the bus / store /
- * UI don't need to care which layer an agent belongs to.
+ *   - Coordination: orchestrator, chat, research, analysis, report
+ *   - Specialists:  mci, zatca, mohr_gosi, civil_defense, municipality, sfda, moh
  */
-export type CoordinationAgent =
-  | 'orchestrator'
-  | 'chat'
-  | 'research'
-  | 'scan'
-  | 'regulatory'
-  | 'analysis'
-  | 'report'
-  | 'document';
+export type CoordinationAgent = 'orchestrator' | 'chat' | 'research' | 'analysis' | 'report';
 
 export type EntityAgent =
   | 'mci'
@@ -89,16 +18,7 @@ export type EntityAgent =
   | 'sfda'
   | 'moh'
   | 'mohr_gosi'
-  | 'zatca'
-  | 'zatca_einvoice'
-  | 'maroof'
-  | 'pdpl_nca'
-  | 'contractor_classification'
-  // Phase 5c specialists (KB entries already in entities.ts).
-  | 'tax_strategy'
-  | 'saip_ip'
-  | 'customs'
-  | 'nca_ecc';
+  | 'zatca';
 
 export type AgentId = CoordinationAgent | EntityAgent;
 
@@ -119,22 +39,18 @@ export interface AgentActivity {
 /**
  * Inter-agent message (A2A protocol).
  *
- * These are emitted alongside activities on the run's timeline. They're
- * deterministic — the sender and receiver are determined by known entity
- * dependencies (civil_defense → municipality is pre-wired, not emergent) —
- * but the UI still renders them as agent-to-agent communication because the
- * protocol IS real: one agent decides what to say, another agent receives
- * and optionally acknowledges.
+ * Emitted alongside activities on the run's timeline. The sender and receiver
+ * are determined by known entity dependencies (civil_defense → municipality is
+ * pre-wired, not emergent), but the UI still renders them as agent-to-agent
+ * communication because the protocol IS real.
  */
 export interface AgentMessage {
   seq: number;
   kind: 'message';
   from: AgentId;
   to: AgentId | 'ALL';
-  /** Message intent — affects how the UI renders it. */
   type: 'dependency' | 'data_share' | 'warning' | 'update' | 'ack';
   messageAr: string;
-  /** Optional structured payload (e.g. a CR number shared with all agents). */
   payload?: Record<string, unknown>;
   createdAt: number;
 }
@@ -146,11 +62,8 @@ export const AGENT_LABELS_AR: Record<AgentId, string> = {
   orchestrator: 'المنسّق',
   chat: 'وكيل المحادثة',
   research: 'وكيل البحث',
-  scan: 'وكيل الفحص',
-  regulatory: 'وكيل الأنظمة',
   analysis: 'وكيل التحليل',
   report: 'وكيل التقرير',
-  document: 'وكيل المستندات',
   // Entity specialists
   mci: 'متخصّص التجارة',
   municipality: 'متخصّص البلدية',
@@ -159,12 +72,4 @@ export const AGENT_LABELS_AR: Record<AgentId, string> = {
   moh: 'متخصّص وزارة الصحة',
   mohr_gosi: 'متخصّص الموارد البشرية والتأمينات',
   zatca: 'متخصّص الزكاة والضريبة',
-  zatca_einvoice: 'متخصّص الفوترة الإلكترونية',
-  maroof: 'متخصّص معروف',
-  pdpl_nca: 'متخصّص حماية البيانات',
-  contractor_classification: 'متخصّص تصنيف المقاولين',
-  tax_strategy: 'متخصّص التخطيط الضريبي',
-  saip_ip: 'متخصّص الملكية الفكرية',
-  customs: 'متخصّص الاستيراد والتصدير',
-  nca_ecc: 'متخصّص ضوابط الأمن السيبراني (ECC)',
 };

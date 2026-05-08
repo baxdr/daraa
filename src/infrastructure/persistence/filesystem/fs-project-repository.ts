@@ -22,22 +22,20 @@ import type { AgentActivity, AgentMessage } from '@/agents/types';
 
 export class FilesystemProjectRepository implements ProjectRepository {
   async create(input: {
-    mode: ProjectRecord['mode'];
+    mode?: ProjectRecord['mode'];
     vertical: ProjectRecord['vertical'];
     companyName: string;
     cityId?: string | undefined;
-    url: string | null;
     answers: ProjectRecord['answers'];
     email?: string | undefined;
     ownerUserId?: string | undefined;
     workspaceId?: string | undefined;
   }): Promise<ProjectRecord> {
     const record = storeCreateProject({
-      mode: input.mode,
+      ...(input.mode !== undefined ? { mode: input.mode } : {}),
       vertical: input.vertical,
       companyName: input.companyName,
       ...(input.cityId !== undefined ? { cityId: input.cityId } : {}),
-      url: input.url,
       answers: input.answers,
       ...(input.email !== undefined ? { email: input.email } : {}),
       ...(input.ownerUserId !== undefined ? { ownerUserId: input.ownerUserId } : {}),

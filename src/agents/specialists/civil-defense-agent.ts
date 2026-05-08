@@ -33,12 +33,10 @@ export class CivilDefenseAgent implements Agent {
     const estimatedTimeAr = '٣ إلى ١٤ يوم (يحتاج زيارة ميدانية)';
 
     const criticalWarningAr =
-      context.vertical === 'restaurant' || context.vertical === 'salon'
-        ? 'شهادة السلامة غالباً تسبق رخصة البلدية — تأكّد من التسلسل الصحيح لحيّك على منصة بلدي قبل التقديم.'
-        : undefined;
+      'شهادة السلامة غالباً تسبق رخصة البلدية — تأكّد من التسلسل الصحيح لحيّك على منصة بلدي قبل التقديم.';
 
     // Forward the kitchen/floor signals to Municipality.
-    const hasKitchen = context.vertical === 'restaurant';
+    const hasKitchen = context.vertical === 'restaurant' || context.vertical === 'coffee';
     const nonGroundFloor = false; // reserved — not collected yet in chat
 
     return {
@@ -53,8 +51,8 @@ export class CivilDefenseAgent implements Agent {
         estimatedCostSar: cost,
         estimatedTimeAr,
         officialUrl: 'https://www.998.gov.sa',
-        renewalPeriodAr: 'سنوي',
-        ...(criticalWarningAr ? { criticalWarningAr } : {}),
+        renewalMonths: 12,
+        criticalWarningAr,
         requirements,
       },
       outbox: [
@@ -84,25 +82,27 @@ export class CivilDefenseAgent implements Agent {
     ];
     switch (vertical) {
       case 'restaurant':
+      case 'coffee':
         return [...base, 'نظام إطفاء تلقائي للمطبخ', 'غطاء شفط مقاوم للحريق'];
       case 'salon':
         return [...base, 'تهوية مناسبة لمنع تراكم أبخرة المواد الكيميائية'];
-      case 'construction':
-        return [...base, 'خطة إخلاء للمكتب + تدريب دوري'];
-      default:
-        return base;
+      case 'laundry':
+        return [...base, 'تأريض الأجهزة الكهربائية + عزل دوائر الغسالات'];
+      case 'grocery':
+        return [...base, 'تخزين المنتجات بعيد عن مصادر الحرارة'];
     }
   }
 
   private estimateCost(vertical: AgentContext['vertical']): { min: number; max: number } {
     switch (vertical) {
       case 'restaurant':
+      case 'coffee':
         return { min: 200, max: 1000 };
       case 'salon':
         return { min: 200, max: 800 };
-      case 'construction':
-        return { min: 150, max: 500 };
-      default:
+      case 'laundry':
+        return { min: 200, max: 700 };
+      case 'grocery':
         return { min: 200, max: 700 };
     }
   }

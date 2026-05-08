@@ -24,22 +24,14 @@ import type { AgentId } from '../types';
 /* ─── Context provided to every agent ──────────────────────────────────── */
 
 export interface AgentContext {
-  /** Which lens the agents reason through. Every specialist gets all modes
-   *  from the same `run()`; switching is internal per agent.
-   *  `operational_compliance` is for physical businesses (restaurants, salons,
-   *  construction, retail) — license-renewal-first rather than PDPL-scan. */
-  mode: 'establishment' | 'compliance' | 'operational_compliance';
+  /** Small-shop operational-compliance is the only mode this product
+   *  supports post-pivot. Kept as a single literal so call sites stay
+   *  unambiguous and future scope additions are explicit. */
+  mode: 'operational_compliance';
   vertical: VerticalId;
   answers: Answers;
   cityId?: string;
   cityLabelAr?: string;
-  partnerCount?: number;
-  capitalSar?: number;
-  hasForeignPartner?: boolean;
-  leaseStatus?: 'not_signed' | 'signed' | 'no_location_yet';
-  /** Optional — URL collected from the user; used by pdpl_nca in compliance
-   *  mode and passed to the scan pipeline. */
-  websiteUrl?: string | null;
 }
 
 /* ─── Messages on the bus ──────────────────────────────────────────────── */
@@ -60,8 +52,7 @@ export interface NameCheckResult {
   /** likely_available = searched and found no registrations;
    *  likely_taken     = found one or more registrations with the same name;
    *  inconclusive     = search ran but evidence isn't decisive;
-   *  skipped          = we deliberately didn't check (no key + no fallback worth surfacing,
-   *                     or this is a compliance-mode run where the company already exists). */
+   *  skipped          = we deliberately didn't check. */
   status: 'likely_available' | 'likely_taken' | 'inconclusive' | 'skipped';
   summaryAr: string;
   /** Short evidence snippets (search hits, URLs, quotes). */
@@ -80,12 +71,16 @@ export interface EntityInfo {
   estimatedCostSar: { min: number; max: number };
   estimatedTimeAr: string;
   officialUrl?: string;
+  /** Months between consecutive renewals. null = continuous (no fixed cadence).
+   *  Required so the renewal calendar can be built deterministically. */
+  renewalMonths: number | null;
+  /** Display-only Arabic phrase. The entity-builder re-derives it from
+   *  `renewalMonths` if a specialist forgets to set it. */
   renewalPeriodAr?: string;
   criticalWarningAr?: string;
   commonMistakeAr?: string;
   requirements?: string[];
-  /** Trade-name availability check — currently only populated by the MCI
-   *  specialist in establishment mode. */
+  /** Trade-name availability check — reserved field, currently unused. */
   nameCheck?: NameCheckResult;
 }
 

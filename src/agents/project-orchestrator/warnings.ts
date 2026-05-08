@@ -4,7 +4,7 @@
  */
 
 import type { Answers } from '../chat-flow';
-import { VERTICALS, type VerticalId } from '@/knowledge/entities';
+import type { VerticalId } from '@/knowledge/entities';
 
 export const CITY_LABELS: Record<string, string> = {
   riyadh: 'الرياض',
@@ -16,33 +16,34 @@ export const CITY_LABELS: Record<string, string> = {
   other: 'مدينة أخرى',
 };
 
-export function computeTopWarnings(
-  mode: 'establishment' | 'compliance' | 'operational_compliance',
-  vertical: VerticalId,
-  answers: Answers,
-): string[] {
+export function computeTopWarnings(vertical: VerticalId, answers: Answers): string[] {
   const out: string[] = [];
 
-  // Establishment-only — "don't sign the lease before verifying the activity
-  // is allowed at this location" is the product's most distinctive moment.
-  if (mode === 'establishment') {
-    const isPhysical = vertical === 'restaurant' || vertical === 'salon';
-    if (isPhysical && answers.est6_lease_status === 'not_signed') {
-      out.push(
-        'قبل ما توقّع عقد الإيجار — تأكّد من منصة بلدي (balady.gov.sa) إن الموقع يُرخَّص للنشاط اللي تفكّر فيه. المالك قد يوعدك شفهياً، لكن المرجع الرسمي هو منصة البلدية. وقّع بعد التحقق لتفادي خسارة الإيجار.',
-      );
-    }
-  }
-
-  // Compliance-mode — cross-border hosting without an explicit legal basis.
-  if (mode === 'compliance' && answers.q6_data_location === 'outside') {
+  // Critical safety gaps surface as top warnings even before the gap section.
+  if (answers.op5d_emergency_exit === 'no') {
     out.push(
-      'بياناتكم مُستضافة خارج المملكة. نظام حماية البيانات يتطلّب ضمانات إضافية لنقل البيانات عبر الحدود — لا تعتمدوا على اتفاقية الخدمة الافتراضية مع مزوّد السحابة وحدها، راجعوا شروط SDAIA.',
+      'مخرج الطوارئ غير مستقل — هذا أكثر سبب لإيقاف نشاط المحل أثناء الفحص الدوري للدفاع المدني. عالجها قبل أي تجديد.',
     );
   }
 
-  // Vertical ignorance — unknown vertical placeholder.
-  void VERTICALS[vertical];
+  const extinguishers = answers.op5b_extinguishers_count ?? 0;
+  if (extinguishers > 0 && extinguishers < 2) {
+    out.push(
+      'عدد الطفايات أقل من الحد الأدنى الموصى به (٢ على الأقل لكل محل صغير). أضف طفايات قبل الفحص القادم.',
+    );
+  }
+
+  if ((vertical === 'coffee' || vertical === 'restaurant') && answers.op6b_ventilation === 'no') {
+    out.push(
+      'نظام التهوية/الشفط غير مطابق — المطابخ بدون شفط دهون من أكثر أسباب رفض الفحص الميداني للدفاع المدني والـ SFDA.',
+    );
+  }
+
+  if (answers.op10_signage_approved === 'no') {
+    out.push(
+      'لوحة المحل غير معتمدة من البلدية — هذي مخالفة فورية تترصد أثناء الجولات اليومية. حدّث اللوحة قبل الجولة التالية.',
+    );
+  }
 
   return out;
 }

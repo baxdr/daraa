@@ -1,11 +1,10 @@
 import type { Agent, AgentContext, AgentId, AgentMessage, AgentResult } from '../runtime/types';
 
 /**
- * MOHR + GOSI combined — opens the establishment file and sets up GOSI
- * subscriptions. In compliance mode it also reasons about نطاقات (nitaqat)
- * based on the employee count and broadcasts a warning when the zone is
- * at risk, so Municipality can constrain its services and MCI can flag
- * the same risk on future trade-registry renewals.
+ * MOHR + GOSI combined — for a small physical shop, this surfaces the
+ * employer-file requirement (mandatory before hiring anyone) plus the
+ * monthly GOSI subscription. We also flag nitaqat risk based on headcount
+ * so Municipality knows when to constrain its services.
  */
 export class MohrGosiAgent implements Agent {
   readonly id: AgentId = 'mohr_gosi';
@@ -20,14 +19,14 @@ export class MohrGosiAgent implements Agent {
     }
 
     const employeeCount = this.readEmployeeCount(context);
-    const nitaqatRisk = this.estimateNitaqatRisk(context, employeeCount);
+    const nitaqatRisk = this.estimateNitaqatRisk(employeeCount);
 
     const requirements: string[] = [
       'رقم السجل التجاري',
       'عنوان وطني للمنشأة',
       'تحديد نسبة التوطين المستهدفة',
     ];
-    if (context.mode === 'compliance' && employeeCount >= 10) {
+    if (employeeCount >= 10) {
       requirements.push(
         'تأكّد من نسبة التوطين الفعلية على منصّة قوى — النطاق الأحمر يوقف كثير من الخدمات',
       );
@@ -41,7 +40,7 @@ export class MohrGosiAgent implements Agent {
           : undefined;
 
     const outbox: AgentMessage[] = [];
-    if (context.mode === 'compliance' && nitaqatRisk === 'red') {
+    if (nitaqatRisk === 'red') {
       outbox.push({
         from: 'mohr_gosi',
         to: 'municipality',
@@ -67,14 +66,11 @@ export class MohrGosiAgent implements Agent {
         nameSimpleAr: 'ملف المنشأة + تأمينات',
         explainAr:
           'فتح ملف منشأة في وزارة الموارد البشرية (مطلوب لتوظيف أي شخص سعودي أو غير سعودي) ' +
-          'وتسجيل الاشتراك في التأمينات الاجتماعية. ' +
-          (context.mode === 'compliance'
-            ? 'في وضع الامتثال نراجع أيضاً تقدير نطاقات بناءً على عدد الموظفين.'
-            : ''),
+          'وتسجيل الاشتراك في التأمينات الاجتماعية الشهري لكل موظف.',
         estimatedCostSar: { min: 0, max: 0 },
         estimatedTimeAr: 'يوم واحد (إلكتروني لكل الخطوتين)',
         officialUrl: 'https://www.hrsd.gov.sa',
-        renewalPeriodAr: 'اشتراك شهري (تأمينات)',
+        renewalMonths: 1,
         ...(criticalWarningAr !== undefined ? { criticalWarningAr } : {}),
         requirements,
       },
@@ -83,7 +79,7 @@ export class MohrGosiAgent implements Agent {
   }
 
   private readEmployeeCount(context: AgentContext): number {
-    const raw = context.answers.q2_employee_count;
+    const raw = context.answers.op8_employee_count;
     if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
     return 0;
   }
@@ -94,11 +90,7 @@ export class MohrGosiAgent implements Agent {
    * almost always have a formal nitaqat classification; 10–49 sits in the
    * grey zone where small shifts change the colour.
    */
-  private estimateNitaqatRisk(
-    context: AgentContext,
-    employeeCount: number,
-  ): 'green' | 'yellow' | 'red' | null {
-    if (context.mode !== 'compliance') return null;
+  private estimateNitaqatRisk(employeeCount: number): 'green' | 'yellow' | 'red' {
     if (employeeCount >= 50) return 'red';
     if (employeeCount >= 10) return 'yellow';
     return 'green';

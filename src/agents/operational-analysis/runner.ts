@@ -1,21 +1,18 @@
 /**
  * Operational-compliance analyzer — main entry point.
  *
- * For physical businesses (restaurants, salons, construction, retail) that
- * don't need a PDPL-style website scan. The compliance concern here is
- * license-renewal hygiene:
- *
- *   - Commercial Register — expires 12 months after issue
- *   - Municipal licence — renewed annually
- *   - Civil Defense safety cert — annual inspection cadence
- *   - SFDA cert — annual, restaurants only
- *   - Nitaqat labour-quota standing — flagged at ≥10 employees
+ * Small-shop edition (post-pivot). Pure function, no LLM.
+ * Concerns:
+ *   - Commercial Register expires 12 months after issue
+ *   - Municipal licence renews annually
+ *   - Civil Defense safety cert renews annually
+ *   - SFDA — coffee, restaurants, groceries (food verticals)
+ *   - Nitaqat labour-quota — flagged at ≥10 employees
  *   - Lease renewal — notice if expiry < 60 days
- *   - Missing dates — surfaced as low-severity "need-to-fill" items
- *
- * Pure function, no LLM. Given the user's answers + today's date, returns
- * an OperationalReport with three partitions (overdue / upcoming /
- * informational) and a derived healthScore (0–100).
+ *   - Fire-safety infrastructure — extinguishers, emergency exit, ventilation
+ *   - Hygiene-cert coverage — at least one cert per food/salon employee
+ *   - Refrigeration servicing — flagged when >12 months since last check
+ *   - Signage approval — flagged when not approved
  */
 
 import type { Answers } from '../chat-flow';
@@ -29,6 +26,20 @@ import {
   SOON_WINDOW_DAYS,
   UPCOMING_WINDOW_DAYS,
 } from './gap-builders';
+
+type FoodVertical = 'coffee' | 'restaurant' | 'grocery';
+
+function isFood(v: Answers['op1_vertical']): v is FoodVertical {
+  return v === 'coffee' || v === 'restaurant' || v === 'grocery';
+}
+
+function hasHotKitchen(v: Answers['op1_vertical']): boolean {
+  return v === 'coffee' || v === 'restaurant';
+}
+
+function needsHygieneCerts(v: Answers['op1_vertical']): boolean {
+  return v === 'coffee' || v === 'restaurant' || v === 'grocery' || v === 'salon';
+}
 
 export function runOperationalAnalysis(args: {
   answers: Answers;
@@ -108,8 +119,126 @@ export function runOperationalAnalysis(args: {
     );
   }
 
-  // SFDA — restaurants only.
-  if (a.op1_vertical === 'restaurant') {
+  // Fire-safety infrastructure.
+  const extinguishers = a.op5b_extinguishers_count ?? -1;
+  if (extinguishers >= 0 && extinguishers < 2) {
+    gaps.push({
+      id: 'op_extinguishers_count',
+      severity: 'critical',
+      category: 'extinguishers',
+      titleAr: 'نقص في عدد طفايات الحريق',
+      explanationAr: `عدد الطفايات الحالي ${extinguishers} — الحد الأدنى الموصى به ٢ طفاية لكل محل صغير + إضافية قرب المطبخ أو لوحات الكهرباء.`,
+      actionAr: 'أضف طفايات معتمدة (CO2 أو رذاذ كيميائي) قبل الفحص الميداني التالي',
+      daysUntilDeadline: 0,
+      dueDate: '',
+      officialUrl: 'https://www.998.gov.sa',
+      fineCeilingSar: 5_000,
+    });
+  }
+
+  if (a.op5c_extinguishers_last_check) {
+    const lastCheck = parseIsoDate(a.op5c_extinguishers_last_check);
+    const days = lastCheck ? daysBetween(lastCheck, today) : null;
+    if (days !== null) {
+      const monthsAgo = Math.floor(days / 30);
+      if (monthsAgo > 6) {
+        gaps.push({
+          id: 'op_extinguishers_check',
+          severity: 'medium',
+          category: 'extinguishers',
+          titleAr: 'فحص الطفايات الدوري متأخر',
+          explanationAr: `آخر فحص للطفايات قبل ${monthsAgo} شهراً — الفحص الدوري مطلوب كل 6 أشهر بالحد الأقصى.`,
+          actionAr: 'تواصل مع شركة معتمدة لإجراء فحص دوري للطفايات',
+          daysUntilDeadline: 0,
+          dueDate: '',
+          fineCeilingSar: 2_000,
+        });
+      }
+    }
+  }
+
+  if (a.op5d_emergency_exit === 'no') {
+    gaps.push({
+      id: 'op_emergency_exit',
+      severity: 'critical',
+      category: 'extinguishers',
+      titleAr: 'مخرج الطوارئ غير مستقل',
+      explanationAr:
+        'الدفاع المدني يطلب مخرج طوارئ مستقل عن المدخل الرئيسي مع لوحة إرشادية مضاءة فوقه. غيابه أكثر سبب لإيقاف نشاط المحل.',
+      actionAr: 'استشر مهندس سلامة لتحديد مسار طوارئ مناسب لمساحة محلك',
+      daysUntilDeadline: 0,
+      dueDate: '',
+      officialUrl: 'https://www.998.gov.sa',
+      fineCeilingSar: 30_000,
+    });
+  }
+
+  // Ventilation — applies to coffee + restaurant only.
+  if (hasHotKitchen(a.op1_vertical) && a.op6b_ventilation === 'no') {
+    gaps.push({
+      id: 'op_ventilation',
+      severity: 'critical',
+      category: 'ventilation',
+      titleAr: 'نظام التهوية/الشفط غير مطابق',
+      explanationAr:
+        'المطبخ بدون شفط دهون مطابق ينتج تراكم دهون قابلة للاشتعال + رائحة. هذا أكثر سبب لرفض فحص SFDA + الدفاع المدني.',
+      actionAr: 'اطلب من فني معتمد تركيب نظام شفط مع مرشّح دهون قابل للتنظيف',
+      daysUntilDeadline: 0,
+      dueDate: '',
+      officialUrl: 'https://www.998.gov.sa',
+      fineCeilingSar: 10_000,
+    });
+  }
+
+  // Refrigeration — applies to restaurant + grocery.
+  if (
+    (a.op1_vertical === 'restaurant' || a.op1_vertical === 'grocery') &&
+    a.op6c_refrigeration_check
+  ) {
+    const lastService = parseIsoDate(a.op6c_refrigeration_check);
+    const days = lastService ? daysBetween(lastService, today) : null;
+    if (days !== null) {
+      const monthsAgo = Math.floor(days / 30);
+      if (monthsAgo > 12) {
+        gaps.push({
+          id: 'op_refrigeration_service',
+          severity: 'medium',
+          category: 'refrigeration',
+          titleAr: 'صيانة المبردات متأخرة',
+          explanationAr: `آخر صيانة دورية للمبردات قبل ${monthsAgo} شهراً — اضطراب التبريد يفسد المنتجات وقد يسبب تلوّثاً غذائياً.`,
+          actionAr: 'احجز صيانة دورية للمبردات + مراقبة درجة الحرارة (≤4°م)',
+          daysUntilDeadline: 0,
+          dueDate: '',
+          fineCeilingSar: 5_000,
+        });
+      }
+    }
+  }
+
+  // Hygiene certificates coverage.
+  const totalEmployees = a.op8_employee_count ?? 0;
+  const hygieneCertsValid = a.op7_hygiene_certs ?? 0;
+  if (
+    needsHygieneCerts(a.op1_vertical) &&
+    totalEmployees > 0 &&
+    hygieneCertsValid < totalEmployees
+  ) {
+    const missing = totalEmployees - hygieneCertsValid;
+    gaps.push({
+      id: 'op_hygiene_certs',
+      severity: 'critical',
+      category: 'hygiene',
+      titleAr: 'شهادات صحية ناقصة للعاملين',
+      explanationAr: `${hygieneCertsValid} من أصل ${totalEmployees} موظف عنده شهادة صحية سارية — ${missing} موظف يحتاج تجديد. الشهادات الصحية إلزامية لمن يتعامل مع الغذاء أو البشرة.`,
+      actionAr: 'سجّل الموظفين الناقصين في برنامج الشهادات الصحية عبر بلديتك',
+      daysUntilDeadline: 0,
+      dueDate: '',
+      fineCeilingSar: 5_000,
+    });
+  }
+
+  // SFDA — food verticals only.
+  if (isFood(a.op1_vertical)) {
     gaps.push(
       ...buildRenewalGap({
         id: 'op_sfda',
@@ -117,7 +246,7 @@ export function runOperationalAnalysis(args: {
         issuedAt: a.op6_sfda_cert_date ?? a.op3_cr_issue_date,
         today,
         titlePrefix: 'ترخيص الغذاء والدواء (SFDA)',
-        explanationAr: 'ترخيص SFDA شرط للمطاعم والكوفي شوب. انتهاؤه = إيقاف خدمة فوري حتى التجديد.',
+        explanationAr: 'ترخيص SFDA شرط للمنشآت الغذائية. انتهاؤه = إيقاف خدمة فوري حتى التجديد.',
         actionAr: 'راجع هيئة الغذاء والدواء — sfda.gov.sa',
         officialUrl: 'https://sfda.gov.sa',
         fineCeilingSar: 100_000,
@@ -126,20 +255,34 @@ export function runOperationalAnalysis(args: {
     );
   }
 
-  // Nitaqat labour flag — 10+ employees should verify their zone.
-  const employees = a.op7_employee_count ?? 0;
-  if (employees >= 10) {
+  // Signage.
+  if (a.op10_signage_approved === 'no') {
+    gaps.push({
+      id: 'op_signage',
+      severity: 'medium',
+      category: 'signage',
+      titleAr: 'لوحة المحل غير معتمدة',
+      explanationAr:
+        'لوحة المحل تحتاج موافقة بلدية بمواصفات محددة (ألوان، أبعاد، إضاءة). لوحات غير معتمدة تترصد أثناء جولات البلدية اليومية.',
+      actionAr: 'قدّم طلب اعتماد لوحة عبر منصة بلدي',
+      daysUntilDeadline: 0,
+      dueDate: '',
+      officialUrl: 'https://balady.gov.sa',
+      fineCeilingSar: 3_000,
+    });
+  }
+
+  // Nitaqat labour flag.
+  if (totalEmployees >= 10) {
     gaps.push({
       id: 'op_nitaqat_check',
-      severity: employees >= 50 ? 'critical' : 'medium',
+      severity: totalEmployees >= 50 ? 'critical' : 'medium',
       category: 'labor',
       titleAr: 'تحقّق من نطاقات المنشأة',
       explanationAr:
-        `${employees} موظفاً — نطاقات (نسبة التوطين) يجب أن يُراجَع. النطاق الأصفر أو الأحمر يُقيّد ` +
+        `${totalEmployees} موظفاً — نطاقات (نسبة التوطين) يجب أن يُراجَع. النطاق الأصفر أو الأحمر يُقيّد ` +
         'كثيراً من الخدمات الحكومية (تأشيرات، نقل كفالة، بعض خدمات البلدية).',
       actionAr: 'سجّل دخول منصة قوى — qiwa.sa — وشف نطاقك الحالي',
-      // NaN excludes Nitaqat from the renewal timeline (it's a posture check,
-      // not a dated renewal), while still rendering it in the alerts list.
       daysUntilDeadline: Number.NaN,
       dueDate: '',
       officialUrl: 'https://qiwa.sa',
@@ -147,8 +290,8 @@ export function runOperationalAnalysis(args: {
   }
 
   // Lease expiry — notice window.
-  if (a.op8_lease_expiry) {
-    const expiry = parseIsoDate(a.op8_lease_expiry);
+  if (a.op9_lease_expiry) {
+    const expiry = parseIsoDate(a.op9_lease_expiry);
     const days = expiry ? daysBetween(today, expiry) : null;
     if (days !== null && days <= LEASE_NOTICE_WINDOW_DAYS) {
       gaps.push({
@@ -162,7 +305,7 @@ export function runOperationalAnalysis(args: {
             : 'اقترب موعد انتهاء العقد. ابدأ التفاوض مبكراً لتفادي إغلاق مؤقت.',
         actionAr: 'راجع المالك لتمديد العقد قبل أي جولة تجديد لرخصة البلدية',
         daysUntilDeadline: days,
-        dueDate: a.op8_lease_expiry,
+        dueDate: a.op9_lease_expiry,
       });
     }
   } else {

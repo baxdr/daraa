@@ -7,20 +7,17 @@
 
 import type {
   ProjectRepository,
-  DocumentRepository,
   ChatSessionRepository,
   AuditLogRepository,
   WorkspaceRepository,
 } from '@/core/repositories';
 import { FilesystemProjectRepository } from './fs-project-repository';
-import { FilesystemDocumentRepository } from './fs-document-repository';
 import { FilesystemChatSessionRepository } from './fs-chat-session-repository';
 import { FilesystemAuditLogRepository } from './fs-audit-log-repository';
 import { FilesystemWorkspaceRepository } from './fs-workspace-repository';
 
 export interface Repositories {
   projects: ProjectRepository;
-  documents: DocumentRepository;
   chatSessions: ChatSessionRepository;
   auditLogs: AuditLogRepository;
   workspaces: WorkspaceRepository;
@@ -29,7 +26,6 @@ export interface Repositories {
 export function createFilesystemRepositories(): Repositories {
   return {
     projects: new FilesystemProjectRepository(),
-    documents: new FilesystemDocumentRepository(),
     chatSessions: new FilesystemChatSessionRepository(),
     auditLogs: new FilesystemAuditLogRepository(),
     workspaces: new FilesystemWorkspaceRepository(),
