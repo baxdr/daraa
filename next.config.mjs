@@ -30,6 +30,15 @@ const securityHeaders = [
 
 const nextConfig = {
   reactStrictMode: true,
+  // Demo project JSONs are read at runtime by the Supabase project repo
+  // (filesystem fallback for ids starting with `demo-`). Make sure Next.js
+  // ships them inside the lambda bundle.
+  outputFileTracingIncludes: {
+    '/project/[projectId]': ['./data/projects/demo-*.json'],
+    '/project/[projectId]/agents': ['./data/projects/demo-*.json'],
+    '/demo': ['./data/projects/demo-*.json'],
+    '/api/cron/reminders': ['./data/projects/demo-*.json'],
+  },
   experimental: {
     serverComponentsExternalPackages: ['cheerio'],
   },

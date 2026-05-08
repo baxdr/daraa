@@ -29,9 +29,18 @@ const VALID_ID = /^[A-Za-z0-9_-]{10,32}$/;
 /* ───────────────────────── directory bootstrap ───────────────────────── */
 
 function ensureDirs() {
-  if (!existsSync(PROJECTS_DIR)) mkdirSync(PROJECTS_DIR, { recursive: true });
-  if (!existsSync(USERS_DIR)) mkdirSync(USERS_DIR, { recursive: true });
-  if (!existsSync(DATA_ROOT)) mkdirSync(DATA_ROOT, { recursive: true });
+  // Skip directory creation when running on a read-only filesystem
+  // (e.g. Vercel lambdas with PERSISTENCE_DRIVER=supabase). The supabase
+  // driver never writes here; the filesystem driver only runs locally.
+  if (process.env['PERSISTENCE_DRIVER'] === 'supabase') return;
+  try {
+    if (!existsSync(PROJECTS_DIR)) mkdirSync(PROJECTS_DIR, { recursive: true });
+    if (!existsSync(USERS_DIR)) mkdirSync(USERS_DIR, { recursive: true });
+    if (!existsSync(DATA_ROOT)) mkdirSync(DATA_ROOT, { recursive: true });
+  } catch {
+    // Read-only fs — repositories that actually try to write will surface
+    // their own errors at call time.
+  }
 }
 ensureDirs();
 
