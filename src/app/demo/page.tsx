@@ -6,49 +6,46 @@ export const metadata = {
   title: 'درع — سيناريوهات تجريبية',
 };
 
-/**
- * /demo — a stage for the hackathon walkthrough. Two scenarios pre-seeded
- * via `npm run seed-demo` render here with the dashboard links the
- * presenter clicks. Designed for a judge to see the drama without waiting
- * for a full pipeline run.
- */
-
 const SCENARIOS = [
   {
     id: 'demo-kafe-rafeh-op',
     title: 'كوفي رافعه',
-    subtitle: 'مطعم / كوفي شوب — جدة',
+    subtitle: 'كوفي شوب — جدة',
     pitch:
-      'صاحب كوفي شوب فتح محله قبل ١١ شهر. اليوم — شهاداته التشغيلية ' +
-      'على وشك الانتهاء. درع يكشف له الترتيب الصحيح للتجديد قبل يدخل في المخالفات.',
+      'كوفي شغّال من سنة. كل رخصه قاربت تنتهي في نفس الفترة — درع يرتّب الأولويات + يبعث تذكير لكل تجديد.',
     stats: [
-      { value: '٠٪', label: 'صحة الرخص', tone: 'danger' as const },
-      { value: '٠٥', label: 'تجديد قادم', tone: 'warn' as const },
-      { value: '١٠', label: 'يوم حتى SFDA', tone: 'danger' as const },
+      { value: '٧٥٪', label: 'صحة الرخص', tone: 'warn' as const },
+      { value: '٠٤', label: 'تجديد قادم', tone: 'warn' as const },
+      { value: '١٠', label: 'يوم حتى SFDA', tone: 'warn' as const },
     ],
-    headline: 'مرحلة التشغيل — التنبيهات الحيّة',
-    variant: 'operational' as const,
   },
   {
-    id: 'demo-nova-tech-dig',
-    title: 'Nova Tech',
-    subtitle: 'شركة تقنية SaaS — ١٠٠ ألف+ مستخدم',
+    id: 'demo-tamra-grocery',
+    title: 'بقالة تمرة',
+    subtitle: 'بقالة / سوبر ماركت — جدة',
     pitch:
-      'SaaS سعودية فيها فجوات PDPL حرجة: سياسة خصوصية إنجليزية فقط، ' +
-      'فورم يجمع بيانات بدون موافقة، و DPO غير معيّن رغم تجاوز العتبة النظامية.',
+      'بقالة تأخر صاحبها في التجديدات — ٤ رخص متأخرة + مخالفات بنية تحتية. مثال على القيمة اللي توفرها التذكيرات الآلية.',
     stats: [
-      { value: '٣٢٪', label: 'نسبة الامتثال', tone: 'danger' as const },
-      { value: '٠٦', label: 'فجوات مكتشفة', tone: 'warn' as const },
-      { value: '٢م.', label: 'سقف الغرامات', tone: 'danger' as const },
+      { value: '٢٠٪', label: 'صحة الرخص', tone: 'danger' as const },
+      { value: '٠٤', label: 'متأخر', tone: 'danger' as const },
+      { value: '١', label: 'طفاية فقط', tone: 'danger' as const },
     ],
-    headline: 'الامتثال الرقمي — الفجوات والغرامات',
-    variant: 'digital' as const,
+  },
+  {
+    id: 'demo-bayan-laundry',
+    title: 'مغسلة بيان',
+    subtitle: 'مغسلة ملابس — الرياض',
+    pitch:
+      'مغسلة منتظمة بالتجديدات لكن لوحتها الإعلانية غير معتمدة. درع يكشف هذا قبل ما تصير مخالفة بلدية.',
+    stats: [
+      { value: '٨٠٪', label: 'صحة الرخص', tone: 'ok' as const },
+      { value: '٠٢', label: 'تنبيه', tone: 'warn' as const },
+      { value: '١', label: 'لوحة غير معتمدة', tone: 'warn' as const },
+    ],
   },
 ];
 
 export default async function DemoShowcasePage() {
-  // Best-effort status check — if a scenario isn't seeded yet we surface
-  // a helpful note rather than a 404-on-click.
   const repos = getRepositories();
   const scenarios = await Promise.all(
     SCENARIOS.map(async (s) => ({
@@ -95,17 +92,17 @@ export default async function DemoShowcasePage() {
       <section className="mx-auto mt-12 max-w-4xl px-6 md:mt-20 md:px-10">
         <span className="eyebrow">عرض توضيحي</span>
         <h1 className="mt-4 font-display text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
-          سيناريوهات حيّة — اضغط وشف الداشبورد
+          ٣ محلات حقيقية — اضغط وشف الداشبورد
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-ink-2 md:text-lg">
-          كل سيناريو مشروع حقيقي دخلناه مسبقاً في النظام — الأرقام والتنبيهات من محركّ التحليل
-          الفعلي، مو screenshots. اضغط أي بطاقة تدخل على الداشبورد الكامل.
+          كل سيناريو محل حقيقي دخلناه مسبقاً في النظام — الأرقام والتنبيهات من محركّ التحليل الفعلي،
+          مو screenshots. اضغط أي بطاقة تدخل على الداشبورد الكامل.
         </p>
         <div className="rule-accent my-8 w-16" />
       </section>
 
       <section className="mx-auto max-w-6xl px-6 pb-24 md:px-10">
-        <div className="grid gap-8 md:grid-cols-2">
+        <div className="grid gap-8 md:grid-cols-3">
           {scenarios.map((s) => (
             <ScenarioCard key={s.id} s={s} />
           ))}
@@ -114,7 +111,7 @@ export default async function DemoShowcasePage() {
         <div className="mt-12 border-t border-rule pt-8 text-sm text-ink-2">
           <p className="max-w-3xl">
             <span className="font-display font-extrabold text-ink">أو جرّب بنفسك من الصفر:</span>{' '}
-            ابدأ محادثة جديدة وشاهد الوكلاء يتواصلون في الخلفية.
+            ابدأ محادثة جديدة وشاهد الوكلاء يفحصون رخص محلك.
           </p>
           <Link href="/chat" className="btn-ink mt-5 inline-flex text-sm">
             ابدأ محادثة جديدة
@@ -129,17 +126,12 @@ export default async function DemoShowcasePage() {
 }
 
 function ScenarioCard({ s }: { s: (typeof SCENARIOS)[number] & { seeded: boolean } }) {
-  const tone = s.variant === 'operational' ? 'bg-warn-soft/50' : 'bg-accent-soft/50';
   return (
     <article className="group overflow-hidden border border-ink bg-white transition-shadow hover:shadow-lg">
-      <div className={`px-6 py-5 ${tone} border-b border-rule`}>
+      <div className="border-b border-rule bg-paper-2/40 px-6 py-5">
         <div className="flex items-baseline justify-between gap-3">
-          <div className="eyebrow !text-[10px]">{s.headline}</div>
-          {!s.seeded && (
-            <span className="font-mono text-[10px] text-danger">
-              (غير مُحمّل — شغّل npm run seed-demo)
-            </span>
-          )}
+          <div className="eyebrow !text-[10px]">حالة المحل</div>
+          {!s.seeded && <span className="font-mono text-[10px] text-danger">(غير مُحمّل)</span>}
         </div>
         <h2 className="mt-2 font-display text-2xl font-extrabold leading-tight tracking-tight text-ink md:text-3xl">
           {s.title}
@@ -162,7 +154,9 @@ function ScenarioCard({ s }: { s: (typeof SCENARIOS)[number] & { seeded: boolean
                     ? 'text-danger'
                     : st.tone === 'warn'
                       ? 'text-warn-strong'
-                      : 'text-ink'
+                      : st.tone === 'ok'
+                        ? 'text-accent-strong'
+                        : 'text-ink'
                 }`}
               >
                 {st.value}

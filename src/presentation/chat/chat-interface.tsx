@@ -5,7 +5,9 @@ import { AgentMessage, UserMessage } from '@/presentation/components/chat-messag
 import { ChatErrorBanner } from './chat-error-banner';
 import { FreeInput } from './chat-input';
 import { ChatSuggestions } from './chat-suggestions';
-import { computeProgress, computeQuestionCount, expectedTurnsForMode } from './progress';
+import { computeProgress, computeQuestionCount } from './progress';
+
+const EXPECTED_QUESTIONS = 16;
 import { useChatSession } from './use-chat-session';
 
 /**
@@ -39,10 +41,7 @@ export function ChatInterface() {
 
   return (
     <div className="mx-auto flex h-[100dvh] max-w-3xl flex-col">
-      <ChatMasthead
-        questionCount={computeQuestionCount(turns)}
-        expected={expectedTurnsForMode(turns)}
-      />
+      <ChatMasthead questionCount={computeQuestionCount(turns)} expected={EXPECTED_QUESTIONS} />
 
       <div
         role="progressbar"

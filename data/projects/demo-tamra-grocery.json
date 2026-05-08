@@ -1,0 +1,160 @@
+{
+  "id": "demo-tamra-grocery",
+  "createdAt": 1746000000000,
+  "mode": "operational_compliance",
+  "status": "complete",
+  "phase": "active_monitoring",
+  "email": "demo@daraa.sa",
+  "companyName": "بقالة تمرة",
+  "vertical": "grocery",
+  "cityId": "jeddah",
+  "answers": {
+    "q_company_name": "بقالة تمرة",
+    "op1_vertical": "grocery",
+    "op2_city": "jeddah",
+    "op3_cr_issue_date": "2024-11-20",
+    "op4_municipal_last_renewed": "2024-12-01",
+    "op5_civil_defense_last": "2025-01-15",
+    "op5b_extinguishers_count": 1,
+    "op5c_extinguishers_last_check": null,
+    "op5d_emergency_exit": "no",
+    "op6_sfda_cert_date": "2024-12-15",
+    "op6c_refrigeration_check": "2024-08-10",
+    "op7_hygiene_certs": 2,
+    "op8_employee_count": 4,
+    "op9_lease_expiry": "2026-12-31",
+    "op10_signage_approved": "yes"
+  },
+  "activities": [],
+  "messages": [],
+  "entities": [
+    {
+      "id": "mci",
+      "nameAr": "وزارة التجارة",
+      "nameSimpleAr": "السجل التجاري",
+      "explainAr": "السجل التجاري — الوثيقة الأم لأي نشاط، يُجدَّد سنوياً.",
+      "estimatedCostSar": { "min": 200, "max": 400 },
+      "estimatedTimeAr": "يوم واحد",
+      "order": 1,
+      "dependencies": [],
+      "renewalMonths": 12,
+      "renewalPeriodAr": "سنوي",
+      "officialUrl": "https://mc.gov.sa"
+    },
+    {
+      "id": "zatca",
+      "nameAr": "هيئة الزكاة والضريبة والجمارك",
+      "nameSimpleAr": "التسجيل الضريبي",
+      "explainAr": "تسجيل ضريبي إلزامي، VAT يصير إلزامياً عند تجاوز ٣٧٥ ألف ريال.",
+      "estimatedCostSar": { "min": 0, "max": 0 },
+      "estimatedTimeAr": "يوم واحد",
+      "order": 2,
+      "dependencies": ["mci"],
+      "renewalMonths": null,
+      "renewalPeriodAr": "مستمر",
+      "officialUrl": "https://zatca.gov.sa"
+    },
+    {
+      "id": "mohr_gosi",
+      "nameAr": "وزارة الموارد البشرية + التأمينات الاجتماعية",
+      "nameSimpleAr": "ملف المنشأة + تأمينات",
+      "explainAr": "ملف المنشأة + التأمينات الشهرية.",
+      "estimatedCostSar": { "min": 0, "max": 0 },
+      "estimatedTimeAr": "يوم واحد",
+      "order": 3,
+      "dependencies": ["mci"],
+      "renewalMonths": 1,
+      "renewalPeriodAr": "شهري",
+      "officialUrl": "https://www.hrsd.gov.sa"
+    },
+    {
+      "id": "civil_defense",
+      "nameAr": "الدفاع المدني",
+      "nameSimpleAr": "شهادة السلامة",
+      "explainAr": "طفايات + مخارج طوارئ + كواشف دخان.",
+      "estimatedCostSar": { "min": 200, "max": 700 },
+      "estimatedTimeAr": "٣ إلى ١٤ يوم",
+      "order": 4,
+      "dependencies": ["mci"],
+      "renewalMonths": 12,
+      "renewalPeriodAr": "سنوي",
+      "officialUrl": "https://www.998.gov.sa"
+    },
+    {
+      "id": "municipality",
+      "nameAr": "أمانة المنطقة (بلدي)",
+      "nameSimpleAr": "رخصة بلدية (تجزئة غذائية)",
+      "explainAr": "رخصة تشغيل البقالة.",
+      "estimatedCostSar": { "min": 500, "max": 2500 },
+      "estimatedTimeAr": "٣ إلى ٧ أيام",
+      "order": 5,
+      "dependencies": ["civil_defense"],
+      "renewalMonths": 12,
+      "renewalPeriodAr": "سنوي",
+      "officialUrl": "https://balady.gov.sa"
+    },
+    {
+      "id": "sfda",
+      "nameAr": "الهيئة العامة للغذاء والدواء",
+      "nameSimpleAr": "ترخيص الغذاء (SFDA)",
+      "explainAr": "ترخيص ضروري لبيع المواد الغذائية.",
+      "estimatedCostSar": { "min": 1000, "max": 3000 },
+      "estimatedTimeAr": "٧ إلى ١٤ يوم",
+      "order": 6,
+      "dependencies": ["municipality"],
+      "renewalMonths": 12,
+      "renewalPeriodAr": "سنوي",
+      "officialUrl": "https://sfda.gov.sa"
+    }
+  ],
+  "roadmap": [],
+  "costSummary": { "minSar": 1900, "maxSar": 6600, "itemCount": 6 },
+  "topWarnings": [
+    "ترخيص SFDA منتهي — ممنوع بيع المنتجات الغذائية حتى التجديد. هذا أكثر سبب لإغلاق البقالات.",
+    "مخرج الطوارئ غير مستقل — مخالفة فورية مع الدفاع المدني.",
+    "عدد الطفايات أقل من الحد الأدنى الموصى به (طفاية واحدة فقط)."
+  ],
+  "regulatoryUpdates": [],
+  "renewals": [
+    {
+      "entityId": "sfda",
+      "entityNameAr": "ترخيص الغذاء (SFDA)",
+      "dueDate": "2025-12-15",
+      "renewalMonths": 12,
+      "status": "overdue",
+      "officialUrl": "https://sfda.gov.sa"
+    },
+    {
+      "entityId": "mci",
+      "entityNameAr": "السجل التجاري",
+      "dueDate": "2025-11-20",
+      "renewalMonths": 12,
+      "status": "overdue",
+      "officialUrl": "https://mc.gov.sa"
+    },
+    {
+      "entityId": "municipality",
+      "entityNameAr": "رخصة بلدية (تجزئة غذائية)",
+      "dueDate": "2025-12-01",
+      "renewalMonths": 12,
+      "status": "overdue",
+      "officialUrl": "https://balady.gov.sa"
+    },
+    {
+      "entityId": "civil_defense",
+      "entityNameAr": "شهادة السلامة",
+      "dueDate": "2026-01-15",
+      "renewalMonths": 12,
+      "status": "overdue",
+      "officialUrl": "https://www.998.gov.sa"
+    },
+    {
+      "entityId": "mohr_gosi",
+      "entityNameAr": "ملف المنشأة + تأمينات",
+      "dueDate": "2026-06-08",
+      "renewalMonths": 1,
+      "status": "soon",
+      "officialUrl": "https://www.hrsd.gov.sa"
+    }
+  ]
+}

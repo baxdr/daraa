@@ -1,0 +1,163 @@
+{
+  "id": "demo-kafe-rafeh-op",
+  "createdAt": 1746800953809,
+  "mode": "operational_compliance",
+  "status": "complete",
+  "phase": "active_monitoring",
+  "email": "demo@daraa.sa",
+  "companyName": "كوفي رافعه",
+  "vertical": "coffee",
+  "cityId": "jeddah",
+  "answers": {
+    "q_company_name": "كوفي رافعه",
+    "op1_vertical": "coffee",
+    "op2_city": "jeddah",
+    "op3_cr_issue_date": "2025-05-09",
+    "op4_municipal_last_renewed": "2025-05-19",
+    "op5_civil_defense_last": "2025-06-08",
+    "op5b_extinguishers_count": 3,
+    "op5c_extinguishers_last_check": "2025-08-15",
+    "op5d_emergency_exit": "yes",
+    "op6_sfda_cert_date": "2025-05-04",
+    "op6b_ventilation": "yes",
+    "op7_hygiene_certs": 4,
+    "op8_employee_count": 5,
+    "op9_lease_expiry": "2026-06-13",
+    "op10_signage_approved": "yes"
+  },
+  "activities": [],
+  "messages": [],
+  "entities": [
+    {
+      "id": "mci",
+      "nameAr": "وزارة التجارة",
+      "nameSimpleAr": "السجل التجاري",
+      "explainAr": "السجل التجاري — الوثيقة الأم لأي نشاط، يُجدَّد سنوياً. عدم تجديده يوقف باقي الخدمات الحكومية.",
+      "estimatedCostSar": { "min": 200, "max": 400 },
+      "estimatedTimeAr": "يوم واحد (إلكتروني عبر منصة الأعمال)",
+      "order": 1,
+      "dependencies": [],
+      "renewalMonths": 12,
+      "renewalPeriodAr": "سنوي",
+      "officialUrl": "https://mc.gov.sa"
+    },
+    {
+      "id": "zatca",
+      "nameAr": "هيئة الزكاة والضريبة والجمارك",
+      "nameSimpleAr": "التسجيل الضريبي",
+      "explainAr": "كل محل تجاري يلزمه تسجيل ضريبي في ZATCA. ضريبة القيمة المضافة (VAT) تصير إلزامية عند تجاوز ٣٧٥ ألف ريال إيراد سنوي.",
+      "estimatedCostSar": { "min": 0, "max": 0 },
+      "estimatedTimeAr": "يوم واحد (إلكتروني)",
+      "order": 2,
+      "dependencies": ["mci"],
+      "renewalMonths": null,
+      "renewalPeriodAr": "مستمر",
+      "officialUrl": "https://zatca.gov.sa"
+    },
+    {
+      "id": "mohr_gosi",
+      "nameAr": "وزارة الموارد البشرية + التأمينات الاجتماعية",
+      "nameSimpleAr": "ملف المنشأة + تأمينات",
+      "explainAr": "فتح ملف منشأة لتوظيف موظفين + اشتراك التأمينات الشهري لكل موظف.",
+      "estimatedCostSar": { "min": 0, "max": 0 },
+      "estimatedTimeAr": "يوم واحد (إلكتروني لكل الخطوتين)",
+      "order": 3,
+      "dependencies": ["mci"],
+      "renewalMonths": 1,
+      "renewalPeriodAr": "شهري",
+      "officialUrl": "https://www.hrsd.gov.sa"
+    },
+    {
+      "id": "civil_defense",
+      "nameAr": "الدفاع المدني",
+      "nameSimpleAr": "شهادة السلامة",
+      "explainAr": "تتأكد من وجود طفايات حريق + مخارج طوارئ + كواشف دخان. تُجدَّد سنوياً.",
+      "estimatedCostSar": { "min": 200, "max": 1000 },
+      "estimatedTimeAr": "٣ إلى ١٤ يوم (يحتاج زيارة ميدانية)",
+      "order": 4,
+      "dependencies": ["mci"],
+      "renewalMonths": 12,
+      "renewalPeriodAr": "سنوي",
+      "officialUrl": "https://www.998.gov.sa"
+    },
+    {
+      "id": "municipality",
+      "nameAr": "أمانة المنطقة (بلدي)",
+      "nameSimpleAr": "رخصة بلدية (نشاط غذائي)",
+      "explainAr": "الرخصة اللي تسمح لك تشغّل المحل في الموقع. بدونها لا يحق التشغيل.",
+      "estimatedCostSar": { "min": 500, "max": 3000 },
+      "estimatedTimeAr": "٣ إلى ٧ أيام",
+      "order": 5,
+      "dependencies": ["civil_defense"],
+      "renewalMonths": 12,
+      "renewalPeriodAr": "سنوي",
+      "officialUrl": "https://balady.gov.sa"
+    },
+    {
+      "id": "sfda",
+      "nameAr": "الهيئة العامة للغذاء والدواء",
+      "nameSimpleAr": "ترخيص الغذاء (SFDA)",
+      "explainAr": "التجديد السنوي للـ SFDA يتطلب فحص ميداني للمنشأة + تحديث الشهادات الصحية.",
+      "estimatedCostSar": { "min": 1000, "max": 3000 },
+      "estimatedTimeAr": "تجديد سنوي — ابدأ قبل الانتهاء بشهر",
+      "order": 6,
+      "dependencies": ["municipality"],
+      "renewalMonths": 12,
+      "renewalPeriodAr": "سنوي",
+      "officialUrl": "https://sfda.gov.sa"
+    }
+  ],
+  "roadmap": [],
+  "costSummary": { "minSar": 1900, "maxSar": 7400, "itemCount": 6 },
+  "topWarnings": [],
+  "regulatoryUpdates": [
+    {
+      "forAgent": "sfda",
+      "summaryAr": "SFDA: اشتراط عرض السعرات الحرارية للمشروبات في قوائم المقاهي دخل حيز التنفيذ.",
+      "date": "2026-02-01",
+      "source": "sfda.gov.sa"
+    }
+  ],
+  "renewals": [
+    {
+      "entityId": "sfda",
+      "entityNameAr": "ترخيص الغذاء (SFDA)",
+      "dueDate": "2026-05-04",
+      "renewalMonths": 12,
+      "status": "soon",
+      "officialUrl": "https://sfda.gov.sa"
+    },
+    {
+      "entityId": "mci",
+      "entityNameAr": "السجل التجاري",
+      "dueDate": "2026-05-09",
+      "renewalMonths": 12,
+      "status": "soon",
+      "officialUrl": "https://mc.gov.sa"
+    },
+    {
+      "entityId": "municipality",
+      "entityNameAr": "رخصة بلدية (نشاط غذائي)",
+      "dueDate": "2026-05-19",
+      "renewalMonths": 12,
+      "status": "soon",
+      "officialUrl": "https://balady.gov.sa"
+    },
+    {
+      "entityId": "civil_defense",
+      "entityNameAr": "شهادة السلامة",
+      "dueDate": "2026-06-08",
+      "renewalMonths": 12,
+      "status": "soon",
+      "officialUrl": "https://www.998.gov.sa"
+    },
+    {
+      "entityId": "mohr_gosi",
+      "entityNameAr": "ملف المنشأة + تأمينات",
+      "dueDate": "2026-06-08",
+      "renewalMonths": 1,
+      "status": "soon",
+      "officialUrl": "https://www.hrsd.gov.sa"
+    }
+  ]
+}

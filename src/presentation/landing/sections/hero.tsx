@@ -7,21 +7,21 @@ export function Hero() {
       <div className="grid items-center gap-12 md:grid-cols-12">
         <div className="md:col-span-7">
           <h1 className="font-display text-5xl font-extrabold leading-[1.05] tracking-tighter text-ink md:text-6xl lg:text-7xl">
-            <span className="block animate-fade-rise">أسّس شركتك بثقة،</span>
+            <span className="block animate-fade-rise">رخص محلك،</span>
             <span
               className="block animate-fade-rise text-accent"
               style={{ animationDelay: '160ms' }}
             >
-              وامتثل بذكاء
+              تحت السيطرة
             </span>
           </h1>
 
           <div className="mt-8 max-w-xl animate-fade-rise" style={{ animationDelay: '320ms' }}>
             <div className="rule-accent mb-5 w-16" />
             <p className="text-lg leading-relaxed text-ink-2 md:text-xl">
-              مستشار AI يرتّب لك ١١ جهة حكومية بالتسلسل الصحيح، ويفحص امتثالك لـ{' '}
-              <span className="font-bold">PDPL</span> و <span className="font-bold">NCA</span> في
-              ثوانٍ
+              مستشار AI سعودي للمحلات الصغيرة — يفحص حالة رخصك (
+              <span className="font-bold">السجل التجاري، البلدية، الدفاع المدني، SFDA</span>) ويرسل
+              لك تذكيرات قبل كل تجديد.
             </p>
           </div>
 
@@ -30,11 +30,11 @@ export function Hero() {
             style={{ animationDelay: '480ms' }}
           >
             <Link href="/chat" className="btn-ink text-base">
-              أفتح شركة جديدة
+              ابدأ متابعة محلك
               <ArrowLeft />
             </Link>
-            <Link href="/chat?mode=compliance" className="btn-outline text-base">
-              أفحص امتثال شركتي
+            <Link href="/agents" className="btn-outline text-base">
+              شف الوكلاء
               <ArrowLeft />
             </Link>
           </div>
@@ -43,8 +43,8 @@ export function Hero() {
             className="mt-6 animate-fade-rise text-xs text-muted"
             style={{ animationDelay: '600ms' }}
           >
-            <span className="font-mono font-bold text-ink">١٩</span> وكيل AI · يفهم العربي الخليجي ·
-            مجاني للتجربة
+            <span className="font-mono font-bold text-ink">٥</span> فئات محلات · مطعم، كوفي، بقالة،
+            مغسلة، صالون · مجاني للتجربة
           </p>
         </div>
 
@@ -56,7 +56,7 @@ export function Hero() {
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="h-3 w-3 animate-pulse rounded-full bg-accent" />
-                <span className="text-sm text-ink-2">تحليل فوري</span>
+                <span className="text-sm text-ink-2">فحص فوري</span>
               </div>
               <div className="space-y-2">
                 <div className="h-2 w-3/4 rounded bg-rule" />
@@ -64,7 +64,7 @@ export function Hero() {
               </div>
               <div className="mt-6 flex items-center gap-3">
                 <div className="h-3 w-3 rounded-full bg-accent/50" />
-                <span className="text-sm text-ink-2">١١ جهة حكومية</span>
+                <span className="text-sm text-ink-2">تذكيرات تجديد بالإيميل</span>
               </div>
               <div className="space-y-2">
                 <div className="h-2 w-full rounded bg-rule" />
@@ -73,7 +73,7 @@ export function Hero() {
             </div>
           </div>
           <p className="mt-3 text-[11px] text-muted">
-            الوكلاء يعملون بالتوازي — تسلسل ذكي لأولويات جهاتك
+            الوكلاء يفحصون كل جهة + بنرسل لك تذكير قبل كل انتهاء
           </p>
         </aside>
       </div>

@@ -154,14 +154,14 @@ export function SaveProjectBanner({
     <section className="mb-10 border border-rule bg-paper-2/60 px-6 py-5">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <div>
-          <div className="eyebrow !text-[10px]">للحفظ والوصول لاحقاً</div>
+          <div className="eyebrow !text-[10px]">تذكيرات تجديد الرخص</div>
           <h3 className="mt-1 font-display text-lg font-extrabold tracking-tight">
-            {authEnabled ? 'احفظ مشروعك في حساب خاص' : 'احفظ مشروعك بإيميلك'}
+            احفظ بإيميلك ليصلك تذكير قبل كل تجديد
           </h3>
           <p className="mt-1 max-w-md text-xs leading-relaxed text-ink-2">
             {authEnabled
-              ? 'بنرسل لك رابط دخول على إيميلك — تضغط عليه ويصير المشروع خاص في حسابك.'
-              : 'بدون تسجيل — فقط إيميل. تقدر ترجع من '}
+              ? 'بنرسل لك رابط دخول على إيميلك + تذكيرات تلقائية قبل كل تجديد رخصة.'
+              : 'بدون تسجيل دخول — بس إيميل. بنرسل لك تذكير قبل ٧ أيام و ٣ أيام من كل تجديد لازم تسويه. تقدر ترجع من '}
             {!authEnabled && (
               <Link href="/return" className="font-semibold text-accent hover:text-accent-strong">
                 /return

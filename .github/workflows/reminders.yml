@@ -1,0 +1,34 @@
+name: Daily renewal reminders
+
+on:
+  schedule:
+    # 7am Riyadh (UTC+3) = 4am UTC
+    - cron: '0 4 * * *'
+  workflow_dispatch: # manual trigger from the Actions tab
+
+jobs:
+  remind:
+    name: Trigger reminder cron
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Hit /api/cron/reminders
+        env:
+          DEPLOYMENT_URL: ${{ secrets.DEPLOYMENT_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$DEPLOYMENT_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::error::DEPLOYMENT_URL and CRON_SECRET must be set as repo secrets"
+            exit 1
+          fi
+          response=$(curl -sS -w "\n%{http_code}" -X POST \
+            "$DEPLOYMENT_URL/api/cron/reminders" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Content-Type: application/json")
+          body=$(echo "$response" | sed '$d')
+          status=$(echo "$response" | tail -n 1)
+          echo "Status: $status"
+          echo "Body: $body"
+          if [ "$status" -ne 200 ]; then
+            exit 1
+          fi

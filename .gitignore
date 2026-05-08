@@ -31,7 +31,10 @@ next-env.d.ts
 coverage/
 
 # File-backed persistence — live user projects, never committed.
-data/
+# Demo projects are committed as fixtures so they ship with the build.
+/data/projects/*.json
+!/data/projects/demo-*.json
+/data/users/
 
 # Claude Code tooling — never committed.
 .claude/
