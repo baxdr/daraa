@@ -20,13 +20,27 @@ import {
   EstablishmentToComplianceHandoff,
 } from './sections/handoff-section';
 
+interface ProjectPageShellProps {
+  project: ProjectRecord;
+  /** Current viewer's userId, if signed in. Used by the save banner to
+   *  decide between "claim with one click" vs "send magic-link". */
+  viewerUserId?: string | null;
+  /** True when Supabase Auth is wired (env vars present). When false we
+   *  hide the magic-link UX and fall back to plain email-save. */
+  authEnabled?: boolean;
+}
+
 /**
  * Unified project dashboard. Same page for both modes — establishment renders
  * entities as a roadmap; compliance adds score + gaps + fines on top. Every
  * alert, entity, cost summary, renewal list, and document recommendation
  * lives here so there's ONE place to look.
  */
-export function ProjectPageShell({ project }: { project: ProjectRecord }) {
+export function ProjectPageShell({
+  project,
+  viewerUserId = null,
+  authEnabled = false,
+}: ProjectPageShellProps) {
   const {
     mode,
     companyName,
@@ -69,6 +83,9 @@ export function ProjectPageShell({ project }: { project: ProjectRecord }) {
       <SaveProjectBanner
         projectId={project.id}
         {...(project.email !== undefined ? { initialEmail: project.email } : {})}
+        isSignedIn={Boolean(viewerUserId)}
+        isOwnedByMe={Boolean(viewerUserId && project.ownerUserId === viewerUserId)}
+        authEnabled={authEnabled}
       />
 
       {showTradeName && mciTradeName && (

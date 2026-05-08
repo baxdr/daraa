@@ -9,6 +9,10 @@ import { PrivateProjectNotice } from '@/presentation/project/private-project-not
 
 export const dynamic = 'force-dynamic';
 
+const AUTH_ENABLED = Boolean(
+  process.env['NEXT_PUBLIC_SUPABASE_URL'] && process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'],
+);
+
 export default async function ProjectPage({ params }: { params: { projectId: string } }) {
   const repos = getRepositories();
   const project = await repos.projects.findById(params.projectId);
@@ -38,5 +42,11 @@ export default async function ProjectPage({ params }: { params: { projectId: str
       />
     );
   }
-  return <ProjectPageShell project={project} />;
+  return (
+    <ProjectPageShell
+      project={project}
+      viewerUserId={principal?.userId ?? null}
+      authEnabled={AUTH_ENABLED}
+    />
+  );
 }
