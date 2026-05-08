@@ -2,7 +2,7 @@ import { KnowledgeCatalogPage } from '@/presentation/knowledge-catalog/page-shel
 
 export const metadata = {
   title: 'قاعدة المعرفة — درع',
-  description: 'قاعدة معرفة سعودية شاملة: PDPL · NCA-ECC · ZATCA · مصطلحات بالعامية.',
+  description: 'الجهات الحكومية اللي يحتاجها محلك — متطلبات، تواريخ تجديد، رسوم تقديرية.',
 };
 
 export default function KnowledgePage() {

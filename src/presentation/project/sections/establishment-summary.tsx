@@ -1,4 +1,13 @@
-interface EstablishmentSummaryProps {
+/**
+ * Operational compliance summary — top-level stats for the project page.
+ *
+ * Was named "Establishment" in the pre-pivot tri-mode era. Kept the
+ * filename to avoid a wide rename across imports; the export name is
+ * still EstablishmentSummary so the call site in page-shell.tsx keeps
+ * working. Content is operational-only post-pivot.
+ */
+
+interface ShopSummaryProps {
   entityCount: number;
   weekCount: number;
   costMinSar: number;
@@ -10,10 +19,10 @@ export function EstablishmentSummary({
   weekCount,
   costMinSar,
   costMaxSar,
-}: EstablishmentSummaryProps) {
+}: ShopSummaryProps) {
   return (
     <section className="mb-12 grid grid-cols-1 gap-0 border border-rule bg-white sm:grid-cols-3">
-      <StatCell label="الجهات المطلوبة" value={entityCount.toString()} />
+      <StatCell label="الجهات اللي تتابعها" value={entityCount.toString()} />
       <StatCell
         label="الرسوم التقديرية"
         value={
@@ -24,7 +33,7 @@ export function EstablishmentSummary({
         note="رسوم الجهات فقط"
       />
       <StatCell
-        label="المدة التقديرية"
+        label="جدول الترتيب"
         value={`${weekCount} أسابيع`}
         note="بالتوازي حيث يمكن"
         noRightBorder

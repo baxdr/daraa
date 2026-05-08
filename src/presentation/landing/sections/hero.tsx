@@ -1,11 +1,24 @@
 import Link from 'next/link';
 import { ArrowLeft } from '../primitives/arrow-left';
 
+/**
+ * Landing hero — leads with the AI agent story.
+ *
+ * The right-side aside renders a miniature live-trace card mimicking the
+ * `/project/[id]` agent-traces panel. Static (no real Claude call), but
+ * shaped exactly like the real component so visitors see what they'll
+ * get inside the product.
+ */
 export function Hero() {
   return (
     <section className="relative mx-auto max-w-6xl px-6 pb-16 pt-16 md:px-10 md:pb-24 md:pt-24">
       <div className="grid items-center gap-12 md:grid-cols-12">
         <div className="md:col-span-7">
+          <div className="mb-5 inline-flex animate-fade-rise items-center gap-2 border border-accent/30 bg-accent-soft px-3 py-1.5 text-[10px] font-bold tracking-widest text-accent-strong">
+            <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+            ١٠ ايجنتات Claude AI · يشتغلون الآن لمحلك
+          </div>
+
           <h1 className="font-display text-5xl font-extrabold leading-[1.05] tracking-tighter text-ink md:text-6xl lg:text-7xl">
             <span className="block animate-fade-rise">رخص محلك،</span>
             <span
@@ -19,9 +32,9 @@ export function Hero() {
           <div className="mt-8 max-w-xl animate-fade-rise" style={{ animationDelay: '320ms' }}>
             <div className="rule-accent mb-5 w-16" />
             <p className="text-lg leading-relaxed text-ink-2 md:text-xl">
-              مستشار AI سعودي للمحلات الصغيرة — يفحص حالة رخصك (
-              <span className="font-bold">السجل التجاري، البلدية، الدفاع المدني، SFDA</span>) ويرسل
-              لك تذكيرات قبل كل تجديد.
+              <span className="font-bold">١٠ ايجنتات Claude</span> يتقاسمون فحص محلك — كل واحد
+              متخصّص في جهة (التجارة، البلدية، الدفاع المدني، SFDA…) ويستدعي tools deterministic
+              للحقائق ثم يكتب تفسيراً عربياً واضحاً.
             </p>
           </div>
 
@@ -34,7 +47,7 @@ export function Hero() {
               <ArrowLeft />
             </Link>
             <Link href="/agents" className="btn-outline text-base">
-              شف الوكلاء
+              شف الـ ١٠ ايجنتات
               <ArrowLeft />
             </Link>
           </div>
@@ -52,31 +65,78 @@ export function Hero() {
           className="relative animate-fade-rise md:col-span-5"
           style={{ animationDelay: '700ms' }}
         >
-          <div className="relative rounded-lg border border-rule bg-gradient-to-b from-white to-paper-2 p-8 md:p-10">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="h-3 w-3 animate-pulse rounded-full bg-accent" />
-                <span className="text-sm text-ink-2">فحص فوري</span>
-              </div>
-              <div className="space-y-2">
-                <div className="h-2 w-3/4 rounded bg-rule" />
-                <div className="h-2 w-1/2 rounded bg-rule" />
-              </div>
-              <div className="mt-6 flex items-center gap-3">
-                <div className="h-3 w-3 rounded-full bg-accent/50" />
-                <span className="text-sm text-ink-2">تذكيرات تجديد بالإيميل</span>
-              </div>
-              <div className="space-y-2">
-                <div className="h-2 w-full rounded bg-rule" />
-                <div className="h-2 w-4/5 rounded bg-rule" />
-              </div>
-            </div>
-          </div>
-          <p className="mt-3 text-[11px] text-muted">
-            الوكلاء يفحصون كل جهة + بنرسل لك تذكير قبل كل انتهاء
-          </p>
+          <TraceMiniPreview />
         </aside>
       </div>
     </section>
+  );
+}
+
+function TraceMiniPreview() {
+  return (
+    <div className="relative border border-rule bg-white shadow-card">
+      {/* Card chrome */}
+      <div className="flex items-center justify-between border-b border-rule bg-paper-2/40 px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+          <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+            agent trace · live
+          </span>
+        </div>
+        <span className="font-mono text-[10px] tabular-nums text-muted" dir="ltr">
+          claude_llm_tools
+        </span>
+      </div>
+
+      {/* Agent identity */}
+      <div className="border-b border-rule px-4 py-3">
+        <div className="flex items-center justify-between">
+          <span className="font-display text-sm font-extrabold text-ink">متخصّص الدفاع المدني</span>
+          <span className="pill border border-accent/40 bg-accent-soft text-[9px] font-bold tracking-widest text-accent-strong">
+            Claude — حيّ
+          </span>
+        </div>
+        <div className="mt-1 font-mono text-[10px] text-muted" dir="ltr">
+          civil_defense
+        </div>
+      </div>
+
+      {/* Tool calls */}
+      <div className="space-y-1.5 px-4 py-3">
+        <ToolCallRow name="get_shop_summary" duration="2ms" />
+        <ToolCallRow name="list_safety_requirements" duration="1ms" />
+        <ToolCallRow name="calculate_extinguisher_count" duration="1ms" />
+      </div>
+
+      {/* Footer stats */}
+      <div className="grid grid-cols-3 gap-0 border-t border-rule">
+        <Stat label="rounds" value="2" />
+        <Stat label="tokens" value="1.8K" />
+        <Stat label="latency" value="3.2s" last />
+      </div>
+    </div>
+  );
+}
+
+function ToolCallRow({ name, duration }: { name: string; duration: string }) {
+  return (
+    <div
+      className="flex items-center justify-between border border-rule bg-paper-2/30 px-2.5 py-1.5"
+      dir="ltr"
+    >
+      <span className="font-mono text-[10px] font-bold text-ink">{name}()</span>
+      <span className="font-mono text-[9px] text-muted">{duration}</span>
+    </div>
+  );
+}
+
+function Stat({ label, value, last }: { label: string; value: string; last?: boolean }) {
+  return (
+    <div className={`px-3 py-2.5 text-center ${last ? '' : 'border-e border-rule'}`}>
+      <div className="font-display text-base font-extrabold tabular-nums leading-none text-ink">
+        {value}
+      </div>
+      <div className="mt-1 font-mono text-[9px] uppercase tracking-widest text-muted">{label}</div>
+    </div>
   );
 }

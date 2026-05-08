@@ -20,8 +20,8 @@ export function HowItWorks() {
         <Step
           num="٢"
           icon="⚙️"
-          title="الوكلاء يفحصون"
-          body="٧ متخصصين يحللون كل جهة بالتوازي ويرتّبون لك ما يحتاج إجراء فوري."
+          title="١٠ ايجنتات Claude يفحصون"
+          body="كل ايجنت متخصّص في جهة حكومية، يستدعي tools deterministic، ويولّد تفسير عربي."
         />
         <Step
           num="٣"

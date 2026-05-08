@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/scan/', '/establishment/', '/documents/'],
+        disallow: ['/api/', '/auth/'],
       },
     ],
     sitemap: 'https://daraa.sa/sitemap.xml',

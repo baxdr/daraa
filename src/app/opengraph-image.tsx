@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'درع — مستشار التأسيس والامتثال السعودي';
+export const alt = 'درع — ١٠ ايجنتات Claude AI تتابع رخص محلك';
 export const contentType = 'image/png';
 export const size = { width: 1200, height: 630 };
 
@@ -78,9 +78,9 @@ export default function OGImage() {
             direction: 'rtl',
           }}
         >
-          من أول فكرة
+          رخص محلك،
           <br />
-          لآخر تجديد.
+          تحت السيطرة.
         </div>
         <div
           style={{
@@ -91,7 +91,7 @@ export default function OGImage() {
             direction: 'rtl',
           }}
         >
-          مستشار ذكاء اصطناعي للتأسيس والامتثال في السعودية.
+          ١٠ ايجنتات Claude AI تفحص محلك وترسل تذكيرات قبل كل تجديد.
         </div>
       </div>
 
@@ -106,7 +106,7 @@ export default function OGImage() {
           color: '#635A4E',
         }}
       >
-        <span>PDPL · NCA ECC · ZATCA · Balady · SFDA · MOHR · GOSI</span>
+        <span>MCI · ZATCA · Balady · Civil Defense · SFDA · MOH · MOHR · GOSI</span>
         <span style={{ fontWeight: 700, color: '#14110F' }}>daraa.sa</span>
       </div>
     </div>,

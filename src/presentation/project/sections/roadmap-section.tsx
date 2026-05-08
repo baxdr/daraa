@@ -6,24 +6,19 @@ interface RoadmapSectionProps {
   roadmap: RoadmapWeek[];
   messages: AgentMessage[];
   costSummary: CostSummary;
-  isCompliance: boolean;
 }
 
-export function RoadmapSection({
-  roadmap,
-  messages,
-  costSummary,
-  isCompliance,
-}: RoadmapSectionProps) {
+/**
+ * Roadmap section — phased entity rollout for the shop. Single-mode
+ * post-pivot (used to branch on `isCompliance`); always shows total
+ * cost and per-week entity count now.
+ */
+export function RoadmapSection({ roadmap, messages, costSummary }: RoadmapSectionProps) {
   if (roadmap.length === 0) return null;
 
   return (
     <section className="mb-12">
-      <RoadmapHeader
-        roadmapLen={roadmap.length}
-        costSummary={costSummary}
-        isCompliance={isCompliance}
-      />
+      <RoadmapHeader roadmapLen={roadmap.length} costSummary={costSummary} />
       <div className="rule mb-8" />
       <div className="space-y-10">
         {roadmap.map((week, wi) => {
@@ -36,7 +31,6 @@ export function RoadmapSection({
               weekIndex={wi}
               startStep={running}
               messages={messages}
-              isCompliance={isCompliance}
             />
           );
         })}
@@ -48,33 +42,27 @@ export function RoadmapSection({
 function RoadmapHeader({
   roadmapLen,
   costSummary,
-  isCompliance,
 }: {
   roadmapLen: number;
   costSummary: CostSummary;
-  isCompliance: boolean;
 }) {
   return (
     <div className="mb-6 flex flex-wrap items-baseline justify-between gap-2">
       <div>
         <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">
-          {isCompliance ? 'الجهات المُطابَقة' : 'خريطة الطريق'}
+          خريطة الطريق
         </h2>
         <div className="mt-2 flex items-center gap-3 text-xs text-ink-2">
-          <span>{isCompliance ? 'بالترتيب الزمني' : 'بالترتيب الصحيح'}</span>
-          {!isCompliance && (
-            <>
-              <span className="text-rule">·</span>
-              <span className="font-semibold">
-                إجمالي الرسوم:{' '}
-                <span className="font-display text-ink">
-                  {costSummary.minSar.toLocaleString('en-US')}–
-                  {costSummary.maxSar.toLocaleString('en-US')}
-                </span>{' '}
-                ريال
-              </span>
-            </>
-          )}
+          <span>بالترتيب الصحيح</span>
+          <span className="text-rule">·</span>
+          <span className="font-semibold">
+            إجمالي الرسوم:{' '}
+            <span className="font-display text-ink">
+              {costSummary.minSar.toLocaleString('en-US')}–
+              {costSummary.maxSar.toLocaleString('en-US')}
+            </span>{' '}
+            ريال
+          </span>
         </div>
       </div>
       <span className="font-mono text-xs tabular-nums text-muted">
@@ -96,13 +84,11 @@ function RoadmapWeekBlock({
   weekIndex,
   startStep,
   messages,
-  isCompliance,
 }: {
   week: RoadmapWeek;
   weekIndex: number;
   startStep: number;
   messages: AgentMessage[];
-  isCompliance: boolean;
 }) {
   const costLabel = weekTotalCostLabel(week);
   return (
@@ -117,13 +103,11 @@ function RoadmapWeekBlock({
         <div className="flex-1">
           <div className="eyebrow">المرحلة</div>
           <div className="font-display text-lg font-extrabold tracking-tight">{week.label}</div>
-          {!isCompliance && (
-            <div className="mt-1 text-xs text-ink-2">
-              <span className="font-semibold text-ink">{week.entities.length}</span>{' '}
-              {week.entities.length === 1 ? 'جهة' : 'جهات'} ·
-              <span className="mx-1">الرسوم: {costLabel} ريال</span>
-            </div>
-          )}
+          <div className="mt-1 text-xs text-ink-2">
+            <span className="font-semibold text-ink">{week.entities.length}</span>{' '}
+            {week.entities.length === 1 ? 'جهة' : 'جهات'} ·
+            <span className="mx-1">الرسوم: {costLabel} ريال</span>
+          </div>
         </div>
       </div>
       <div className="space-y-4">

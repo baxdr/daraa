@@ -6,18 +6,19 @@ import Link from 'next/link';
 interface ProjectSummary {
   id: string;
   createdAt: number;
-  mode: 'establishment' | 'compliance' | 'operational_compliance';
+  /** Single mode post-pivot — kept on the type so the fetched payload validates. */
+  mode: 'operational_compliance';
   status: 'pending' | 'running' | 'complete' | 'error';
   companyName: string;
   vertical: string;
 }
 
 const VERTICAL_LABELS: Record<string, string> = {
-  restaurant: 'مطعم / كوفي',
+  coffee: 'كوفي / مقهى',
+  restaurant: 'مطعم',
+  grocery: 'بقالة',
+  laundry: 'مغسلة',
   salon: 'صالون',
-  tech: 'شركة تقنية',
-  services: 'متجر إلكتروني',
-  construction: 'مقاولات',
 };
 
 export function ReturnLookup() {
@@ -145,10 +146,10 @@ export function ReturnLookup() {
   );
 }
 
-function modeLabel(m: ProjectSummary['mode']): string {
-  if (m === 'establishment') return 'تأسيس';
-  if (m === 'operational_compliance') return 'امتثال تشغيلي';
-  return 'امتثال رقمي';
+function modeLabel(_m: ProjectSummary['mode']): string {
+  // Single mode post-pivot — kept as a function so the call site stays
+  // unchanged if more modes are added later.
+  return 'امتثال تشغيلي';
 }
 
 function StatusPill({ status }: { status: ProjectSummary['status'] }) {
