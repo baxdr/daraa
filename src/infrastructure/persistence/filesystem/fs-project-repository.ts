@@ -11,6 +11,7 @@ import {
   getProject as storeGetProject,
   updateProject as storeUpdateProject,
   getProjectsByEmail as storeGetProjectsByEmail,
+  getProjectsByOwner as storeGetProjectsByOwner,
   emitProjectActivity as storeEmitProjectActivity,
   sendProjectMessage as storeSendProjectMessage,
 } from '@/lib/project-store';
@@ -28,6 +29,8 @@ export class FilesystemProjectRepository implements ProjectRepository {
     url: string | null;
     answers: ProjectRecord['answers'];
     email?: string | undefined;
+    ownerUserId?: string | undefined;
+    workspaceId?: string | undefined;
   }): Promise<ProjectRecord> {
     const record = storeCreateProject({
       mode: input.mode,
@@ -37,6 +40,8 @@ export class FilesystemProjectRepository implements ProjectRepository {
       url: input.url,
       answers: input.answers,
       ...(input.email !== undefined ? { email: input.email } : {}),
+      ...(input.ownerUserId !== undefined ? { ownerUserId: input.ownerUserId } : {}),
+      ...(input.workspaceId !== undefined ? { workspaceId: input.workspaceId } : {}),
     });
     return record;
   }
@@ -51,6 +56,10 @@ export class FilesystemProjectRepository implements ProjectRepository {
 
   async findByEmail(email: string): Promise<readonly ProjectRecord[]> {
     return storeGetProjectsByEmail(email);
+  }
+
+  async findByOwner(ownerUserId: string): Promise<readonly ProjectRecord[]> {
+    return storeGetProjectsByOwner(ownerUserId);
   }
 
   async appendActivity(

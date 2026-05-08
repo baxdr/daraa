@@ -72,6 +72,9 @@ function makeProjectRepo(): {
     async findByEmail() {
       return [];
     },
+    async findByOwner() {
+      return [];
+    },
     async appendActivity() {
       return null;
     },

@@ -29,24 +29,32 @@ export class SupabaseProjectRepository implements ProjectRepository {
     url: string | null;
     answers: ProjectRecord['answers'];
     email?: string | undefined;
+    ownerUserId?: string | undefined;
+    workspaceId?: string | undefined;
   }): Promise<ProjectRecord> {
     const projectId = nanoid();
     const now = Date.now();
 
-    // Get the user's primary workspace (or create a personal one if needed)
-    // For anonymous projects, we use a system workspace
-    const {
-      data: { user },
-    } = await this.supabase.auth.getUser();
+    // Resolve owner + workspace. If caller supplied an ownerUserId
+    // explicitly (e.g. from a Principal), use it; else fall back to the
+    // current auth session; else anonymous.
+    let resolvedOwnerId: string | null = input.ownerUserId ?? null;
+    if (!resolvedOwnerId) {
+      const {
+        data: { user },
+      } = await this.supabase.auth.getUser();
+      resolvedOwnerId = user?.id ?? null;
+    }
 
     let workspaceId: string;
-
-    if (user) {
+    if (input.workspaceId) {
+      workspaceId = input.workspaceId;
+    } else if (resolvedOwnerId) {
       // Authenticated user: find or create personal workspace
       const { data: workspaces, error: wsError } = await this.supabase
         .from('workspaces')
         .select('id')
-        .eq('owner_user_id', user.id)
+        .eq('owner_user_id', resolvedOwnerId)
         .limit(1);
 
       if (wsError) throw wsError;
@@ -59,8 +67,8 @@ export class SupabaseProjectRepository implements ProjectRepository {
           .from('workspaces')
           .insert([
             {
-              owner_user_id: user.id,
-              slug: `personal-${user.id.substring(0, 8)}`,
+              owner_user_id: resolvedOwnerId,
+              slug: `personal-${resolvedOwnerId.substring(0, 8)}`,
               name_ar: 'مشروعي الشخصي',
             },
           ])
@@ -71,7 +79,7 @@ export class SupabaseProjectRepository implements ProjectRepository {
         workspaceId = newWs.id;
       }
     } else {
-      // Anonymous user: use a fixed system workspace (to be created separately)
+      // Anonymous user: use the system workspace
       workspaceId = process.env.NEXT_PUBLIC_SYSTEM_WORKSPACE_ID || 'system';
     }
 
@@ -82,7 +90,7 @@ export class SupabaseProjectRepository implements ProjectRepository {
         {
           id: projectId,
           workspace_id: workspaceId,
-          owner_user_id: user?.id ?? null,
+          owner_user_id: resolvedOwnerId,
           email: input.email ?? null,
           mode: input.mode,
           status: 'pending',
@@ -203,6 +211,30 @@ export class SupabaseProjectRepository implements ProjectRepository {
       `,
       )
       .eq('email', normalized)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return (companies || []).map((c) => this.mapToProjectRecord(c, c.workspace_id));
+  }
+
+  async findByOwner(ownerUserId: string): Promise<readonly ProjectRecord[]> {
+    const { data: companies, error } = await this.supabase
+      .from('companies')
+      .select(
+        `
+        *,
+        company_entities ( * ),
+        company_roadmap_weeks ( * ),
+        company_regulatory_updates ( * ),
+        company_gaps ( * ),
+        company_analysis ( * ),
+        company_operational_report ( * ),
+        company_scan_result ( * )
+      `,
+      )
+      .eq('owner_user_id', ownerUserId)
+      .not('id', 'like', 'demo-%')
       .order('created_at', { ascending: false });
 
     if (error) throw error;

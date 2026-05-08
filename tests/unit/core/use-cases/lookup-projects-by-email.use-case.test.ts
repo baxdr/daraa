@@ -21,6 +21,9 @@ function makeRepo(byEmail: Record<string, ProjectRecord[]>): ProjectRepository {
     async findByEmail(email) {
       return byEmail[email.trim().toLowerCase()] ?? [];
     },
+    async findByOwner() {
+      return [];
+    },
     async appendActivity() {
       return null;
     },

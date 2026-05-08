@@ -50,6 +50,14 @@ export interface ProjectRecord {
    *  operational-compliance projects skip straight to active_monitoring. */
   phase: ProjectPhase;
 
+  /** Authenticated owner. null/undefined = anonymous (link-shareable).
+   *  Set by /auth/callback when a user claims the project, or at creation
+   *  time when /chat starts under an authenticated session. */
+  ownerUserId?: string;
+  /** Workspace this project belongs to. For owned projects, the user's
+   *  primary workspace. For demo projects, the system workspace. */
+  workspaceId?: string;
+
   /** User email for return-experience lookup. Optional. */
   email?: string;
 
@@ -115,6 +123,8 @@ export function createProject(params: {
   url: string | null;
   answers: Answers;
   email?: string;
+  ownerUserId?: string;
+  workspaceId?: string;
 }): ProjectRecord {
   const record: ProjectRecord = {
     id: nanoid(),
@@ -122,6 +132,8 @@ export function createProject(params: {
     mode: params.mode,
     status: 'pending',
     phase: 'roadmap',
+    ...(params.ownerUserId !== undefined ? { ownerUserId: params.ownerUserId } : {}),
+    ...(params.workspaceId !== undefined ? { workspaceId: params.workspaceId } : {}),
     ...(params.email !== undefined ? { email: params.email } : {}),
     companyName: params.companyName,
     vertical: params.vertical,
@@ -215,6 +227,21 @@ export function getProjectsByEmail(email: string): ProjectRecord[] {
   const matches: ProjectRecord[] = [];
   for (const p of PROJECTS.values()) {
     if (p.email && p.email.trim().toLowerCase() === normalized) matches.push(p);
+  }
+  return matches.sort((a, b) => b.createdAt - a.createdAt);
+}
+
+/**
+ * Look up all projects owned by a given userId. Used by /account to render
+ * the user's dashboard. Demo projects (id starting with `demo-`) are
+ * deliberately excluded so they don't pollute every user's list.
+ */
+export function getProjectsByOwner(ownerUserId: string): ProjectRecord[] {
+  const trimmed = ownerUserId.trim();
+  if (!trimmed) return [];
+  const matches: ProjectRecord[] = [];
+  for (const p of PROJECTS.values()) {
+    if (p.ownerUserId === trimmed && !p.id.startsWith('demo-')) matches.push(p);
   }
   return matches.sort((a, b) => b.createdAt - a.createdAt);
 }

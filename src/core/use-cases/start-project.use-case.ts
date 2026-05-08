@@ -13,10 +13,15 @@
 import { ValidationError, NotFoundError } from '@/core/errors';
 import type { ChatSessionRepository, ProjectRepository } from '@/core/repositories';
 import type { ProjectMode, ProjectRecord } from '@/core/domain/project.entity';
+import type { Principal } from '@/core/policies';
 import { VERTICALS, type VerticalId } from '@/knowledge/entities';
 
 export interface StartProjectInput {
   readonly sessionId: string;
+  /** Authenticated user starting this project. If present, the new project
+   *  is created as owned (private). If null, project is anonymous and
+   *  link-shareable until the user signs in to claim it. */
+  readonly principal?: Principal | null;
 }
 
 export interface StartProjectDeps {
@@ -64,6 +69,8 @@ export async function startProject(
       : (answers.q8_website_url ?? null);
   const cityId = answers.est2_city ?? answers.op2_city;
 
+  const ownerUserId = input.principal?.userId;
+
   return deps.projects.create({
     mode,
     vertical,
@@ -71,6 +78,7 @@ export async function startProject(
     ...(cityId !== undefined ? { cityId } : {}),
     url,
     answers: session.answers,
+    ...(ownerUserId !== undefined ? { ownerUserId } : {}),
   });
 }
 

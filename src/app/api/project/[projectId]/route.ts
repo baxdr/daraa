@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getRepositories } from '@/infrastructure/persistence/persistence-router';
+import { getAuthPrincipal } from '@/infrastructure/auth/get-principal';
+import { checkProjectReadAccess } from '@/infrastructure/auth/check-project-access';
+import { ForbiddenError, UnauthorizedError } from '@/core/errors';
 
 export const runtime = 'nodejs';
 
@@ -8,6 +11,19 @@ export async function GET(_req: Request, { params }: { params: { projectId: stri
     const repos = getRepositories();
     const p = await repos.projects.findById(params.projectId);
     if (!p) return NextResponse.json({ error: 'المشروع غير موجود' }, { status: 404 });
+
+    const principal = await getAuthPrincipal();
+    try {
+      checkProjectReadAccess(principal, p);
+    } catch (e) {
+      if (e instanceof UnauthorizedError) {
+        return NextResponse.json({ error: 'يجب تسجيل الدخول' }, { status: 401 });
+      }
+      if (e instanceof ForbiddenError) {
+        return NextResponse.json({ error: 'لا تملك صلاحية الوصول لهذا المشروع' }, { status: 403 });
+      }
+      throw e;
+    }
 
     return NextResponse.json({
       projectId: p.id,

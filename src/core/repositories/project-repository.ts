@@ -22,6 +22,8 @@ export interface ProjectRepository {
     url: string | null;
     answers: ProjectRecord['answers'];
     email?: string | undefined;
+    ownerUserId?: string | undefined;
+    workspaceId?: string | undefined;
   }): Promise<ProjectRecord>;
 
   /**
@@ -41,6 +43,13 @@ export interface ProjectRepository {
    * Returns sorted by createdAt (newest first).
    */
   findByEmail(email: string): Promise<readonly ProjectRecord[]>;
+
+  /**
+   * Look up all projects owned by a specific user. Used by /account to
+   * render a user's dashboard. Demo projects are excluded.
+   * Returns sorted by createdAt (newest first).
+   */
+  findByOwner(ownerUserId: string): Promise<readonly ProjectRecord[]>;
 
   /**
    * Append a new activity record. The implementation must assign seq and

@@ -5,6 +5,7 @@ import { runProjectOrchestrator } from '@/agents/project-orchestrator';
 import { enforceRateLimit } from '@/infrastructure/rate-limit/rate-limit';
 import { startProject } from '@/core/use-cases';
 import { isDomainError } from '@/core/errors';
+import { getAuthPrincipal } from '@/infrastructure/auth/get-principal';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -31,11 +32,12 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: 'طلب غير صالح' }, { status: 400 });
 
   const repos = getRepositories();
+  const principal = await getAuthPrincipal();
 
   try {
     const project = await startProject(
       { chatSessions: repos.chatSessions, projects: repos.projects },
-      { sessionId: parsed.data.sessionId },
+      { sessionId: parsed.data.sessionId, principal },
     );
 
     void runProjectOrchestrator(project.id).catch((err) => {

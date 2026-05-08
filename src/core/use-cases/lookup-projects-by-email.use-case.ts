@@ -39,12 +39,17 @@ export async function lookupProjectsByEmail(
   }
 
   const projects = await deps.projects.findByEmail(email);
-  return projects.map((p) => ({
-    id: p.id,
-    createdAt: p.createdAt,
-    mode: p.mode,
-    status: p.status,
-    companyName: p.companyName,
-    vertical: p.vertical,
-  }));
+  // Only return projects that haven't been claimed yet. Owned projects
+  // surface only through /account (auth-required) so an attacker can't
+  // enumerate someone else's full project list by typing their email.
+  return projects
+    .filter((p) => !p.ownerUserId)
+    .map((p) => ({
+      id: p.id,
+      createdAt: p.createdAt,
+      mode: p.mode,
+      status: p.status,
+      companyName: p.companyName,
+      vertical: p.vertical,
+    }));
 }
