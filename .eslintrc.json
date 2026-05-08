@@ -71,7 +71,7 @@
     "prefer-const": "error",
     "no-var": "error",
     "object-shorthand": "error",
-    "max-lines": "off",
+    "max-lines": ["error", { "max": 500, "skipBlankLines": true, "skipComments": true }],
     "max-lines-per-function": "off",
     "complexity": "off"
   },
@@ -100,6 +100,17 @@
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-unsafe-assignment": "off",
         "@typescript-eslint/no-unused-vars": "off"
+      }
+    },
+    {
+      "files": [
+        "src/knowledge/**",
+        "src/types/supabase.ts",
+        "src/app/**/page.tsx",
+        "src/app/**/layout.tsx"
+      ],
+      "rules": {
+        "max-lines": "off"
       }
     }
   ]
