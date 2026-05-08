@@ -12,14 +12,13 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import type { Database } from '@/types/supabase';
 
-function requireEnv(key: string): string {
-  const v = process.env[key];
-  if (!v) throw new Error(`Missing required env: ${key}`);
-  return v;
-}
-
-const SUPABASE_URL = requireEnv('NEXT_PUBLIC_SUPABASE_URL');
-const SUPABASE_ANON_KEY = requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+// Supabase env vars are optional. When missing, we run in
+// anonymous-only mode: every request is treated as a public visitor and
+// no auth gate is enforced. Useful for FS-backed demos and the
+// hackathon deploy path.
+const SUPABASE_URL = process.env['NEXT_PUBLIC_SUPABASE_URL'];
+const SUPABASE_ANON_KEY = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
+const SUPABASE_ENABLED = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = new Set([
@@ -50,7 +49,13 @@ export async function middleware(req: NextRequest) {
     },
   });
 
-  const supabase = createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  // Anonymous-only mode: no auth, every route public. Critical for
+  // hackathon demos where Supabase isn't wired.
+  if (!SUPABASE_ENABLED) {
+    return res;
+  }
+
+  const supabase = createServerClient<Database>(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
     cookies: {
       getAll() {
         return req.cookies.getAll();

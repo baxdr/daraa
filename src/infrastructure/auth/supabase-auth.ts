@@ -17,9 +17,6 @@ function requireEnv(key: string): string {
   return v;
 }
 
-const SUPABASE_URL = requireEnv('NEXT_PUBLIC_SUPABASE_URL');
-const SUPABASE_ANON_KEY = requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
-
 /**
  * Create a Supabase client for server-side Route Handlers and Server Components.
  * Manages session via httpOnly cookies automatically.
@@ -30,8 +27,10 @@ const SUPABASE_ANON_KEY = requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
  */
 export async function createServerSupabaseClient(): Promise<SupabaseClient<Database>> {
   const cookieStore = cookies();
+  const supabaseUrl = requireEnv('NEXT_PUBLIC_SUPABASE_URL');
+  const supabaseAnonKey = requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
 
-  return createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();

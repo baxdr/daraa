@@ -13,9 +13,8 @@ function requireEnv(key: string): string {
   return v;
 }
 
-const SUPABASE_URL = requireEnv('NEXT_PUBLIC_SUPABASE_URL');
-const SUPABASE_ANON_KEY = requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
-
 export function createBrowserSupabaseClient(): SupabaseClient<Database> {
-  return createBrowserClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabaseUrl = requireEnv('NEXT_PUBLIC_SUPABASE_URL');
+  const supabaseAnonKey = requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
 }
