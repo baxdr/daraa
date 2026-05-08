@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { AgentCard } from './agent-card';
+import { SystemDiagram } from './system-diagram';
 import { AGENTS_CATALOG, AGENT_LAYER_LABEL } from './data';
 
 export function AgentsCatalogPage() {
@@ -40,6 +41,8 @@ export function AgentsCatalogPage() {
           last
         />
       </section>
+
+      <SystemDiagram />
 
       <section className="mb-16">
         <SectionHeader
