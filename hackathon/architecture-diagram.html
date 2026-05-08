@@ -16,7 +16,7 @@
         --ink: #14110f;
         --ink-2: #3a342e;
         --muted: #6b6357;
-        --rule: #e6dfce;
+        --rule: #d9d2bf;
         --accent: #1e4d3b;
         --accent-soft: #def0e3;
         --warn: #b88717;
@@ -37,18 +37,18 @@
         line-height: 1.6;
       }
       .page {
-        max-width: 1100px;
+        max-width: 1280px;
         margin: 0 auto;
         padding: 3rem 2rem;
       }
       header {
-        margin-bottom: 2.5rem;
+        margin-bottom: 2rem;
         border-bottom: 1px solid var(--rule);
         padding-bottom: 1.5rem;
       }
       .eyebrow {
         font-family: var(--mono);
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.18em;
         color: var(--accent);
@@ -57,7 +57,7 @@
       h1 {
         font-family: var(--display);
         font-weight: 800;
-        font-size: 2.6rem;
+        font-size: 2.8rem;
         line-height: 1.1;
         margin-top: 0.5rem;
         letter-spacing: -0.02em;
@@ -75,12 +75,12 @@
         background: #fff;
         border: 1px solid var(--rule);
         margin-top: 2rem;
-        padding: 1.75rem 2rem;
+        padding: 2rem 2.25rem;
       }
       h2 {
         font-family: var(--display);
         font-weight: 800;
-        font-size: 1.55rem;
+        font-size: 1.7rem;
         color: var(--ink);
         margin-bottom: 1rem;
         letter-spacing: -0.01em;
@@ -88,77 +88,91 @@
       h2 .num {
         font-family: var(--mono);
         color: var(--accent);
-        font-size: 0.85rem;
-        margin-inline-end: 0.4rem;
+        font-size: 0.95rem;
+        margin-inline-end: 0.5rem;
         font-weight: 500;
       }
+      .sub {
+        color: var(--ink-2);
+        font-size: 0.98rem;
+        margin-bottom: 1.25rem;
+      }
+      /* The Mermaid container — give the SVG room to breathe and force
+         it to fill the available width. */
       .diagram {
         background: var(--paper);
         border: 1px solid var(--rule);
-        padding: 1.5rem;
-        margin-top: 1rem;
-        text-align: center;
+        padding: 2rem 1rem;
+        margin-top: 0.5rem;
+        overflow-x: auto;
+        direction: ltr; /* Mermaid layouts are LTR; box stays LTR for the chart */
       }
       .mermaid {
-        display: inline-block;
+        display: flex;
+        justify-content: center;
+        font-family: var(--body);
+      }
+      .mermaid svg {
+        max-width: 100% !important;
+        height: auto !important;
       }
       .legend {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 0.75rem;
         margin-top: 1.5rem;
       }
       .legend-item {
         background: var(--paper);
         border: 1px solid var(--rule);
-        padding: 0.7rem 0.9rem;
-        font-size: 0.85rem;
+        padding: 0.85rem 1rem;
+        font-size: 0.92rem;
       }
       .legend-item strong {
         display: block;
         font-family: var(--mono);
         color: var(--accent);
         font-size: 0.78rem;
-        margin-bottom: 0.25rem;
-      }
-      .grid-2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        margin-top: 1rem;
-      }
-      .card {
-        background: var(--paper);
-        border: 1px solid var(--rule);
-        padding: 1rem 1.1rem;
-      }
-      .card .title {
-        font-weight: 700;
-        margin-bottom: 0.4rem;
-      }
-      .card .desc {
-        font-size: 0.9rem;
-        color: var(--ink-2);
-      }
-      .card.accent {
-        background: var(--accent-soft);
-        border-color: rgba(30, 77, 59, 0.3);
+        margin-bottom: 0.3rem;
+        letter-spacing: 0.06em;
       }
       ul {
         padding-inline-start: 1.4rem;
-        margin-top: 0.5rem;
+        margin-top: 0.75rem;
       }
       ul li {
-        margin-bottom: 0.4rem;
-        font-size: 0.95rem;
+        margin-bottom: 0.45rem;
+        font-size: 0.97rem;
+        color: var(--ink-2);
+      }
+      ul li strong {
+        color: var(--ink);
       }
       code,
       .mono {
         font-family: var(--mono);
         font-size: 0.85em;
         background: var(--paper);
-        padding: 0.1em 0.3em;
+        padding: 0.1em 0.35em;
         border: 1px solid var(--rule);
+      }
+      .key-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      .key {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.88rem;
+      }
+      .key .swatch {
+        width: 14px;
+        height: 14px;
+        border: 1px solid var(--ink-2);
+        display: inline-block;
       }
       footer {
         margin-top: 2.5rem;
@@ -173,51 +187,56 @@
     <div class="page" dir="rtl">
       <header>
         <div class="eyebrow">Agenticthon 2026 · Round 2</div>
-        <h1>
-          درع <span class="accent">Architecture</span>
-        </h1>
+        <h1>درع <span class="accent">Architecture</span></h1>
         <p class="lede">
           نظام متعدد الوكلاء (Multi-agent) لمتابعة رخص المحلات الصغيرة في السعودية. ١٢ ايجنت في
-          طبقتين، يتواصلون عبر AgentBus حقيقي، ويستدعون أدوات deterministic للحقائق ثم يصيغون
-          المخرجات بالعربية.
+          طبقتين، يتواصلون عبر AgentBus حقيقي بـ inbox مستقل لكل ايجنت، ويستدعون أدوات deterministic
+          للحقائق ثم يصيغون المخرجات بالعربية.
         </p>
+        <div class="key-row">
+          <span class="key"
+            ><span class="swatch" style="background: #def0e3"></span> ايجنت / Agent</span
+          >
+          <span class="key"
+            ><span class="swatch" style="background: #1e4d3b"></span> منسّق / Orchestrator</span
+          >
+          <span class="key"
+            ><span class="swatch" style="background: #f7f3eb"></span> أداة / Tool</span
+          >
+          <span class="key"
+            ><span class="swatch" style="background: #fff; border-color: #b88717"></span> خدمة
+            خارجية / External</span
+          >
+        </div>
       </header>
 
       <section>
         <h2><span class="num">01</span>المعمارية الكاملة</h2>
-        <p style="color: var(--ink-2); font-size: 0.95rem">
-          من المحادثة العربية الحرّة إلى تقرير امتثال تشغيلي + تذكيرات بريدية يومية.
+        <p class="sub">
+          ٤ طبقات: واجهة المستخدم → ايجنتات التنسيق → ايجنتات المتخصصين → التخزين والتنبيهات.
         </p>
         <div class="diagram">
           <pre class="mermaid">
 flowchart TB
-  subgraph U[المستخدم]
-    direction RL
-    USER([👤 صاحب المحل])
+  USER([👤 صاحب المحل])
+
+  subgraph FRONT["واجهة المستخدم · Next.js 14"]
+    direction LR
+    CHAT_UI["/chat<br/>محادثة عربية"]
+    PROJ_UI["/project/[id]<br/>داشبورد + traces"]
   end
 
-  subgraph FE[Next.js · App Router]
-    CHAT[/&#47;chat<br/>١٦ سؤال موجَّه/]
-    PROJ[/&#47;project&#47;id<br/>داشبورد + traces/]
+  subgraph COORD["طبقة التنسيق · 5 ايجنتات"]
+    direction LR
+    CHAT["Chat Agent<br/>Sonnet 4.6"]
+    ORCH["Orchestrator<br/>AgentBus + Waves"]
+    RES["Research<br/>web_search"]
+    AN["Analysis<br/>narrative + gaps"]
+    REP["Report<br/>roadmap builder"]
   end
 
-  subgraph CHAT_AGENT[Chat Agent · Sonnet 4.6]
-    EXTRACT[استخراج البيانات<br/>من النص الحرّ]
-    NEXTQ[اختيار السؤال التالي]
-  end
-
-  subgraph ORCH[Project Orchestrator]
-    BUS[AgentBus<br/>inbox per agent]
-    SCHED[Wave Scheduler<br/>dependencies → موجات]
-    TELEM[Telemetry Recorder<br/>tool calls + tokens]
-  end
-
-  subgraph WAVE1[Wave 1 · بحث]
-    RES[Research Agent<br/>web_search]
-  end
-
-  subgraph WAVE2[Wave 2 · ٧ متخصصين بالتوازي]
-    direction RL
+  subgraph SPEC["طبقة المتخصصين · 7 ايجنتات (LLM + Tools)"]
+    direction LR
     MCI[mci]
     CD[civil_defense]
     MUNI[municipality]
@@ -227,79 +246,63 @@ flowchart TB
     ZAT[zatca]
   end
 
-  subgraph WAVE3[Wave 3 · تحليل]
-    AN[Analysis Agent<br/>narrative + warnings]
+  subgraph TOOLS_BOX["أدوات deterministic · 12 أداة"]
+    TOOL["get_shop_summary · list_safety_requirements<br/>calculate_extinguisher_count · check_renewal_urgency<br/>add_months_to_date · check_vat_threshold · …"]
   end
 
-  subgraph TOOLS[Deterministic Tools · ١٢ أداة]
-    T1[get_shop_summary]
-    T2[list_safety_requirements]
-    T3[calculate_extinguisher_count]
-    T4[check_renewal_urgency]
-    T5[+ ٨ أدوات أخرى]
+  subgraph EXT["خدمات خارجية"]
+    direction LR
+    ANTH["Anthropic API<br/>Sonnet 4.6"]
+    SB[("Supabase Postgres<br/>sessions + projects")]
+    MAIL["Resend SMTP"]
+    CRON["GitHub Actions<br/>cron 7am KSA"]
   end
 
-  subgraph EXT[خارجي]
-    ANTH[Anthropic API<br/>Sonnet 4.6]
-    SB[(Supabase Postgres<br/>daraa_sessions + projects)]
-    RES_EMAIL[Resend SMTP]
-    GHA[GitHub Actions Cron<br/>٧ صباح KSA]
-  end
-
-  USER --> CHAT
-  CHAT --> EXTRACT
-  EXTRACT --> NEXTQ
-  NEXTQ -->|next-question| CHAT
+  USER --> CHAT_UI
+  CHAT_UI --> CHAT
   CHAT --> SB
-
   CHAT -->|done| ORCH
-  ORCH --> SCHED
-  SCHED --> RES
-  RES -->|regulatory updates| BUS
-  SCHED --> WAVE2
-  BUS <--> WAVE2
-  WAVE2 -->|tool calls| TOOLS
-  TOOLS -->|deterministic facts| WAVE2
-  WAVE2 -->|EntityCards| AN
-  AN -->|gaps + warnings| ORCH
-  ORCH --> SB
 
-  TELEM -.-> WAVE2
-  TELEM -.-> AN
+  ORCH --> RES
+  ORCH --> SPEC
+  RES -->|regulatory updates| ORCH
+  SPEC -->|EntityCards| AN
+  AN --> REP
+  REP --> SB
 
-  EXTRACT --> ANTH
+  SPEC <-->|tool calls| TOOLS_BOX
+  CHAT --> ANTH
   RES --> ANTH
-  WAVE2 --> ANTH
+  SPEC --> ANTH
   AN --> ANTH
 
-  GHA -->|daily 04:00 UTC| EXT
-  EXT --> SB
-  SB -->|projects with renewals| RES_EMAIL
-  RES_EMAIL -->|reminder email| USER
+  CRON -->|daily| MAIL
+  SB --> MAIL
+  MAIL -.->|reminder email| USER
 
-  SB --> PROJ
-  PROJ --> USER
+  SB --> PROJ_UI
+  PROJ_UI --> USER
 
-  classDef user fill:#fff,stroke:#14110f,stroke-width:2px,color:#14110f;
-  classDef fe fill:#fff,stroke:#1e4d3b,color:#14110f;
-  classDef agent fill:#def0e3,stroke:#1e4d3b,color:#14110f;
+  classDef user fill:#fff,stroke:#14110f,stroke-width:2px,color:#14110f,font-weight:bold;
+  classDef ui fill:#fff,stroke:#1e4d3b,color:#14110f;
+  classDef agent fill:#def0e3,stroke:#1e4d3b,color:#14110f,font-weight:600;
+  classDef orch fill:#1e4d3b,stroke:#14110f,color:#fff,font-weight:600;
   classDef tool fill:#f7f3eb,stroke:#6b6357,color:#3a342e;
   classDef ext fill:#fff,stroke:#b88717,color:#14110f;
-  classDef orch fill:#1e4d3b,stroke:#14110f,color:#fff;
 
   class USER user;
-  class CHAT,PROJ fe;
-  class EXTRACT,NEXTQ,RES,MCI,CD,MUNI,SFDA,MOH,HR,ZAT,AN agent;
-  class T1,T2,T3,T4,T5 tool;
-  class ANTH,SB,RES_EMAIL,GHA ext;
-  class BUS,SCHED,TELEM orch;
+  class CHAT_UI,PROJ_UI ui;
+  class CHAT,RES,AN,REP,MCI,CD,MUNI,SFDA,MOH,HR,ZAT agent;
+  class ORCH orch;
+  class TOOL tool;
+  class ANTH,SB,MAIL,CRON ext;
           </pre>
         </div>
 
         <div class="legend">
           <div class="legend-item">
             <strong>FRONTEND</strong>
-            Next.js 14 App Router · Tailwind v4 · RTL Arabic
+            Next.js 14 (App Router) · Tailwind v4 · RTL Arabic
           </div>
           <div class="legend-item">
             <strong>AGENT RUNTIME</strong>
@@ -326,135 +329,82 @@ flowchart TB
 
       <section>
         <h2><span class="num">02</span>تدفق التفاعل (Sequence)</h2>
-        <p style="color: var(--ink-2); font-size: 0.95rem">
+        <p class="sub">
           من «وش اسم محلك؟» إلى تقرير كامل + تقويم تذكيرات في أقل من ٤٠ ثانية.
         </p>
         <div class="diagram">
           <pre class="mermaid">
 sequenceDiagram
   autonumber
-  participant U as 👤 User
-  participant FE as Next.js
-  participant CA as Chat Agent
-  participant SB as Supabase
+  participant U as 👤 المستخدم
+  participant C as Chat Agent
   participant O as Orchestrator
   participant R as Research
   participant S as 7 Specialists
   participant A as Analysis
-  participant E as Resend
+  participant DB as Supabase
 
-  U->>FE: GET /chat
-  FE->>CA: POST /api/chat/start
-  CA->>SB: insert daraa_chat_sessions
-  CA-->>FE: opener question
-  FE-->>U: «وش اسم محلك؟»
-
+  U->>C: ابدأ المحادثة
   loop ١٦ سؤال
-    U->>FE: text answer (Gulf Arabic)
-    FE->>CA: POST /api/chat/message
-    CA->>CA: extract → validate → next-question
-    CA->>SB: update session
-    CA-->>FE: agent message + suggestions
+    U->>C: نص حرّ بالعربي
+    C->>C: استخراج + validation
+    C->>DB: حفظ الجلسة
+    C-->>U: السؤال التالي
   end
 
-  U->>FE: complete
-  FE->>O: POST /api/project/start
-  O->>SB: insert daraa_projects (status=pending)
+  U->>O: انتهت المحادثة
+  O->>DB: insert project (pending)
 
-  par Wave 1
-    O->>R: run research
-    R->>R: web_search regulatory updates
-    R-->>O: regulatory updates
-  and
-    O->>O: build inboxes for specialists
-  end
+  Note over O,R: Wave 1 — بحث
+  O->>R: شغّل البحث
+  R-->>O: تحديثات تنظيمية
 
-  par Wave 2 — ٧ متخصصين
-    O->>S: run civil_defense
-    S->>S: tools: list_safety_requirements + calculate_extinguisher_count
-    S-->>O: EntityCard + outbox(municipality)
-    Note right of S: outbox: hasKitchen=true
-    O->>S: run municipality (reads inbox)
-    S->>S: tools: estimate_balady_cost
-    S-->>O: EntityCard (with kitchen license)
-  end
+  Note over O,S: Wave 2 — متخصصون بالتوازي
+  O->>S: شغّل ٧ ايجنتات
+  S->>S: tool calls + A2A messages
+  S-->>O: EntityCards
 
-  O->>A: run analysis
-  A->>A: evaluate gaps + topWarnings
-  A-->>O: report
+  Note over O,A: Wave 3 — تحليل
+  O->>A: شغّل التحليل
+  A-->>O: gaps + warnings + narrative
 
-  O->>SB: upsert project (status=complete)
-  O-->>FE: redirect /project/id
-  FE-->>U: dashboard + agent traces
-
-  Note over E,U: Daily cron · 7am KSA
-  E->>SB: select projects with renewals
-  E-->>U: 📧 reminder email
+  O->>DB: upsert project (complete)
+  O-->>U: redirect → /project/[id]
           </pre>
         </div>
       </section>
 
       <section>
         <h2><span class="num">03</span>تواصل A2A — مثال حيّ</h2>
-        <p style="color: var(--ink-2); font-size: 0.95rem">
-          الرسالة تغيّر المخرج النهائي. هذا ما يجعل الـ A2A فعلياً وليس زخرفة.
+        <p class="sub">
+          الرسالة بين الـ Civil Defense والبلدية تُغيّر المخرج النهائي. هذا ما يجعل الـ A2A فعلياً
+          وليس زخرفة.
         </p>
         <div class="diagram">
           <pre class="mermaid">
-flowchart RL
-  CD[civil_defense<br/>وكيل الدفاع المدني]
-  MUNI[municipality<br/>وكيل البلدية]
-  OUT[(Municipality Output)]
+flowchart LR
+  CD["Civil Defense<br/>وكيل الدفاع المدني"]
+  INBOX[("inbox<br/>Municipality")]
+  MUNI["Municipality<br/>وكيل البلدية"]
+  OUT["تقرير المطعم<br/>+ رخصة المطبخ التجاري"]
 
-  CD -->|outbox: dependency<br/>payload: hasKitchen: true| MUNI
-  MUNI -->|reads inbox| MUNI
-  MUNI -->|+ رخصة المطبخ التجاري| OUT
+  CD -->|"outbox<br/>type: dependency<br/>payload: { hasKitchen: true }"| INBOX
+  INBOX --> MUNI
+  MUNI -->|يضيف الرخصة| OUT
 
-  classDef agent fill:#def0e3,stroke:#1e4d3b,color:#14110f;
-  classDef out fill:#fff,stroke:#b88717,color:#14110f;
+  classDef agent fill:#def0e3,stroke:#1e4d3b,color:#14110f,font-weight:600;
+  classDef bus fill:#1e4d3b,stroke:#14110f,color:#fff;
+  classDef out fill:#fff,stroke:#b88717,color:#14110f,font-weight:600;
   class CD,MUNI agent;
+  class INBOX bus;
   class OUT out;
           </pre>
         </div>
         <ul>
           <li><strong>بدون</strong> رسالة Civil Defense → Municipality لا يصدر «رخصة المطبخ»</li>
           <li><strong>مع</strong> الرسالة → الرخصة تظهر في تقرير المطعم تلقائياً</li>
-          <li>الكود: <code>src/agents/specialists/civil-defense-agent.ts</code> سطر 65 (outbox)</li>
+          <li>المصدر: <code>src/agents/specialists/civil-defense-agent.ts</code> سطر 65</li>
         </ul>
-      </section>
-
-      <section>
-        <h2><span class="num">04</span>طبقات المعرفة (Knowledge layers)</h2>
-        <div class="grid-2">
-          <div class="card accent">
-            <div class="title">Knowledge Base (Static)</div>
-            <div class="desc">
-              <code>src/knowledge/entities.ts</code> — ٧ جهات حكومية × ٥ verticals · مواعيد تجديد ·
-              متطلبات أساسية · مصطلحات
-            </div>
-          </div>
-          <div class="card accent">
-            <div class="title">Tools (Deterministic)</div>
-            <div class="desc">
-              ١٢ أداة محسوبة من البيانات الفعلية. مثال: <code>calculate_extinguisher_count</code>
-              يعطي عدد الطفايات حسب المساحة والنشاط.
-            </div>
-          </div>
-          <div class="card accent">
-            <div class="title">Live Web Search</div>
-            <div class="desc">
-              Research Agent يستخدم Anthropic <code>web_search</code> لاستجلاب آخر التحديثات
-              التنظيمية من mci.gov.sa، sfda.gov.sa، إلخ.
-            </div>
-          </div>
-          <div class="card accent">
-            <div class="title">User-Provided State</div>
-            <div class="desc">
-              من المحادثة: نوع المحل، تواريخ الرخص الحالية، حالة البنية التحتية (طفايات، تهوية،
-              تبريد، شهادات صحية، لوحة).
-            </div>
-          </div>
-        </div>
       </section>
 
       <footer>
@@ -467,8 +417,26 @@ flowchart RL
       mermaid.initialize({
         startOnLoad: true,
         theme: 'base',
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true,
+          curve: 'basis',
+          nodeSpacing: 60,
+          rankSpacing: 80,
+          padding: 20,
+        },
+        sequence: {
+          useMaxWidth: true,
+          actorMargin: 80,
+          messageMargin: 50,
+          mirrorActors: false,
+          boxMargin: 12,
+          boxTextMargin: 8,
+          noteMargin: 12,
+        },
         themeVariables: {
           fontFamily: 'IBM Plex Sans Arabic, system-ui, sans-serif',
+          fontSize: '16px',
           background: '#f7f3eb',
           primaryColor: '#fff',
           primaryBorderColor: '#1e4d3b',
@@ -476,6 +444,25 @@ flowchart RL
           lineColor: '#3a342e',
           secondaryColor: '#def0e3',
           tertiaryColor: '#efe9d9',
+          /* Sequence diagram */
+          actorBkg: '#def0e3',
+          actorBorder: '#1e4d3b',
+          actorTextColor: '#14110f',
+          actorLineColor: '#3a342e',
+          signalColor: '#3a342e',
+          signalTextColor: '#14110f',
+          labelBoxBkgColor: '#1e4d3b',
+          labelBoxBorderColor: '#14110f',
+          labelTextColor: '#fff',
+          loopTextColor: '#14110f',
+          noteBkgColor: '#fff7d6',
+          noteBorderColor: '#b88717',
+          noteTextColor: '#14110f',
+          activationBkgColor: '#def0e3',
+          activationBorderColor: '#1e4d3b',
+          /* Cluster (subgraph) */
+          clusterBkg: '#efe9d9',
+          clusterBorder: '#1e4d3b',
         },
       });
     </script>
