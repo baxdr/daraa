@@ -181,6 +181,83 @@
         color: var(--muted);
         font-family: var(--mono);
       }
+
+      /* ─────────────────────────────────────────────────────────────
+       * Print / PDF
+       * Each <section> gets its own A4 landscape page so diagrams
+       * never get split across pages or shrunk to thumbnails.
+       * ───────────────────────────────────────────────────────────── */
+      @page {
+        size: A4 landscape;
+        margin: 14mm 12mm;
+      }
+
+      @media print {
+        html,
+        body {
+          background: #fff;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .page {
+          max-width: none;
+          padding: 0;
+          margin: 0;
+        }
+        header {
+          page-break-after: always;
+          break-after: page;
+          margin-bottom: 0;
+          padding-bottom: 0;
+          border-bottom: none;
+        }
+        section {
+          page-break-before: always;
+          break-before: page;
+          page-break-inside: avoid;
+          break-inside: avoid;
+          margin-top: 0;
+          padding: 1rem 0;
+          border: none;
+        }
+        section:first-of-type {
+          page-break-before: auto;
+        }
+        h1 {
+          font-size: 2.2rem;
+        }
+        h2 {
+          font-size: 1.45rem;
+        }
+        .diagram {
+          background: #fff;
+          border: 1px solid var(--rule);
+          padding: 0.75rem 0.5rem;
+          page-break-inside: avoid;
+          break-inside: avoid;
+          overflow: visible;
+        }
+        /* Force the SVG to take the full available width and scale
+         * down vertically rather than overflow horizontally. */
+        .mermaid {
+          width: 100%;
+        }
+        .mermaid svg {
+          width: 100% !important;
+          height: auto !important;
+          max-height: 165mm; /* A4 landscape minus margins minus header */
+        }
+        .legend,
+        .key-row {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+        footer {
+          margin-top: 0.5rem;
+          page-break-before: avoid;
+          break-before: avoid;
+        }
+      }
     </style>
   </head>
   <body>
