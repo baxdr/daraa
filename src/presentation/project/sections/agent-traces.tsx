@@ -12,7 +12,7 @@ import { AGENT_LABELS_AR } from '@/agents/types';
 import { AGENTS_CATALOG } from '@/presentation/agents-catalog/data';
 
 const MODE_BADGE: Record<AgentTraceLike['mode'], { label: string; tone: string }> = {
-  live: { label: 'Claude — حيّ', tone: 'border-accent/40 bg-accent-soft text-accent-strong' },
+  live: { label: 'AI — حيّ', tone: 'border-accent/40 bg-accent-soft text-accent-strong' },
   fallback: {
     label: 'fallback — كود ثابت',
     tone: 'border-warn/40 bg-warn-soft text-warn-strong',
@@ -60,8 +60,8 @@ export function AgentTracesSection({
         </h2>
         <div className="rule-accent mt-3 w-12" />
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
-          كل وكيل Claude يستدعي tools deterministic للحقائق، ثم يصيغ تفسيراً عربياً. هنا تشوف بالضبط
-          ماذا سأل، ماذا رجّعت له الـ tools، وكم استهلك من tokens + وقت.
+          كل ايجنت AI يستدعي أدوات deterministic للحقائق، ثم يصيغ تفسيراً عربياً. هنا تشوف بالضبط
+          ماذا سأل، ماذا رجّعت له الأدوات، وكم استهلك من tokens + وقت.
         </p>
       </div>
 
@@ -125,7 +125,7 @@ function TraceCard({ agentId, trace }: { agentId: AgentId; trace: AgentTraceLike
 
       {trace.iterations.length === 0 ? (
         <div className="border-t border-rule p-4 text-xs text-muted md:p-5">
-          ما تم استدعاء Claude — استخدمنا المسار الـ deterministic فقط.
+          ما تم استدعاء نموذج AI — استخدمنا المسار الـ deterministic فقط.
         </div>
       ) : (
         <div className="border-t border-rule">
@@ -137,7 +137,7 @@ function TraceCard({ agentId, trace }: { agentId: AgentId; trace: AgentTraceLike
 
       {trace.finalText && (
         <div className="border-t border-rule bg-paper-2/40 p-4 md:p-5">
-          <div className="eyebrow !text-[10px]">النص النهائي من Claude</div>
+          <div className="eyebrow !text-[10px]">المخرج النهائي للايجنت</div>
           <pre
             className="mt-2 max-h-48 overflow-y-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-ink-2"
             dir="ltr"

@@ -36,7 +36,7 @@ export function AiActivityStrip({ traces }: { traces: Partial<Record<AgentId, Ag
         <span aria-hidden className="h-2 w-2 rounded-full bg-accent" />
         <div>
           <div className="font-display text-sm font-extrabold text-ink md:text-base">
-            <span className="text-accent-strong">{entries.length}</span> ايجنت Claude اشتغل لتقريرك
+            <span className="text-accent-strong">{entries.length}</span> ايجنت AI اشتغل لتقريرك
           </div>
           <div className="mt-0.5 font-mono text-[10px] text-accent-strong/70" dir="ltr">
             {liveCount} live · {totalToolCalls} tool calls · {totalTokens.toLocaleString('en-US')}{' '}

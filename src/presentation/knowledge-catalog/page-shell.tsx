@@ -139,7 +139,7 @@ export function KnowledgeCatalogPage() {
           <code className="font-mono text-[12px]" dir="ltr">
             check_vat_threshold
           </code>
-          . لمّا Claude يقرر يحتاج معلومة — يستدعي الـ tool. لمّا يحتاج يصيغ تفسير — يستخدم الـ
+          . لمّا الايجنت يقرر يحتاج معلومة — يستدعي الأداة. لمّا يحتاج يصيغ تفسير — يستخدم الـ
           knowledge هذا. هكذا يضمن النظام إن الأرقام دائماً صحيحة.
         </p>
         <Link href="/agents" className="btn-outline mt-5 inline-flex text-sm">

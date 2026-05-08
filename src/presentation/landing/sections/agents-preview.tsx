@@ -86,11 +86,11 @@ const AGENTS: AgentRow[] = [
 
 const ENGINE_TONE: Record<AgentRow['engine'], { label: string; pill: string }> = {
   pure_claude: {
-    label: 'Claude — محادثة',
+    label: 'ذكاء اصطناعي · محادثة',
     pill: 'border-accent/40 bg-accent-soft text-accent-strong',
   },
   claude_tools: {
-    label: 'Claude + tool use',
+    label: 'ذكاء اصطناعي + أدوات',
     pill: 'border-accent/40 bg-accent-soft text-accent-strong',
   },
   coordination: {
@@ -110,21 +110,12 @@ export function AgentsPreview() {
         <div className="max-w-2xl">
           <span className="eyebrow">طبقة الذكاء الاصطناعي</span>
           <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight md:text-4xl">
-            ١٢ ايجنت · {claudeCount} منهم Claude AI
+            ١٢ ايجنت · {claudeCount} منهم بـ AI
           </h2>
           <div className="rule-accent mt-3 w-12" />
           <p className="mt-4 text-base leading-relaxed text-ink-2">
-            مو ايجنت واحد كبير. كل ايجنت متخصّص في جهة، يستدعي tools لجلب الحقائق، وينشر رسالة A2A
-            للايجنت الجاي. هذا{' '}
-            <a
-              href="https://www.anthropic.com/news/agent-skills"
-              className="underline decoration-accent/60 underline-offset-2 hover:text-accent"
-              target="_blank"
-              rel="noreferrer"
-            >
-              pattern Anthropic الموصى به للإنتاج
-            </a>{' '}
-            ٢٠٢٥.
+            مو ايجنت واحد كبير. كل ايجنت متخصّص في جهة، يستدعي أدوات لجلب الحقائق، وينشر رسالة
+            للايجنت الجاي. تصميم متعدد الايجنتات حديث.
           </p>
         </div>
         <Link href="/agents" className="btn-outline text-sm">

@@ -30,7 +30,10 @@
       "nameAr": "وزارة التجارة",
       "nameSimpleAr": "السجل التجاري",
       "explainAr": "السجل التجاري — الوثيقة الأم لأي نشاط، يُجدَّد سنوياً.",
-      "estimatedCostSar": { "min": 200, "max": 400 },
+      "estimatedCostSar": {
+        "min": 200,
+        "max": 400
+      },
       "estimatedTimeAr": "يوم واحد (إلكتروني)",
       "order": 1,
       "dependencies": [],
@@ -43,10 +46,15 @@
       "nameAr": "هيئة الزكاة والضريبة والجمارك",
       "nameSimpleAr": "التسجيل الضريبي",
       "explainAr": "تسجيل ضريبي إلزامي، VAT يصير إلزامياً عند تجاوز ٣٧٥ ألف ريال إيراد سنوي.",
-      "estimatedCostSar": { "min": 0, "max": 0 },
+      "estimatedCostSar": {
+        "min": 0,
+        "max": 0
+      },
       "estimatedTimeAr": "يوم واحد",
       "order": 2,
-      "dependencies": ["mci"],
+      "dependencies": [
+        "mci"
+      ],
       "renewalMonths": null,
       "renewalPeriodAr": "مستمر",
       "officialUrl": "https://zatca.gov.sa"
@@ -56,10 +64,15 @@
       "nameAr": "وزارة الموارد البشرية + التأمينات الاجتماعية",
       "nameSimpleAr": "ملف المنشأة + تأمينات",
       "explainAr": "فتح ملف منشأة + اشتراك التأمينات الشهري.",
-      "estimatedCostSar": { "min": 0, "max": 0 },
+      "estimatedCostSar": {
+        "min": 0,
+        "max": 0
+      },
       "estimatedTimeAr": "يوم واحد",
       "order": 3,
-      "dependencies": ["mci"],
+      "dependencies": [
+        "mci"
+      ],
       "renewalMonths": 1,
       "renewalPeriodAr": "شهري",
       "officialUrl": "https://www.hrsd.gov.sa"
@@ -69,10 +82,15 @@
       "nameAr": "الدفاع المدني",
       "nameSimpleAr": "شهادة السلامة",
       "explainAr": "تتأكد من طفايات الحريق + مخارج طوارئ + كواشف دخان.",
-      "estimatedCostSar": { "min": 200, "max": 700 },
+      "estimatedCostSar": {
+        "min": 200,
+        "max": 700
+      },
       "estimatedTimeAr": "٣ إلى ١٤ يوم",
       "order": 4,
-      "dependencies": ["mci"],
+      "dependencies": [
+        "mci"
+      ],
       "renewalMonths": 12,
       "renewalPeriodAr": "سنوي",
       "officialUrl": "https://www.998.gov.sa"
@@ -82,17 +100,26 @@
       "nameAr": "أمانة المنطقة (بلدي)",
       "nameSimpleAr": "رخصة بلدية (مغسلة)",
       "explainAr": "الرخصة اللي تسمح لك تشغّل المغسلة في الموقع.",
-      "estimatedCostSar": { "min": 500, "max": 2000 },
+      "estimatedCostSar": {
+        "min": 500,
+        "max": 2000
+      },
       "estimatedTimeAr": "٣ إلى ٧ أيام",
       "order": 5,
-      "dependencies": ["civil_defense"],
+      "dependencies": [
+        "civil_defense"
+      ],
       "renewalMonths": 12,
       "renewalPeriodAr": "سنوي",
       "officialUrl": "https://balady.gov.sa"
     }
   ],
   "roadmap": [],
-  "costSummary": { "minSar": 900, "maxSar": 3100, "itemCount": 5 },
+  "costSummary": {
+    "minSar": 900,
+    "maxSar": 3100,
+    "itemCount": 5
+  },
   "topWarnings": [
     "لوحة المحل غير معتمدة من البلدية — هذي مخالفة فورية تترصد أثناء الجولات اليومية. حدّث اللوحة قبل الجولة التالية."
   ],
@@ -130,5 +157,121 @@
       "status": "soon",
       "officialUrl": "https://www.hrsd.gov.sa"
     }
-  ]
+  ],
+  "operationalReport": {
+    "gaps": [
+      {
+        "id": "op_cr_renewal",
+        "severity": "medium",
+        "category": "cr",
+        "titleAr": "السجل التجاري — منتهية منذ 23 يوم",
+        "explanationAr": "السجل التجاري يُجدَّد سنوياً. لو انتهى بدون تجديد، الحسابات البنكية والمعاملات الحكومية تتجمّد.",
+        "actionAr": "جدّد عبر بوابة وزارة التجارة — mc.gov.sa",
+        "daysUntilDeadline": -23,
+        "dueDate": "2026-04-15",
+        "officialUrl": "https://mc.gov.sa",
+        "fineCeilingSar": 10000
+      },
+      {
+        "id": "op_municipal_renewal",
+        "severity": "medium",
+        "category": "municipal",
+        "titleAr": "الرخصة البلدية — منتهية منذ 8 يوم",
+        "explanationAr": "رخصة البلدية (رخصة النشاط من منصة بلدي) سنوية. انتهاؤها يوقف الخدمات ويعرّض المحل للإغلاق.",
+        "actionAr": "جدّد عبر منصة بلدي — balady.gov.sa",
+        "daysUntilDeadline": -8,
+        "dueDate": "2026-04-30",
+        "officialUrl": "https://balady.gov.sa",
+        "fineCeilingSar": 5000
+      },
+      {
+        "id": "op_extinguishers_check",
+        "severity": "medium",
+        "category": "extinguishers",
+        "titleAr": "فحص الطفايات الدوري متأخر",
+        "explanationAr": "آخر فحص للطفايات قبل 8 شهراً — الفحص الدوري مطلوب كل 6 أشهر بالحد الأقصى.",
+        "actionAr": "تواصل مع شركة معتمدة لإجراء فحص دوري للطفايات",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "fineCeilingSar": 2000
+      },
+      {
+        "id": "op_signage",
+        "severity": "medium",
+        "category": "signage",
+        "titleAr": "لوحة المحل غير معتمدة",
+        "explanationAr": "لوحة المحل تحتاج موافقة بلدية بمواصفات محددة (ألوان، أبعاد، إضاءة). لوحات غير معتمدة تترصد أثناء جولات البلدية اليومية.",
+        "actionAr": "قدّم طلب اعتماد لوحة عبر منصة بلدي",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "officialUrl": "https://balady.gov.sa",
+        "fineCeilingSar": 3000
+      },
+      {
+        "id": "op_civil_defense",
+        "severity": "low",
+        "category": "civil_defense",
+        "titleAr": "شهادة السلامة (الدفاع المدني) — يُجدَّد خلال 85 يوم",
+        "explanationAr": "الفحص السنوي للسلامة (الطفايات، مخارج الطوارئ، كواشف الدخان). غيابه = إغلاق فوري عند أي تفتيش.",
+        "actionAr": "احجز فحصاً عبر منصة سلامة — salamah.sa",
+        "daysUntilDeadline": 85,
+        "dueDate": "2026-08-01",
+        "officialUrl": "https://salamah.sa",
+        "fineCeilingSar": 30000
+      }
+    ],
+    "overdue": [
+      {
+        "id": "op_cr_renewal",
+        "severity": "medium",
+        "category": "cr",
+        "titleAr": "السجل التجاري — منتهية منذ 23 يوم",
+        "explanationAr": "السجل التجاري يُجدَّد سنوياً. لو انتهى بدون تجديد، الحسابات البنكية والمعاملات الحكومية تتجمّد.",
+        "actionAr": "جدّد عبر بوابة وزارة التجارة — mc.gov.sa",
+        "daysUntilDeadline": -23,
+        "dueDate": "2026-04-15",
+        "officialUrl": "https://mc.gov.sa",
+        "fineCeilingSar": 10000
+      },
+      {
+        "id": "op_municipal_renewal",
+        "severity": "medium",
+        "category": "municipal",
+        "titleAr": "الرخصة البلدية — منتهية منذ 8 يوم",
+        "explanationAr": "رخصة البلدية (رخصة النشاط من منصة بلدي) سنوية. انتهاؤها يوقف الخدمات ويعرّض المحل للإغلاق.",
+        "actionAr": "جدّد عبر منصة بلدي — balady.gov.sa",
+        "daysUntilDeadline": -8,
+        "dueDate": "2026-04-30",
+        "officialUrl": "https://balady.gov.sa",
+        "fineCeilingSar": 5000
+      }
+    ],
+    "upcomingRenewals": [
+      {
+        "id": "op_extinguishers_check",
+        "severity": "medium",
+        "category": "extinguishers",
+        "titleAr": "فحص الطفايات الدوري متأخر",
+        "explanationAr": "آخر فحص للطفايات قبل 8 شهراً — الفحص الدوري مطلوب كل 6 أشهر بالحد الأقصى.",
+        "actionAr": "تواصل مع شركة معتمدة لإجراء فحص دوري للطفايات",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "fineCeilingSar": 2000
+      },
+      {
+        "id": "op_signage",
+        "severity": "medium",
+        "category": "signage",
+        "titleAr": "لوحة المحل غير معتمدة",
+        "explanationAr": "لوحة المحل تحتاج موافقة بلدية بمواصفات محددة (ألوان، أبعاد، إضاءة). لوحات غير معتمدة تترصد أثناء جولات البلدية اليومية.",
+        "actionAr": "قدّم طلب اعتماد لوحة عبر منصة بلدي",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "officialUrl": "https://balady.gov.sa",
+        "fineCeilingSar": 3000
+      }
+    ],
+    "healthScore": 0,
+    "computedAt": "2026-05-08T16:25:02.772Z"
+  }
 }

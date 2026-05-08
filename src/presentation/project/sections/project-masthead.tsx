@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { StatusModeIndicator } from './status-mode-indicator';
 
 interface ProjectMastheadProps {
-  projectId: string;
   companyName: string;
   verticalLabel: string;
   cityLabel: string | null;
@@ -11,17 +10,12 @@ interface ProjectMastheadProps {
 /**
  * Project header — single-mode (operational compliance) post-pivot.
  *
- * Was a tri-mode component (establishment / compliance / operational);
- * trimmed to a single mode now that those branches are removed from the
- * runtime. The breadcrumb still routes through `/project/[id]/agents`
- * so users can revisit the live agent timeline.
+ * Breadcrumb links to the public /agents catalog (not /project/[id]/agents)
+ * because the live timeline view bounces back to this page once the
+ * orchestrator finishes — clicking it from a complete project would just
+ * loop the user.
  */
-export function ProjectMasthead({
-  projectId,
-  companyName,
-  verticalLabel,
-  cityLabel,
-}: ProjectMastheadProps) {
+export function ProjectMasthead({ companyName, verticalLabel, cityLabel }: ProjectMastheadProps) {
   return (
     <>
       <nav aria-label="مسار التنقّل" className="mb-6 flex items-center gap-2 text-xs text-muted">
@@ -33,7 +27,7 @@ export function ProjectMasthead({
           المحادثة
         </Link>
         <span aria-hidden>›</span>
-        <Link href={`/project/${projectId}/agents`} className="hover:text-ink">
+        <Link href="/agents" className="hover:text-ink">
           الوكلاء
         </Link>
         <span aria-hidden>›</span>

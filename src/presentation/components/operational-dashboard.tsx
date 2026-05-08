@@ -25,9 +25,6 @@ function NarrativeBlock({ report }: { report: OperationalReport }) {
     <section className="border-s-4 border-accent bg-accent-soft px-6 py-5 md:px-7 md:py-6">
       <div className="mb-2 flex items-center gap-2">
         <span className="eyebrow !text-accent-strong">قراءة المحلّل بالـ AI</span>
-        <span className="font-mono text-[10px] uppercase tracking-widest text-accent-strong/70">
-          Claude Sonnet
-        </span>
       </div>
       <p className="text-sm leading-relaxed text-ink-2 md:text-base">{report.narrative}</p>
       {report.priorityActions && report.priorityActions.length > 0 && (

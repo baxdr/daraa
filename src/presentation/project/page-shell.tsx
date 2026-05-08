@@ -1,6 +1,7 @@
 import { LegalDisclaimer } from '@/presentation/components/legal-disclaimer';
 import { SaveProjectBanner } from '@/presentation/components/save-project-banner';
 import { OperationalDashboard } from '@/presentation/components/operational-dashboard';
+import { CoverageScope } from '@/presentation/components/coverage-scope';
 import { ActiveMonitoringPanel } from '@/presentation/components/active-monitoring-panel';
 import type { ProjectRecord } from '@/lib/project-store';
 
@@ -49,7 +50,6 @@ export function ProjectPageShell({
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 md:px-10 md:py-14">
       <ProjectMasthead
-        projectId={project.id}
         companyName={companyName}
         verticalLabel={verticalLabel}
         cityLabel={cityLabel}
@@ -72,9 +72,12 @@ export function ProjectPageShell({
       <TopWarnings warnings={topWarnings} />
 
       {operationalReport && (
-        <section className="mb-12">
-          <OperationalDashboard report={operationalReport} />
-        </section>
+        <>
+          <CoverageScope report={operationalReport} />
+          <section className="mb-12">
+            <OperationalDashboard report={operationalReport} />
+          </section>
+        </>
       )}
 
       <EstablishmentSummary

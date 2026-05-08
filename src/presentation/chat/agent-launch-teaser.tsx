@@ -45,8 +45,7 @@ export function AgentLaunchTeaser() {
       </div>
 
       <p className="text-xs leading-relaxed text-ink-2">
-        كل ايجنت يستلم إجاباتك، يستدعي tools deterministic للحقائق، ويرسل رسالة A2A للايجنت التالي
-        عبر الـ AgentBus.
+        كل ايجنت يستلم إجاباتك، يستدعي أدوات للحقائق، ويرسل رسالة للايجنت التالي عبر الـ AgentBus.
       </p>
 
       <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-3 md:grid-cols-3">
@@ -56,7 +55,7 @@ export function AgentLaunchTeaser() {
       </div>
 
       <p className="text-[11px] text-accent-strong/80">
-        راح ننقلك للوحة المشروع لما يخلصون — تشوف كل tool call + tokens + latency بشكل حيّ.
+        راح ننقلك للوحة المشروع لما يخلصون — تشوف كل استدعاء أداة + المخرج بشكل حيّ.
       </p>
     </div>
   );

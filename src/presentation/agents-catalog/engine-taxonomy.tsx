@@ -1,10 +1,9 @@
 /**
  * Engine taxonomy explainer for the /agents page.
  *
- * Most visitors won't understand the difference between "claude_llm",
- * "claude_llm_tools", "deterministic" and "orchestrator". This section
- * teaches the distinctions in 4 cards so the engine pills they see on
- * each agent card are interpretable.
+ * Most visitors won't intuit the difference between the four engine
+ * types. This section teaches them in 4 cards so the engine pill on
+ * each agent card is interpretable.
  */
 
 import { AGENTS_CATALOG, type AgentEngine } from './data';
@@ -20,31 +19,31 @@ interface EngineExplainer {
 const ENGINE_EXPLAINERS: EngineExplainer[] = [
   {
     id: 'claude_llm',
-    titleAr: 'Claude — محادثة',
+    titleAr: 'ذكاء اصطناعي · محادثة',
     descAr:
-      'Claude يقرأ نصاً حرّاً ويرجع جواب structured. ما يستدعي tools خارجية، يستخدم prompt + JSON output.',
+      'نموذج AI يقرأ نصاً حرّاً ويرجع جواب structured. ما يستدعي أدوات خارجية، يستخدم prompt + JSON output.',
     exampleAr: 'وكيل المحادثة + analysis narrator',
     tone: 'border-accent/40 bg-accent-soft text-accent-strong',
   },
   {
     id: 'claude_llm_tools',
-    titleAr: 'Claude + tool use',
+    titleAr: 'ذكاء اصطناعي + أدوات',
     descAr:
-      'Claude في loop يستدعي tools deterministic للحقائق (طفايات، نطاقات، شهادات…) ثم يصيغ المخرج. هذا الـ pattern الموصى به ٢٠٢٥.',
+      'نموذج AI في loop يستدعي أدوات deterministic للحقائق (طفايات، نطاقات، شهادات…) ثم يصيغ المخرج. هذا الـ pattern الموصى به ٢٠٢٥.',
     exampleAr: '٧ متخصصين (mci, civil_defense, sfda, …)',
     tone: 'border-accent/40 bg-accent-soft text-accent-strong',
   },
   {
     id: 'claude_web_search',
-    titleAr: 'Claude + web_search',
+    titleAr: 'بحث ذكي عبر الويب',
     descAr:
-      'Claude يستخدم tool رسمي من Anthropic (web_search_20250305) لجلب آخر التحديثات التنظيمية من المواقع الحكومية.',
+      'الايجنت يستخدم أداة بحث رسمية لجلب آخر التحديثات التنظيمية من المواقع الحكومية مباشرة.',
     exampleAr: 'وكيل البحث',
     tone: 'border-accent/40 bg-accent-soft text-accent-strong',
   },
   {
     id: 'orchestrator',
-    titleAr: 'منسّق (لا LLM)',
+    titleAr: 'منسّق (لا AI)',
     descAr:
       'كود thin يدير الـ pipeline: يطلق الـ AgentBus، يجدول الموجات، ويجمّع الـ outputs. هو الإطار، مو الذكاء.',
     exampleAr: 'project orchestrator + report',
@@ -68,8 +67,8 @@ export function EngineTaxonomy() {
         </h2>
         <div className="rule-accent mt-3 w-12" />
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
-          مو كل ايجنت يحتاج LLM. الذكي هو ضبط المحرّك حسب طبيعة الشغل: محادثة، استدعاء tools، بحث،
-          أو مجرد تنسيق. اللي تحت يفسّر كل نوع.
+          مو كل ايجنت يحتاج AI. الذكي هو ضبط المحرّك حسب طبيعة الشغل: محادثة، استدعاء أدوات، بحث، أو
+          مجرد تنسيق. اللي تحت يفسّر كل نوع.
         </p>
       </div>
 
@@ -84,7 +83,7 @@ export function EngineTaxonomy() {
                 {eng.titleAr}
               </span>
               <span className="font-mono text-[10px] tabular-nums text-muted" dir="ltr">
-                {eng.id}
+                {eng.id.replace('claude_', '')}
               </span>
             </div>
             <p className="text-sm leading-relaxed text-ink-2">{eng.descAr}</p>

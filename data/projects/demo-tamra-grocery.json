@@ -33,7 +33,10 @@
       "nameAr": "وزارة التجارة",
       "nameSimpleAr": "السجل التجاري",
       "explainAr": "السجل التجاري — الوثيقة الأم لأي نشاط، يُجدَّد سنوياً.",
-      "estimatedCostSar": { "min": 200, "max": 400 },
+      "estimatedCostSar": {
+        "min": 200,
+        "max": 400
+      },
       "estimatedTimeAr": "يوم واحد",
       "order": 1,
       "dependencies": [],
@@ -46,10 +49,15 @@
       "nameAr": "هيئة الزكاة والضريبة والجمارك",
       "nameSimpleAr": "التسجيل الضريبي",
       "explainAr": "تسجيل ضريبي إلزامي، VAT يصير إلزامياً عند تجاوز ٣٧٥ ألف ريال.",
-      "estimatedCostSar": { "min": 0, "max": 0 },
+      "estimatedCostSar": {
+        "min": 0,
+        "max": 0
+      },
       "estimatedTimeAr": "يوم واحد",
       "order": 2,
-      "dependencies": ["mci"],
+      "dependencies": [
+        "mci"
+      ],
       "renewalMonths": null,
       "renewalPeriodAr": "مستمر",
       "officialUrl": "https://zatca.gov.sa"
@@ -59,10 +67,15 @@
       "nameAr": "وزارة الموارد البشرية + التأمينات الاجتماعية",
       "nameSimpleAr": "ملف المنشأة + تأمينات",
       "explainAr": "ملف المنشأة + التأمينات الشهرية.",
-      "estimatedCostSar": { "min": 0, "max": 0 },
+      "estimatedCostSar": {
+        "min": 0,
+        "max": 0
+      },
       "estimatedTimeAr": "يوم واحد",
       "order": 3,
-      "dependencies": ["mci"],
+      "dependencies": [
+        "mci"
+      ],
       "renewalMonths": 1,
       "renewalPeriodAr": "شهري",
       "officialUrl": "https://www.hrsd.gov.sa"
@@ -72,10 +85,15 @@
       "nameAr": "الدفاع المدني",
       "nameSimpleAr": "شهادة السلامة",
       "explainAr": "طفايات + مخارج طوارئ + كواشف دخان.",
-      "estimatedCostSar": { "min": 200, "max": 700 },
+      "estimatedCostSar": {
+        "min": 200,
+        "max": 700
+      },
       "estimatedTimeAr": "٣ إلى ١٤ يوم",
       "order": 4,
-      "dependencies": ["mci"],
+      "dependencies": [
+        "mci"
+      ],
       "renewalMonths": 12,
       "renewalPeriodAr": "سنوي",
       "officialUrl": "https://www.998.gov.sa"
@@ -85,10 +103,15 @@
       "nameAr": "أمانة المنطقة (بلدي)",
       "nameSimpleAr": "رخصة بلدية (تجزئة غذائية)",
       "explainAr": "رخصة تشغيل البقالة.",
-      "estimatedCostSar": { "min": 500, "max": 2500 },
+      "estimatedCostSar": {
+        "min": 500,
+        "max": 2500
+      },
       "estimatedTimeAr": "٣ إلى ٧ أيام",
       "order": 5,
-      "dependencies": ["civil_defense"],
+      "dependencies": [
+        "civil_defense"
+      ],
       "renewalMonths": 12,
       "renewalPeriodAr": "سنوي",
       "officialUrl": "https://balady.gov.sa"
@@ -98,17 +121,26 @@
       "nameAr": "الهيئة العامة للغذاء والدواء",
       "nameSimpleAr": "ترخيص الغذاء (SFDA)",
       "explainAr": "ترخيص ضروري لبيع المواد الغذائية.",
-      "estimatedCostSar": { "min": 1000, "max": 3000 },
+      "estimatedCostSar": {
+        "min": 1000,
+        "max": 3000
+      },
       "estimatedTimeAr": "٧ إلى ١٤ يوم",
       "order": 6,
-      "dependencies": ["municipality"],
+      "dependencies": [
+        "municipality"
+      ],
       "renewalMonths": 12,
       "renewalPeriodAr": "سنوي",
       "officialUrl": "https://sfda.gov.sa"
     }
   ],
   "roadmap": [],
-  "costSummary": { "minSar": 1900, "maxSar": 6600, "itemCount": 6 },
+  "costSummary": {
+    "minSar": 1900,
+    "maxSar": 6600,
+    "itemCount": 6
+  },
   "topWarnings": [
     "ترخيص SFDA منتهي — ممنوع بيع المنتجات الغذائية حتى التجديد. هذا أكثر سبب لإغلاق البقالات.",
     "مخرج الطوارئ غير مستقل — مخالفة فورية مع الدفاع المدني.",
@@ -156,5 +188,203 @@
       "status": "soon",
       "officialUrl": "https://www.hrsd.gov.sa"
     }
-  ]
+  ],
+  "operationalReport": {
+    "gaps": [
+      {
+        "id": "op_sfda",
+        "severity": "critical",
+        "category": "sfda",
+        "titleAr": "ترخيص الغذاء والدواء (SFDA) — منتهية منذ 144 يوم",
+        "explanationAr": "ترخيص SFDA شرط للمنشآت الغذائية. انتهاؤه = إيقاف خدمة فوري حتى التجديد.",
+        "actionAr": "راجع هيئة الغذاء والدواء — sfda.gov.sa",
+        "daysUntilDeadline": -144,
+        "dueDate": "2025-12-15",
+        "officialUrl": "https://sfda.gov.sa",
+        "fineCeilingSar": 100000
+      },
+      {
+        "id": "op_civil_defense",
+        "severity": "critical",
+        "category": "civil_defense",
+        "titleAr": "شهادة السلامة (الدفاع المدني) — منتهية منذ 113 يوم",
+        "explanationAr": "الفحص السنوي للسلامة (الطفايات، مخارج الطوارئ، كواشف الدخان). غيابه = إغلاق فوري عند أي تفتيش.",
+        "actionAr": "احجز فحصاً عبر منصة سلامة — salamah.sa",
+        "daysUntilDeadline": -113,
+        "dueDate": "2026-01-15",
+        "officialUrl": "https://salamah.sa",
+        "fineCeilingSar": 30000
+      },
+      {
+        "id": "op_extinguishers_count",
+        "severity": "critical",
+        "category": "extinguishers",
+        "titleAr": "نقص في عدد طفايات الحريق",
+        "explanationAr": "عدد الطفايات الحالي 1 — الحد الأدنى الموصى به ٢ طفاية لكل محل صغير + إضافية قرب المطبخ أو لوحات الكهرباء.",
+        "actionAr": "أضف طفايات معتمدة (CO2 أو رذاذ كيميائي) قبل الفحص الميداني التالي",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "officialUrl": "https://www.998.gov.sa",
+        "fineCeilingSar": 5000
+      },
+      {
+        "id": "op_emergency_exit",
+        "severity": "critical",
+        "category": "extinguishers",
+        "titleAr": "مخرج الطوارئ غير مستقل",
+        "explanationAr": "الدفاع المدني يطلب مخرج طوارئ مستقل عن المدخل الرئيسي مع لوحة إرشادية مضاءة فوقه. غيابه أكثر سبب لإيقاف نشاط المحل.",
+        "actionAr": "استشر مهندس سلامة لتحديد مسار طوارئ مناسب لمساحة محلك",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "officialUrl": "https://www.998.gov.sa",
+        "fineCeilingSar": 30000
+      },
+      {
+        "id": "op_hygiene_certs",
+        "severity": "critical",
+        "category": "hygiene",
+        "titleAr": "شهادات صحية ناقصة للعاملين",
+        "explanationAr": "2 من أصل 4 موظف عنده شهادة صحية سارية — 2 موظف يحتاج تجديد. الشهادات الصحية إلزامية لمن يتعامل مع الغذاء أو البشرة.",
+        "actionAr": "سجّل الموظفين الناقصين في برنامج الشهادات الصحية عبر بلديتك",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "fineCeilingSar": 5000
+      },
+      {
+        "id": "op_cr_renewal",
+        "severity": "medium",
+        "category": "cr",
+        "titleAr": "السجل التجاري — منتهية منذ 169 يوم",
+        "explanationAr": "السجل التجاري يُجدَّد سنوياً. لو انتهى بدون تجديد، الحسابات البنكية والمعاملات الحكومية تتجمّد.",
+        "actionAr": "جدّد عبر بوابة وزارة التجارة — mc.gov.sa",
+        "daysUntilDeadline": -169,
+        "dueDate": "2025-11-20",
+        "officialUrl": "https://mc.gov.sa",
+        "fineCeilingSar": 10000
+      },
+      {
+        "id": "op_municipal_renewal",
+        "severity": "medium",
+        "category": "municipal",
+        "titleAr": "الرخصة البلدية — منتهية منذ 158 يوم",
+        "explanationAr": "رخصة البلدية (رخصة النشاط من منصة بلدي) سنوية. انتهاؤها يوقف الخدمات ويعرّض المحل للإغلاق.",
+        "actionAr": "جدّد عبر منصة بلدي — balady.gov.sa",
+        "daysUntilDeadline": -158,
+        "dueDate": "2025-12-01",
+        "officialUrl": "https://balady.gov.sa",
+        "fineCeilingSar": 5000
+      },
+      {
+        "id": "op_refrigeration_service",
+        "severity": "medium",
+        "category": "refrigeration",
+        "titleAr": "صيانة المبردات متأخرة",
+        "explanationAr": "آخر صيانة دورية للمبردات قبل 21 شهراً — اضطراب التبريد يفسد المنتجات وقد يسبب تلوّثاً غذائياً.",
+        "actionAr": "احجز صيانة دورية للمبردات + مراقبة درجة الحرارة (≤4°م)",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "fineCeilingSar": 5000
+      }
+    ],
+    "overdue": [
+      {
+        "id": "op_sfda",
+        "severity": "critical",
+        "category": "sfda",
+        "titleAr": "ترخيص الغذاء والدواء (SFDA) — منتهية منذ 144 يوم",
+        "explanationAr": "ترخيص SFDA شرط للمنشآت الغذائية. انتهاؤه = إيقاف خدمة فوري حتى التجديد.",
+        "actionAr": "راجع هيئة الغذاء والدواء — sfda.gov.sa",
+        "daysUntilDeadline": -144,
+        "dueDate": "2025-12-15",
+        "officialUrl": "https://sfda.gov.sa",
+        "fineCeilingSar": 100000
+      },
+      {
+        "id": "op_civil_defense",
+        "severity": "critical",
+        "category": "civil_defense",
+        "titleAr": "شهادة السلامة (الدفاع المدني) — منتهية منذ 113 يوم",
+        "explanationAr": "الفحص السنوي للسلامة (الطفايات، مخارج الطوارئ، كواشف الدخان). غيابه = إغلاق فوري عند أي تفتيش.",
+        "actionAr": "احجز فحصاً عبر منصة سلامة — salamah.sa",
+        "daysUntilDeadline": -113,
+        "dueDate": "2026-01-15",
+        "officialUrl": "https://salamah.sa",
+        "fineCeilingSar": 30000
+      },
+      {
+        "id": "op_cr_renewal",
+        "severity": "medium",
+        "category": "cr",
+        "titleAr": "السجل التجاري — منتهية منذ 169 يوم",
+        "explanationAr": "السجل التجاري يُجدَّد سنوياً. لو انتهى بدون تجديد، الحسابات البنكية والمعاملات الحكومية تتجمّد.",
+        "actionAr": "جدّد عبر بوابة وزارة التجارة — mc.gov.sa",
+        "daysUntilDeadline": -169,
+        "dueDate": "2025-11-20",
+        "officialUrl": "https://mc.gov.sa",
+        "fineCeilingSar": 10000
+      },
+      {
+        "id": "op_municipal_renewal",
+        "severity": "medium",
+        "category": "municipal",
+        "titleAr": "الرخصة البلدية — منتهية منذ 158 يوم",
+        "explanationAr": "رخصة البلدية (رخصة النشاط من منصة بلدي) سنوية. انتهاؤها يوقف الخدمات ويعرّض المحل للإغلاق.",
+        "actionAr": "جدّد عبر منصة بلدي — balady.gov.sa",
+        "daysUntilDeadline": -158,
+        "dueDate": "2025-12-01",
+        "officialUrl": "https://balady.gov.sa",
+        "fineCeilingSar": 5000
+      }
+    ],
+    "upcomingRenewals": [
+      {
+        "id": "op_extinguishers_count",
+        "severity": "critical",
+        "category": "extinguishers",
+        "titleAr": "نقص في عدد طفايات الحريق",
+        "explanationAr": "عدد الطفايات الحالي 1 — الحد الأدنى الموصى به ٢ طفاية لكل محل صغير + إضافية قرب المطبخ أو لوحات الكهرباء.",
+        "actionAr": "أضف طفايات معتمدة (CO2 أو رذاذ كيميائي) قبل الفحص الميداني التالي",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "officialUrl": "https://www.998.gov.sa",
+        "fineCeilingSar": 5000
+      },
+      {
+        "id": "op_emergency_exit",
+        "severity": "critical",
+        "category": "extinguishers",
+        "titleAr": "مخرج الطوارئ غير مستقل",
+        "explanationAr": "الدفاع المدني يطلب مخرج طوارئ مستقل عن المدخل الرئيسي مع لوحة إرشادية مضاءة فوقه. غيابه أكثر سبب لإيقاف نشاط المحل.",
+        "actionAr": "استشر مهندس سلامة لتحديد مسار طوارئ مناسب لمساحة محلك",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "officialUrl": "https://www.998.gov.sa",
+        "fineCeilingSar": 30000
+      },
+      {
+        "id": "op_hygiene_certs",
+        "severity": "critical",
+        "category": "hygiene",
+        "titleAr": "شهادات صحية ناقصة للعاملين",
+        "explanationAr": "2 من أصل 4 موظف عنده شهادة صحية سارية — 2 موظف يحتاج تجديد. الشهادات الصحية إلزامية لمن يتعامل مع الغذاء أو البشرة.",
+        "actionAr": "سجّل الموظفين الناقصين في برنامج الشهادات الصحية عبر بلديتك",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "fineCeilingSar": 5000
+      },
+      {
+        "id": "op_refrigeration_service",
+        "severity": "medium",
+        "category": "refrigeration",
+        "titleAr": "صيانة المبردات متأخرة",
+        "explanationAr": "آخر صيانة دورية للمبردات قبل 21 شهراً — اضطراب التبريد يفسد المنتجات وقد يسبب تلوّثاً غذائياً.",
+        "actionAr": "احجز صيانة دورية للمبردات + مراقبة درجة الحرارة (≤4°م)",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "fineCeilingSar": 5000
+      }
+    ],
+    "healthScore": 0,
+    "computedAt": "2026-05-08T16:25:02.774Z"
+  }
 }

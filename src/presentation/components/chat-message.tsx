@@ -140,7 +140,7 @@ export function AgentTyping() {
             />
           </div>
           <span className="font-mono text-[11px] uppercase tracking-widest text-muted">
-            Claude يفكّر…
+            الايجنت يفكّر…
           </span>
         </div>
       </div>

@@ -30,11 +30,11 @@ export function AgentsCatalogPage() {
         <h1 className="mt-3 font-display text-4xl font-extrabold leading-[1.1] tracking-tighter md:text-6xl">
           {AGENTS_CATALOG.length} وكيل
           <br />
-          <span className="text-accent">{claudePoweredCount} منهم Claude AI</span>
+          <span className="text-accent">{claudePoweredCount} منهم بـ AI</span>
         </h1>
         <div className="rule-accent mt-6 w-16" />
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-2">
-          درع مبني على Anthropic Claude SDK — كل ايجنت من المتخصّصين السبعة + analysis يستدعي tools
+          درع نظام متعدد الايجنتات — كل ايجنت من المتخصّصين السبعة + analysis يستدعي أدوات
           deterministic للحقائق ثم يصيغ المخرج. باقي الوكلاء (orchestrator + report) كود تنسيق. الكل
           يتواصلون عبر <span className="font-bold">AgentBus</span> بـ A2A messages.
         </p>
@@ -42,9 +42,9 @@ export function AgentsCatalogPage() {
 
       <section className="mb-16 grid grid-cols-1 gap-0 border border-rule bg-white sm:grid-cols-4">
         <Stat label="إجمالي الوكلاء" value={AGENTS_CATALOG.length.toString()} />
-        <Stat label="ايجنت Claude" value={claudePoweredCount.toString()} />
+        <Stat label="ايجنت بـ AI" value={claudePoweredCount.toString()} />
         <Stat label="منسّقين" value={(AGENTS_CATALOG.length - claudePoweredCount).toString()} />
-        <Stat label="Tools متاحة" value={totalTools.toString()} last />
+        <Stat label="أدوات متاحة" value={totalTools.toString()} last />
       </section>
 
       <SystemDiagram />

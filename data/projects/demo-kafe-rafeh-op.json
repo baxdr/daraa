@@ -33,7 +33,10 @@
       "nameAr": "وزارة التجارة",
       "nameSimpleAr": "السجل التجاري",
       "explainAr": "السجل التجاري — الوثيقة الأم لأي نشاط، يُجدَّد سنوياً. عدم تجديده يوقف باقي الخدمات الحكومية.",
-      "estimatedCostSar": { "min": 200, "max": 400 },
+      "estimatedCostSar": {
+        "min": 200,
+        "max": 400
+      },
       "estimatedTimeAr": "يوم واحد (إلكتروني عبر منصة الأعمال)",
       "order": 1,
       "dependencies": [],
@@ -46,10 +49,15 @@
       "nameAr": "هيئة الزكاة والضريبة والجمارك",
       "nameSimpleAr": "التسجيل الضريبي",
       "explainAr": "كل محل تجاري يلزمه تسجيل ضريبي في ZATCA. ضريبة القيمة المضافة (VAT) تصير إلزامية عند تجاوز ٣٧٥ ألف ريال إيراد سنوي.",
-      "estimatedCostSar": { "min": 0, "max": 0 },
+      "estimatedCostSar": {
+        "min": 0,
+        "max": 0
+      },
       "estimatedTimeAr": "يوم واحد (إلكتروني)",
       "order": 2,
-      "dependencies": ["mci"],
+      "dependencies": [
+        "mci"
+      ],
       "renewalMonths": null,
       "renewalPeriodAr": "مستمر",
       "officialUrl": "https://zatca.gov.sa"
@@ -59,10 +67,15 @@
       "nameAr": "وزارة الموارد البشرية + التأمينات الاجتماعية",
       "nameSimpleAr": "ملف المنشأة + تأمينات",
       "explainAr": "فتح ملف منشأة لتوظيف موظفين + اشتراك التأمينات الشهري لكل موظف.",
-      "estimatedCostSar": { "min": 0, "max": 0 },
+      "estimatedCostSar": {
+        "min": 0,
+        "max": 0
+      },
       "estimatedTimeAr": "يوم واحد (إلكتروني لكل الخطوتين)",
       "order": 3,
-      "dependencies": ["mci"],
+      "dependencies": [
+        "mci"
+      ],
       "renewalMonths": 1,
       "renewalPeriodAr": "شهري",
       "officialUrl": "https://www.hrsd.gov.sa"
@@ -72,10 +85,15 @@
       "nameAr": "الدفاع المدني",
       "nameSimpleAr": "شهادة السلامة",
       "explainAr": "تتأكد من وجود طفايات حريق + مخارج طوارئ + كواشف دخان. تُجدَّد سنوياً.",
-      "estimatedCostSar": { "min": 200, "max": 1000 },
+      "estimatedCostSar": {
+        "min": 200,
+        "max": 1000
+      },
       "estimatedTimeAr": "٣ إلى ١٤ يوم (يحتاج زيارة ميدانية)",
       "order": 4,
-      "dependencies": ["mci"],
+      "dependencies": [
+        "mci"
+      ],
       "renewalMonths": 12,
       "renewalPeriodAr": "سنوي",
       "officialUrl": "https://www.998.gov.sa"
@@ -85,10 +103,15 @@
       "nameAr": "أمانة المنطقة (بلدي)",
       "nameSimpleAr": "رخصة بلدية (نشاط غذائي)",
       "explainAr": "الرخصة اللي تسمح لك تشغّل المحل في الموقع. بدونها لا يحق التشغيل.",
-      "estimatedCostSar": { "min": 500, "max": 3000 },
+      "estimatedCostSar": {
+        "min": 500,
+        "max": 3000
+      },
       "estimatedTimeAr": "٣ إلى ٧ أيام",
       "order": 5,
-      "dependencies": ["civil_defense"],
+      "dependencies": [
+        "civil_defense"
+      ],
       "renewalMonths": 12,
       "renewalPeriodAr": "سنوي",
       "officialUrl": "https://balady.gov.sa"
@@ -98,17 +121,26 @@
       "nameAr": "الهيئة العامة للغذاء والدواء",
       "nameSimpleAr": "ترخيص الغذاء (SFDA)",
       "explainAr": "التجديد السنوي للـ SFDA يتطلب فحص ميداني للمنشأة + تحديث الشهادات الصحية.",
-      "estimatedCostSar": { "min": 1000, "max": 3000 },
+      "estimatedCostSar": {
+        "min": 1000,
+        "max": 3000
+      },
       "estimatedTimeAr": "تجديد سنوي — ابدأ قبل الانتهاء بشهر",
       "order": 6,
-      "dependencies": ["municipality"],
+      "dependencies": [
+        "municipality"
+      ],
       "renewalMonths": 12,
       "renewalPeriodAr": "سنوي",
       "officialUrl": "https://sfda.gov.sa"
     }
   ],
   "roadmap": [],
-  "costSummary": { "minSar": 1900, "maxSar": 7400, "itemCount": 6 },
+  "costSummary": {
+    "minSar": 1900,
+    "maxSar": 7400,
+    "itemCount": 6
+  },
   "topWarnings": [],
   "regulatoryUpdates": [
     {
@@ -159,5 +191,175 @@
       "status": "soon",
       "officialUrl": "https://www.hrsd.gov.sa"
     }
-  ]
+  ],
+  "operationalReport": {
+    "gaps": [
+      {
+        "id": "op_sfda",
+        "severity": "critical",
+        "category": "sfda",
+        "titleAr": "ترخيص الغذاء والدواء (SFDA) — منتهية منذ 4 يوم",
+        "explanationAr": "ترخيص SFDA شرط للمنشآت الغذائية. انتهاؤه = إيقاف خدمة فوري حتى التجديد.",
+        "actionAr": "راجع هيئة الغذاء والدواء — sfda.gov.sa",
+        "daysUntilDeadline": -4,
+        "dueDate": "2026-05-04",
+        "officialUrl": "https://sfda.gov.sa",
+        "fineCeilingSar": 100000
+      },
+      {
+        "id": "op_hygiene_certs",
+        "severity": "critical",
+        "category": "hygiene",
+        "titleAr": "شهادات صحية ناقصة للعاملين",
+        "explanationAr": "4 من أصل 5 موظف عنده شهادة صحية سارية — 1 موظف يحتاج تجديد. الشهادات الصحية إلزامية لمن يتعامل مع الغذاء أو البشرة.",
+        "actionAr": "سجّل الموظفين الناقصين في برنامج الشهادات الصحية عبر بلديتك",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "fineCeilingSar": 5000
+      },
+      {
+        "id": "op_extinguishers_check",
+        "severity": "medium",
+        "category": "extinguishers",
+        "titleAr": "فحص الطفايات الدوري متأخر",
+        "explanationAr": "آخر فحص للطفايات قبل 8 شهراً — الفحص الدوري مطلوب كل 6 أشهر بالحد الأقصى.",
+        "actionAr": "تواصل مع شركة معتمدة لإجراء فحص دوري للطفايات",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "fineCeilingSar": 2000
+      },
+      {
+        "id": "op_cr_renewal",
+        "severity": "medium",
+        "category": "cr",
+        "titleAr": "السجل التجاري — يُجدَّد خلال 1 يوم",
+        "explanationAr": "السجل التجاري يُجدَّد سنوياً. لو انتهى بدون تجديد، الحسابات البنكية والمعاملات الحكومية تتجمّد.",
+        "actionAr": "جدّد عبر بوابة وزارة التجارة — mc.gov.sa",
+        "daysUntilDeadline": 1,
+        "dueDate": "2026-05-09",
+        "officialUrl": "https://mc.gov.sa",
+        "fineCeilingSar": 10000
+      },
+      {
+        "id": "op_municipal_renewal",
+        "severity": "medium",
+        "category": "municipal",
+        "titleAr": "الرخصة البلدية — يُجدَّد خلال 11 يوم",
+        "explanationAr": "رخصة البلدية (رخصة النشاط من منصة بلدي) سنوية. انتهاؤها يوقف الخدمات ويعرّض المحل للإغلاق.",
+        "actionAr": "جدّد عبر منصة بلدي — balady.gov.sa",
+        "daysUntilDeadline": 11,
+        "dueDate": "2026-05-19",
+        "officialUrl": "https://balady.gov.sa",
+        "fineCeilingSar": 5000
+      },
+      {
+        "id": "op_civil_defense",
+        "severity": "medium",
+        "category": "civil_defense",
+        "titleAr": "شهادة السلامة (الدفاع المدني) — يُجدَّد خلال 31 يوم",
+        "explanationAr": "الفحص السنوي للسلامة (الطفايات، مخارج الطوارئ، كواشف الدخان). غيابه = إغلاق فوري عند أي تفتيش.",
+        "actionAr": "احجز فحصاً عبر منصة سلامة — salamah.sa",
+        "daysUntilDeadline": 31,
+        "dueDate": "2026-06-08",
+        "officialUrl": "https://salamah.sa",
+        "fineCeilingSar": 30000
+      },
+      {
+        "id": "op_lease_notice",
+        "severity": "medium",
+        "category": "lease",
+        "titleAr": "عقد الإيجار ينتهي خلال 36 يوم",
+        "explanationAr": "اقترب موعد انتهاء العقد. ابدأ التفاوض مبكراً لتفادي إغلاق مؤقت.",
+        "actionAr": "راجع المالك لتمديد العقد قبل أي جولة تجديد لرخصة البلدية",
+        "daysUntilDeadline": 36,
+        "dueDate": "2026-06-13"
+      }
+    ],
+    "overdue": [
+      {
+        "id": "op_sfda",
+        "severity": "critical",
+        "category": "sfda",
+        "titleAr": "ترخيص الغذاء والدواء (SFDA) — منتهية منذ 4 يوم",
+        "explanationAr": "ترخيص SFDA شرط للمنشآت الغذائية. انتهاؤه = إيقاف خدمة فوري حتى التجديد.",
+        "actionAr": "راجع هيئة الغذاء والدواء — sfda.gov.sa",
+        "daysUntilDeadline": -4,
+        "dueDate": "2026-05-04",
+        "officialUrl": "https://sfda.gov.sa",
+        "fineCeilingSar": 100000
+      }
+    ],
+    "upcomingRenewals": [
+      {
+        "id": "op_hygiene_certs",
+        "severity": "critical",
+        "category": "hygiene",
+        "titleAr": "شهادات صحية ناقصة للعاملين",
+        "explanationAr": "4 من أصل 5 موظف عنده شهادة صحية سارية — 1 موظف يحتاج تجديد. الشهادات الصحية إلزامية لمن يتعامل مع الغذاء أو البشرة.",
+        "actionAr": "سجّل الموظفين الناقصين في برنامج الشهادات الصحية عبر بلديتك",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "fineCeilingSar": 5000
+      },
+      {
+        "id": "op_extinguishers_check",
+        "severity": "medium",
+        "category": "extinguishers",
+        "titleAr": "فحص الطفايات الدوري متأخر",
+        "explanationAr": "آخر فحص للطفايات قبل 8 شهراً — الفحص الدوري مطلوب كل 6 أشهر بالحد الأقصى.",
+        "actionAr": "تواصل مع شركة معتمدة لإجراء فحص دوري للطفايات",
+        "daysUntilDeadline": 0,
+        "dueDate": "",
+        "fineCeilingSar": 2000
+      },
+      {
+        "id": "op_cr_renewal",
+        "severity": "medium",
+        "category": "cr",
+        "titleAr": "السجل التجاري — يُجدَّد خلال 1 يوم",
+        "explanationAr": "السجل التجاري يُجدَّد سنوياً. لو انتهى بدون تجديد، الحسابات البنكية والمعاملات الحكومية تتجمّد.",
+        "actionAr": "جدّد عبر بوابة وزارة التجارة — mc.gov.sa",
+        "daysUntilDeadline": 1,
+        "dueDate": "2026-05-09",
+        "officialUrl": "https://mc.gov.sa",
+        "fineCeilingSar": 10000
+      },
+      {
+        "id": "op_municipal_renewal",
+        "severity": "medium",
+        "category": "municipal",
+        "titleAr": "الرخصة البلدية — يُجدَّد خلال 11 يوم",
+        "explanationAr": "رخصة البلدية (رخصة النشاط من منصة بلدي) سنوية. انتهاؤها يوقف الخدمات ويعرّض المحل للإغلاق.",
+        "actionAr": "جدّد عبر منصة بلدي — balady.gov.sa",
+        "daysUntilDeadline": 11,
+        "dueDate": "2026-05-19",
+        "officialUrl": "https://balady.gov.sa",
+        "fineCeilingSar": 5000
+      },
+      {
+        "id": "op_civil_defense",
+        "severity": "medium",
+        "category": "civil_defense",
+        "titleAr": "شهادة السلامة (الدفاع المدني) — يُجدَّد خلال 31 يوم",
+        "explanationAr": "الفحص السنوي للسلامة (الطفايات، مخارج الطوارئ، كواشف الدخان). غيابه = إغلاق فوري عند أي تفتيش.",
+        "actionAr": "احجز فحصاً عبر منصة سلامة — salamah.sa",
+        "daysUntilDeadline": 31,
+        "dueDate": "2026-06-08",
+        "officialUrl": "https://salamah.sa",
+        "fineCeilingSar": 30000
+      },
+      {
+        "id": "op_lease_notice",
+        "severity": "medium",
+        "category": "lease",
+        "titleAr": "عقد الإيجار ينتهي خلال 36 يوم",
+        "explanationAr": "اقترب موعد انتهاء العقد. ابدأ التفاوض مبكراً لتفادي إغلاق مؤقت.",
+        "actionAr": "راجع المالك لتمديد العقد قبل أي جولة تجديد لرخصة البلدية",
+        "daysUntilDeadline": 36,
+        "dueDate": "2026-06-13"
+      }
+    ],
+    "healthScore": 0,
+    "computedAt": "2026-05-08T16:25:02.773Z"
+  }
 }

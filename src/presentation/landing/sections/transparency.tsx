@@ -26,15 +26,15 @@ export function Transparency() {
           </p>
           <ul className="mt-5 space-y-3">
             <BulletPoint>
-              كل tool استدعاه Claude مع الـ{' '}
+              كل أداة استدعاها الايجنت مع الـ{' '}
               <code className="font-mono text-[11px]" dir="ltr">
                 input → output
               </code>
             </BulletPoint>
-            <BulletPoint>عدد الـ rounds + tokens المستهلكة (input/output)</BulletPoint>
+            <BulletPoint>عدد الجولات + tokens المستهلكة</BulletPoint>
             <BulletPoint>الـ latency بالملي‌ثانية لكل استدعاء</BulletPoint>
-            <BulletPoint>متى استخدم الـ fallback deterministic ولماذا</BulletPoint>
-            <BulletPoint>النص النهائي اللي رجّعه Claude — حرفياً</BulletPoint>
+            <BulletPoint>متى استخدم المسار الـ deterministic ولماذا</BulletPoint>
+            <BulletPoint>المخرج النهائي للايجنت — حرفياً</BulletPoint>
           </ul>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link href="/project/demo-kafe-rafeh-op" className="btn-ink text-sm">
@@ -74,7 +74,7 @@ function FullTraceCardMock() {
             municipality
           </span>
           <span className="pill border border-accent/40 bg-accent-soft text-[10px] font-bold tracking-widest text-accent-strong">
-            Claude — حيّ
+            حيّ
           </span>
         </div>
         <div className="flex items-center gap-3 text-[11px] text-muted" dir="ltr">
@@ -125,7 +125,7 @@ function FullTraceCardMock() {
 
       {/* Final text preview */}
       <div className="border-t border-rule bg-paper-2/40 p-4 md:p-5">
-        <div className="eyebrow !text-[10px]">النص النهائي من Claude</div>
+        <div className="eyebrow !text-[10px]">المخرج النهائي للايجنت</div>
         <pre
           className="mt-2 max-h-24 overflow-hidden whitespace-pre-wrap break-words font-mono text-[10px] leading-relaxed text-ink-2"
           dir="ltr"

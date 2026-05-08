@@ -85,7 +85,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       wave: 0,
       inputs: ['نص المستخدم الحرّ', 'currentQuestion من ChatSession'],
       outputs: [
-        'يطلب من Claude تحويل النص → جواب structured',
+        'يطلب من نموذج AI تحويل النص → جواب structured',
         'يحقق صلاحيته عبر validators.ts (date/number/url)',
         'يختار السؤال التالي عبر flow.ts (مع conditional skips)',
       ],
@@ -119,7 +119,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
     layer: 'coordination',
     group: 'analysis',
     roleAr:
-      'هجين: قواعد deterministic لكشف الفجوات + Claude لقراءة الصورة الكاملة وكتابة سرد عربي + ٣ أولويات.',
+      'هجين: قواعد deterministic لكشف الفجوات + ايجنت ذكاء اصطناعي لقراءة الصورة الكاملة وكتابة سرد عربي + ٣ أولويات.',
     outputsAr: ['نسبة صحة الرخص %', 'فجوات مرتّبة بالأولوية', 'سرد AI + ٣ أولويات هذا الأسبوع'],
     engine: 'claude_llm',
     sourcePath: 'src/agents/operational-analysis/narrator.ts',
@@ -128,7 +128,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       inputs: ['إجابات chat (op3-op10)', 'تاريخ اليوم', 'vertical'],
       outputs: [
         'rule engine: ~10 قواعد تنتج OperationalReport (gaps + overdue + upcoming + healthScore)',
-        'Claude narrator: list_gaps + get_gap_details tools → سرد عربي + priorityActions',
+        'AI narrator: list_gaps + get_gap_details tools → سرد عربي + priorityActions',
       ],
       tools: ['list_gaps', 'get_gap_details'],
     },
@@ -170,7 +170,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       dependsOn: [],
       notifies: ['zatca', 'mohr_gosi', 'civil_defense'],
       outputs: [
-        'Claude tool loop: get_shop_summary + check_renewal_urgency → EntityInfo',
+        'tool loop: get_shop_summary + check_renewal_urgency → EntityInfo',
         'يبثّ `crReady: true` لكل الـ ALL → يفتح الباب لباقي الوكلاء',
       ],
       tools: ['get_shop_summary', 'check_renewal_urgency'],
@@ -192,7 +192,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       dependsOn: ['mci'],
       notifies: ['municipality'],
       outputs: [
-        'Claude tool loop: list_safety_requirements + calculate_extinguisher_count + estimate_safety_cost',
+        'tool loop: list_safety_requirements + calculate_extinguisher_count + estimate_safety_cost',
         'يمرّر `hasKitchen` + `safetyCertReady` لـ municipality في outbox',
       ],
       tools: [
@@ -218,7 +218,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       dependsOn: ['civil_defense'],
       notifies: ['sfda', 'moh'],
       outputs: [
-        'Claude tool loop: get_balady_licence_label + estimate_balady_cost',
+        'tool loop: get_balady_licence_label + estimate_balady_cost',
         'لو فيه مطبخ → يضيف ترخيص مطبخ تجاري',
         'لو nitaqat أحمر → critical warning + قيود',
       ],
@@ -241,7 +241,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       dependsOn: ['municipality'],
       notifies: ['mohr_gosi'],
       outputs: [
-        'Claude tool loop: list_food_safety_requirements (HACCP إذا hasKitchen)',
+        'tool loop: list_food_safety_requirements (HACCP إذا hasKitchen)',
         'يطلب شهادات صحية للعاملين الغذائيين من mohr_gosi',
       ],
       tools: ['get_shop_summary', 'list_food_safety_requirements'],
@@ -262,7 +262,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       dependsOn: ['municipality'],
       notifies: ['mohr_gosi'],
       outputs: [
-        'Claude tool loop: list_health_requirements (vertical-aware)',
+        'tool loop: list_health_requirements (vertical-aware)',
         'يطلب شهادات صحية من mohr_gosi عبر outbox',
       ],
       tools: ['get_shop_summary', 'list_health_requirements'],
@@ -284,7 +284,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       dependsOn: ['mci'],
       notifies: ['municipality', 'mci'],
       outputs: [
-        'Claude tool loop: estimate_nitaqat_zone (≥50 = أحمر، ≥10 = أصفر)',
+        'tool loop: estimate_nitaqat_zone (≥50 = أحمر، ≥10 = أصفر)',
         'لو أحمر → warning لـ municipality + mci بأن الخدمات تتقيّد',
       ],
       tools: ['get_shop_summary', 'estimate_nitaqat_zone'],
@@ -305,7 +305,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       inputs: ['inbox: mci.crReady', 'inbox: research updates عن VAT'],
       dependsOn: ['mci'],
       outputs: [
-        'Claude tool loop: check_vat_threshold (375K SAR)',
+        'tool loop: check_vat_threshold (375K SAR)',
         'يدمج research updates في commonMistake field',
       ],
       tools: ['get_shop_summary', 'check_vat_threshold'],
@@ -327,10 +327,10 @@ export const AGENT_GROUP_LABEL: Record<AgentCardData['group'], string> = {
 
 export const ENGINE_LABEL: Record<AgentEngine, string> = {
   orchestrator: 'منسّق الـ pipeline',
-  claude_llm: 'Claude — محادثة',
-  claude_llm_tools: 'Claude + tool use',
-  claude_web_search: 'Claude + web_search',
-  deterministic: 'دالة حتمية (no LLM)',
+  claude_llm: 'ذكاء اصطناعي · محادثة',
+  claude_llm_tools: 'ذكاء اصطناعي + أدوات',
+  claude_web_search: 'بحث ذكي عبر الويب',
+  deterministic: 'دالة حتمية (no AI)',
   inbox_driven: 'inbox-driven (AgentBus)',
 };
 

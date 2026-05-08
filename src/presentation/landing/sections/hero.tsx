@@ -16,7 +16,7 @@ export function Hero() {
         <div className="md:col-span-7">
           <div className="mb-5 inline-flex animate-fade-rise items-center gap-2 border border-accent/30 bg-accent-soft px-3 py-1.5 text-[10px] font-bold tracking-widest text-accent-strong">
             <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
-            ١٠ ايجنتات Claude AI · يشتغلون الآن لمحلك
+            ١٠ ايجنتات ذكاء اصطناعي · يشتغلون الآن لمحلك
           </div>
 
           <h1 className="font-display text-5xl font-extrabold leading-[1.05] tracking-tighter text-ink md:text-6xl lg:text-7xl">
@@ -32,9 +32,9 @@ export function Hero() {
           <div className="mt-8 max-w-xl animate-fade-rise" style={{ animationDelay: '320ms' }}>
             <div className="rule-accent mb-5 w-16" />
             <p className="text-lg leading-relaxed text-ink-2 md:text-xl">
-              <span className="font-bold">١٠ ايجنتات Claude</span> يتقاسمون فحص محلك — كل واحد
-              متخصّص في جهة (التجارة، البلدية، الدفاع المدني، SFDA…) ويستدعي tools deterministic
-              للحقائق ثم يكتب تفسيراً عربياً واضحاً.
+              <span className="font-bold">١٠ ايجنتات ذكاء اصطناعي</span> يتقاسمون فحص محلك — كل واحد
+              متخصّص في جهة (التجارة، البلدية، الدفاع المدني، SFDA…) ويستدعي أدوات للحقائق ثم يكتب
+              تفسيراً عربياً واضحاً.
             </p>
           </div>
 
@@ -84,7 +84,7 @@ function TraceMiniPreview() {
           </span>
         </div>
         <span className="font-mono text-[10px] tabular-nums text-muted" dir="ltr">
-          claude_llm_tools
+          agent + tools
         </span>
       </div>
 
@@ -93,7 +93,7 @@ function TraceMiniPreview() {
         <div className="flex items-center justify-between">
           <span className="font-display text-sm font-extrabold text-ink">متخصّص الدفاع المدني</span>
           <span className="pill border border-accent/40 bg-accent-soft text-[9px] font-bold tracking-widest text-accent-strong">
-            Claude — حيّ
+            حيّ
           </span>
         </div>
         <div className="mt-1 font-mono text-[10px] text-muted" dir="ltr">

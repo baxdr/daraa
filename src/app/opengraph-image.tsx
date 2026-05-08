@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'درع — ١٠ ايجنتات Claude AI تتابع رخص محلك';
+export const alt = 'درع — ١٠ ايجنتات ذكاء اصطناعي تتابع رخص محلك';
 export const contentType = 'image/png';
 export const size = { width: 1200, height: 630 };
 
@@ -91,7 +91,7 @@ export default function OGImage() {
             direction: 'rtl',
           }}
         >
-          ١٠ ايجنتات Claude AI تفحص محلك وترسل تذكيرات قبل كل تجديد.
+          ١٠ ايجنتات ذكاء اصطناعي تفحص محلك وترسل تذكيرات قبل كل تجديد.
         </div>
       </div>
 
