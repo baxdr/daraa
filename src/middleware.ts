@@ -16,9 +16,12 @@ import type { Database } from '@/types/supabase';
 // anonymous-only mode: every request is treated as a public visitor and
 // no auth gate is enforced. Useful for FS-backed demos and the
 // hackathon deploy path.
-const SUPABASE_URL = process.env['NEXT_PUBLIC_SUPABASE_URL'];
-const SUPABASE_ANON_KEY = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
-const SUPABASE_ENABLED = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+function readSupabaseConfig(): { url: string; key: string } | null {
+  const url = process.env['NEXT_PUBLIC_SUPABASE_URL'];
+  const key = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
+  if (!url || !key) return null;
+  return { url, key };
+}
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = new Set([
@@ -51,11 +54,12 @@ export async function middleware(req: NextRequest) {
 
   // Anonymous-only mode: no auth, every route public. Critical for
   // hackathon demos where Supabase isn't wired.
-  if (!SUPABASE_ENABLED) {
+  const supabaseConfig = readSupabaseConfig();
+  if (!supabaseConfig) {
     return res;
   }
 
-  const supabase = createServerClient<Database>(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
+  const supabase = createServerClient<Database>(supabaseConfig.url, supabaseConfig.key, {
     cookies: {
       getAll() {
         return req.cookies.getAll();

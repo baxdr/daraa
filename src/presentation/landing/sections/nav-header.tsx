@@ -14,15 +14,27 @@ export function NavHeader() {
             </div>
           </div>
         </div>
-        <nav className="hidden gap-6 text-sm text-ink-2 md:flex">
+        <nav className="hidden items-center gap-6 text-sm text-ink-2 md:flex">
           <a href="#how" className="hover:text-ink">
             كيف يشتغل
           </a>
           <a href="#scenarios" className="hover:text-ink">
             السيناريوهات
           </a>
+          <Link href="/agents" className="hover:text-ink">
+            الوكلاء
+          </Link>
+          <Link href="/knowledge" className="hover:text-ink">
+            قاعدة المعرفة
+          </Link>
           <Link href="/return" className="hover:text-ink">
             مشاريعي
+          </Link>
+          <Link
+            href="/auth/login"
+            className="border border-ink px-3 py-1.5 text-xs font-bold tracking-wide text-ink hover:bg-ink hover:text-paper"
+          >
+            دخول
           </Link>
         </nav>
       </header>
