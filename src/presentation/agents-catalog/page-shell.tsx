@@ -86,7 +86,7 @@ export function AgentsCatalogPage() {
           نتائج فحص.
         </p>
         <Link href="/chat" className="btn-ink mt-6 inline-flex text-sm">
-          ابدأ ديمو حيّ
+          ابدأ تجربتك
           <span aria-hidden className="ms-2">
             ←
           </span>

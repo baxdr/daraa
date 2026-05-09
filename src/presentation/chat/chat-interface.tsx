@@ -125,7 +125,7 @@ export function ChatInterface() {
 
         {done && <AgentLaunchTeaser />}
 
-        <p className="mt-3 text-xs text-muted">أداة استرشادية — لا تغني عن الاستشارة القانونية.</p>
+        <p className="mt-3 text-xs text-muted">مبني على الأنظمة الرسمية للجهات السعودية.</p>
       </footer>
     </div>
   );

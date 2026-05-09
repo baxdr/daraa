@@ -75,30 +75,22 @@ export default async function LoginPage() {
 function DemoModeNotice() {
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-6 py-20 text-center">
-      <span className="eyebrow">وضع الديمو</span>
-      <h1 className="mt-4 font-display text-3xl font-extrabold tracking-tight">
-        تسجيل الدخول قريباً
-      </h1>
+      <span className="eyebrow">ابدأ معنا</span>
+      <h1 className="mt-4 font-display text-3xl font-extrabold tracking-tight">أهلاً بك في درع</h1>
       <p className="mt-4 text-sm leading-relaxed text-ink-2">
-        المنصة تعمل حالياً في <span className="font-semibold">وضع الديمو</span> — كل المشاريع تُحفظ
-        على هذا الجهاز بدون حساب. عند تشغيل النسخة الإنتاجية ستتمكّن من تسجيل الدخول وحفظ مشاريعك في
-        حسابك الخاص ومشاركتها.
+        ابدأ استشارتك مباشرة — مشروعك يُحفظ تلقائياً في متصفحك حتى تربطه بحسابك لاحقاً.
       </p>
       <div className="mt-8 flex gap-3">
         <Link href="/" className="btn-outline">
           العودة للرئيسية
         </Link>
         <Link href="/chat" className="btn-ink">
-          ابدأ مشروع تجريبي
+          ابدأ الاستشارة
           <span aria-hidden className="ms-2">
             ←
           </span>
         </Link>
       </div>
-      <p className="mt-10 max-w-sm text-xs text-muted">
-        ملاحظة للقضاة: التكامل مع Supabase Auth (magic-link + Google OAuth) جاهز في الكود — يحتاج
-        فقط إعداد مفاتيح المنصة لتفعيله.
-      </p>
     </main>
   );
 }

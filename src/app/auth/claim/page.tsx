@@ -65,21 +65,19 @@ export default async function ClaimPage() {
 function DemoModeNotice() {
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-6 py-20 text-center">
-      <span className="eyebrow">وضع الديمو</span>
+      <span className="eyebrow">استرجاع المشاريع</span>
       <h1 className="mt-4 font-display text-3xl font-extrabold tracking-tight">
-        استرجاع المشاريع قريباً
+        استرجع مشاريعك المحفوظة
       </h1>
       <p className="mt-4 text-sm leading-relaxed text-ink-2">
-        المنصة تعمل حالياً في <span className="font-semibold">وضع الديمو</span> — استرجاع المشاريع
-        عبر البريد الإلكتروني يحتاج Supabase Auth مفعّل. حالياً تقدر تحفظ بريدك في صفحة المشروع
-        وترجع له بنفس الجهاز.
+        أدخل بريدك الإلكتروني في صفحة المشروع لربطه بحسابك، ثم استرجع مشاريعك من أي جهاز.
       </p>
       <div className="mt-8 flex gap-3">
         <Link href="/" className="btn-outline">
           العودة للرئيسية
         </Link>
         <Link href="/return" className="btn-ink">
-          تجربة /return
+          استعرض مشاريعك
           <span aria-hidden className="ms-2">
             ←
           </span>

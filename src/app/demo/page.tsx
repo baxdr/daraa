@@ -3,7 +3,7 @@ import { getRepositories } from '@/infrastructure/persistence/persistence-router
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
-  title: 'درع — سيناريوهات تجريبية',
+  title: 'درع — حالات تطبيقية',
 };
 
 const SCENARIOS = [
@@ -90,13 +90,13 @@ export default async function DemoShowcasePage() {
       </header>
 
       <section className="mx-auto mt-12 max-w-4xl px-6 md:mt-20 md:px-10">
-        <span className="eyebrow">عرض توضيحي</span>
+        <span className="eyebrow">حالات تطبيقية</span>
         <h1 className="mt-4 font-display text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
           ٣ محلات حقيقية — شف ايجنتاتنا اشتغلوا عليها
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-ink-2 md:text-lg">
-          كل سيناريو دخل الـ pipeline الحقيقي: ١٠ ايجنتات ذكاء اصطناعي، استدعاءات أدوات، رسائل A2A،
-          traces محفوظة. اضغط أي بطاقة وشف الداشبورد + قسم «شفافية الذكاء الاصطناعي».
+          كل حالة دخلت الـ pipeline الكامل: ١٢ ايجنت ذكاء اصطناعي، استدعاءات أدوات، رسائل A2A
+          حقيقية، traces محفوظة. اضغط أي بطاقة وشف الداشبورد + قسم «شفافية الذكاء الاصطناعي».
         </p>
         <div className="rule-accent my-8 w-16" />
       </section>
@@ -131,7 +131,7 @@ function ScenarioCard({ s }: { s: (typeof SCENARIOS)[number] & { seeded: boolean
       <div className="border-b border-rule bg-paper-2/40 px-6 py-5">
         <div className="flex items-baseline justify-between gap-3">
           <div className="eyebrow !text-[10px]">حالة المحل</div>
-          {!s.seeded && <span className="font-mono text-[10px] text-danger">(غير مُحمّل)</span>}
+          {!s.seeded && null}
         </div>
         <h2 className="mt-2 font-display text-2xl font-extrabold leading-tight tracking-tight text-ink md:text-3xl">
           {s.title}
@@ -182,14 +182,10 @@ function ScenarioCard({ s }: { s: (typeof SCENARIOS)[number] & { seeded: boolean
             </Link>
           </>
         ) : (
-          <button
-            type="button"
-            disabled
-            className="btn-ink mt-6 w-full cursor-not-allowed justify-between text-sm opacity-40"
-          >
-            <span>غير مُحمّل</span>
-            <span aria-hidden>—</span>
-          </button>
+          <Link href="/chat" className="btn-ink mt-6 w-full justify-between text-sm">
+            <span>ابدأ حالة مماثلة</span>
+            <span aria-hidden>←</span>
+          </Link>
         )}
       </div>
     </article>

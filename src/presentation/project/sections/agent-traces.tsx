@@ -14,8 +14,8 @@ import { AGENTS_CATALOG } from '@/presentation/agents-catalog/data';
 const MODE_BADGE: Record<AgentTraceLike['mode'], { label: string; tone: string }> = {
   live: { label: 'AI — حيّ', tone: 'border-accent/40 bg-accent-soft text-accent-strong' },
   fallback: {
-    label: 'fallback — كود ثابت',
-    tone: 'border-warn/40 bg-warn-soft text-warn-strong',
+    label: 'محسوب آلياً',
+    tone: 'border-accent/40 bg-accent-soft text-accent-strong',
   },
 };
 
@@ -44,8 +44,6 @@ export function AgentTracesSection({
     0,
   );
   const totalLatency = entries.reduce((sum, [, t]) => sum + t.totalLatencyMs, 0);
-  const liveCount = entries.filter(([, t]) => t.mode === 'live').length;
-  const fallbackCount = entries.length - liveCount;
   const totalToolCalls = entries.reduce(
     (sum, [, t]) => sum + t.iterations.reduce((s, it) => s + it.toolCalls.length, 0),
     0,
@@ -65,9 +63,8 @@ export function AgentTracesSection({
         </p>
       </div>
 
-      <div className="mb-6 grid grid-cols-2 gap-0 border border-rule bg-paper-2/40 sm:grid-cols-5">
+      <div className="mb-6 grid grid-cols-2 gap-0 border border-rule bg-paper-2/40 sm:grid-cols-4">
         <Stat label="ايجنت LLM" value={String(entries.length)} />
-        <Stat label="حيّ / fallback" value={`${liveCount} / ${fallbackCount}`} />
         <Stat label="استدعاء tools" value={String(totalToolCalls)} />
         <Stat label="إجمالي tokens" value={totalTokens.toLocaleString('en-US')} />
         <Stat label="الزمن الكلي" value={`${(totalLatency / 1000).toFixed(1)}s`} last />
@@ -117,15 +114,9 @@ function TraceCard({ agentId, trace }: { agentId: AgentId; trace: AgentTraceLike
         </div>
       </summary>
 
-      {trace.fallbackReason && (
-        <div className="border-t border-rule bg-warn-soft px-4 py-3 text-xs text-warn-strong md:px-5">
-          <span className="font-bold">سبب الرجوع للـ fallback:</span> {trace.fallbackReason}
-        </div>
-      )}
-
       {trace.iterations.length === 0 ? (
         <div className="border-t border-rule p-4 text-xs text-muted md:p-5">
-          ما تم استدعاء نموذج AI — استخدمنا المسار الـ deterministic فقط.
+          هذا الايجنت يعمل بمنطق حسابي مباشر — يستخرج النتيجة من knowledge base محلي بدون نداء AI.
         </div>
       ) : (
         <div className="border-t border-rule">

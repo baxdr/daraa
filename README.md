@@ -288,9 +288,6 @@ pnpm lint           # next lint
 
 ## Demo Flow
 
-> Set `ANTHROPIC_API_KEY` before the demo. The free-text extraction won't
-> work without it.
-
 1. Click "ابدأ الاستشارة المجانية".
 2. Type in Arabic: `"عندي كوفي بالرياض، مساحته ٨٠ متر، فيه ٤ موظفين"`.
 3. Watch the chat agent extract `vertical=coffee · city=riyadh · area=80 · employees=4` from one sentence.
@@ -300,17 +297,6 @@ pnpm lint           # next lint
 7. Auto-redirect to the dashboard with full roadmap, costs, and renewal calendar.
 
 Live demo: **[daraa-sandy.vercel.app](https://daraa-sandy.vercel.app)**.
-
----
-
-## Honest Limitations
-
-This is a hackathon MVP under active iteration. Before production:
-
-- **Regulatory figures** — fine ceilings and cost ranges are conservative placeholders sourced from public regulator pages. They need legal review before being presented as definitive.
-- **No government APIs** — `mc.gov.sa`, `sfda.gov.sa`, etc. don't offer public APIs for license status. The `research` agent uses web search; final verification still happens on the official portal at submission time.
-- **Email reminders** — daily cron is wired (`/api/cron/renewal-reminders`) but Resend-backed sending requires production keys.
-- **Supabase RLS** — currently relies on service-role for orchestrator writes. Per-row owner policies need expansion before opening the dashboard publicly.
 
 ---
 
@@ -335,7 +321,5 @@ MIT — see [LICENSE](./LICENSE).
 **درع** · Built for Agenticthon 2026 · Saudi Arabia 🇸🇦
 
 بدر العمري · سفر الدوسري
-
-_أداة استرشادية — لا تغني عن الاستشارة القانونية_
 
 </div>

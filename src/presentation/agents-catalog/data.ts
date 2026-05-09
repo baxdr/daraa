@@ -107,7 +107,7 @@ export const AGENTS_CATALOG: AgentCardData[] = [
       outputs: [
         'يستعلم web_search لكل specialist (مثلاً "آخر تحديثات SFDA 2026")',
         'يبثّ كل update كرسالة `update` على AgentBus',
-        'fallback لقائمة محققة لو web_search فشل',
+        'مدعوم بقائمة محققة من مصادر gov.sa',
       ],
       notifies: ['sfda', 'civil_defense', 'municipality', 'mohr_gosi', 'zatca'],
       tools: ['web_search_20250305'],

@@ -40,7 +40,7 @@ function ScenarioCard({
         <div className="text-accent">{iconSvg}</div>
       </div>
       <div className="mt-6 inline-flex items-center gap-2 text-accent transition-all group-hover:gap-3">
-        <span className="text-sm font-bold">شاهد الديمو</span>
+        <span className="text-sm font-bold">افتح الحالة</span>
         <ArrowLeft />
       </div>
     </Link>
