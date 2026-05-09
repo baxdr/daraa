@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { waitUntil } from '@vercel/functions';
 import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { runProjectOrchestrator } from '@/agents/project-orchestrator';
 import { enforceRateLimit } from '@/infrastructure/rate-limit/rate-limit';
@@ -8,7 +9,7 @@ import { isDomainError } from '@/core/errors';
 import { getAuthPrincipal } from '@/infrastructure/auth/get-principal';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 const BodySchema = z.object({ sessionId: z.string().min(1) });
 
@@ -40,9 +41,14 @@ export async function POST(req: Request) {
       { sessionId: parsed.data.sessionId, principal },
     );
 
-    void runProjectOrchestrator(project.id).catch((err) => {
-      console.error('[project/start] orchestrator rejected:', err);
-    });
+    // Keep the lambda alive while the orchestrator runs after the response
+    // has been sent. Without waitUntil, Vercel can reap the function as
+    // soon as we return the JSON below, killing the pipeline mid-flight.
+    waitUntil(
+      runProjectOrchestrator(project.id).catch((err) => {
+        console.error('[project/start] orchestrator rejected:', err);
+      }),
+    );
 
     return NextResponse.json({ projectId: project.id, status: 'pending' });
   } catch (err) {

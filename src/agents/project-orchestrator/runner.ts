@@ -11,7 +11,7 @@
 import { runResearchAgent } from '../research-agent';
 import { runOperationalAnalysis, enrichOperationalReport } from '../operational-analysis';
 import { buildRoadmap, summariseCosts } from '@/knowledge/entities';
-import { emit, send, type RunRef } from '@/lib/agent-bus';
+import { emit, send, flushBus, type RunRef } from '@/lib/agent-bus';
 import { getRepositories } from '@/infrastructure/persistence/persistence-router';
 import { runAgents } from '../runtime/orchestrator-runtime';
 import type { AgentContext, AgentId, AgentTraceLike } from '../runtime/types';
@@ -176,5 +176,9 @@ export async function runProjectOrchestrator(projectId: string): Promise<void> {
     console.error('[project-orchestrator] pipeline failed:', message);
     emit(run, 'orchestrator', 'error', `حصل خطأ: ${message}`);
     await repos.projects.update(projectId, { status: 'error', errorMessage: message });
+  } finally {
+    // Wait for every queued Supabase upsert from emit/send so the polling
+    // client sees the final state even if the lambda is reaped right after.
+    await flushBus(run);
   }
 }

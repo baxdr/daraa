@@ -14,6 +14,10 @@ export const metadata = {
   description: 'سجل الدخول إلى منصة درع للامتثال',
 };
 
+// Reads cookies via Supabase SSR; opt out of static rendering so the build
+// doesn't try to invoke the Supabase client outside a request scope.
+export const dynamic = 'force-dynamic';
+
 const SUPABASE_ENABLED = Boolean(
   process.env['NEXT_PUBLIC_SUPABASE_URL'] && process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'],
 );
@@ -23,10 +27,17 @@ export default async function LoginPage() {
     return <DemoModeNotice />;
   }
 
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // A stale or malformed auth cookie can make supabase.auth.getUser() throw.
+  // Treat any failure here as "no session" and render the login form rather
+  // than blowing up the page with the global error boundary.
+  let user: unknown = null;
+  try {
+    const supabase = await createServerSupabaseClient();
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch (err) {
+    console.error('[auth/login] getUser failed:', err instanceof Error ? err.message : err);
+  }
 
   // Already logged in — redirect to account
   if (user) {

@@ -100,7 +100,6 @@ const ENGINE_TONE: Record<AgentRow['engine'], { label: string; pill: string }> =
 };
 
 export function AgentsPreview() {
-  const claudeCount = AGENTS.filter((a) => a.engine !== 'coordination').length;
   return (
     <section
       id="agents-preview"
@@ -110,7 +109,7 @@ export function AgentsPreview() {
         <div className="max-w-2xl">
           <span className="eyebrow">طبقة الذكاء الاصطناعي</span>
           <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight md:text-4xl">
-            ١٢ ايجنت · {claudeCount} منهم بـ AI
+            ١٢ ايجنت
           </h2>
           <div className="rule-accent mt-3 w-12" />
           <p className="mt-4 text-base leading-relaxed text-ink-2">
