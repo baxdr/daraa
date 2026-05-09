@@ -1,0 +1,1153 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>درع — Agents Deep Dive (للحكام)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #f7f3eb;
+        --paper-2: #efe9d9;
+        --ink: #14110f;
+        --ink-2: #3a342e;
+        --muted: #6b6357;
+        --rule: #d9d2bf;
+        --accent: #1e4d3b;
+        --accent-soft: #def0e3;
+        --warn: #b88717;
+        --warn-soft: #fff7d6;
+        --display: 'Almarai', system-ui, sans-serif;
+        --body: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+        --mono: 'JetBrains Mono', monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--body);
+        line-height: 1.6;
+      }
+      .page {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
+      }
+      header {
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--rule);
+        padding-bottom: 1.5rem;
+      }
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--accent);
+        font-weight: 700;
+      }
+      h1 {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 2.8rem;
+        line-height: 1.1;
+        margin-top: 0.5rem;
+        letter-spacing: -0.02em;
+      }
+      h1 .accent {
+        color: var(--accent);
+      }
+      .lede {
+        font-size: 1.05rem;
+        color: var(--ink-2);
+        margin-top: 0.85rem;
+        max-width: 56rem;
+      }
+      section {
+        background: #fff;
+        border: 1px solid var(--rule);
+        margin-top: 2rem;
+        padding: 2rem 2.25rem;
+      }
+      h2 {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 1.7rem;
+        color: var(--ink);
+        margin-bottom: 1rem;
+        letter-spacing: -0.01em;
+      }
+      h2 .num {
+        font-family: var(--mono);
+        color: var(--accent);
+        font-size: 0.95rem;
+        margin-inline-end: 0.5rem;
+        font-weight: 500;
+      }
+      h3 {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: var(--ink);
+        margin: 1.5rem 0 0.7rem;
+      }
+      .sub {
+        color: var(--ink-2);
+        font-size: 0.98rem;
+        margin-bottom: 1.25rem;
+      }
+      p {
+        margin-bottom: 0.7rem;
+      }
+      .diagram {
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        padding: 2rem 1rem;
+        margin-top: 0.5rem;
+        overflow-x: auto;
+        direction: ltr;
+      }
+      .mermaid {
+        display: flex;
+        justify-content: center;
+        font-family: var(--body);
+      }
+      .mermaid svg {
+        max-width: 100% !important;
+        height: auto !important;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        font-size: 0.93rem;
+      }
+      thead th {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        text-align: start;
+        padding: 0.6rem 0.75rem;
+        background: var(--paper-2);
+        border-bottom: 2px solid var(--ink);
+        color: var(--ink);
+      }
+      tbody td {
+        padding: 0.65rem 0.75rem;
+        border-bottom: 1px solid var(--rule);
+        vertical-align: top;
+        color: var(--ink-2);
+      }
+      tbody tr:hover {
+        background: var(--paper);
+      }
+      td strong {
+        color: var(--ink);
+      }
+      td.id {
+        font-family: var(--mono);
+        color: var(--accent);
+        white-space: nowrap;
+      }
+      .legend {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+      }
+      .legend-item {
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        padding: 0.85rem 1rem;
+        font-size: 0.92rem;
+      }
+      .legend-item strong {
+        display: block;
+        font-family: var(--mono);
+        color: var(--accent);
+        font-size: 0.78rem;
+        margin-bottom: 0.3rem;
+        letter-spacing: 0.06em;
+      }
+      ul {
+        padding-inline-start: 1.4rem;
+        margin-top: 0.75rem;
+      }
+      ul li {
+        margin-bottom: 0.45rem;
+        font-size: 0.97rem;
+        color: var(--ink-2);
+      }
+      ul li strong {
+        color: var(--ink);
+      }
+      code,
+      .mono {
+        font-family: var(--mono);
+        font-size: 0.85em;
+        background: var(--paper);
+        padding: 0.1em 0.35em;
+        border: 1px solid var(--rule);
+      }
+      pre.code {
+        background: var(--ink);
+        color: #eee;
+        font-family: var(--mono);
+        font-size: 0.82rem;
+        padding: 1rem 1.25rem;
+        border: 1px solid var(--ink);
+        margin-top: 1rem;
+        overflow-x: auto;
+        direction: ltr;
+        line-height: 1.55;
+      }
+      pre.code .k {
+        color: #b3e6c2;
+      }
+      pre.code .s {
+        color: #f5d68a;
+      }
+      pre.code .c {
+        color: #999;
+        font-style: italic;
+      }
+      .key-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      .key {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.88rem;
+      }
+      .key .swatch {
+        width: 14px;
+        height: 14px;
+        border: 1px solid var(--ink-2);
+        display: inline-block;
+      }
+      .qa {
+        border-inline-start: 3px solid var(--accent);
+        padding: 0.4rem 1rem;
+        margin-top: 1.25rem;
+        background: var(--paper);
+      }
+      .qa .q {
+        font-weight: 700;
+        font-size: 1.02rem;
+        color: var(--ink);
+        margin-bottom: 0.3rem;
+      }
+      .qa .a {
+        color: var(--ink-2);
+        font-size: 0.95rem;
+      }
+      .callout {
+        background: var(--warn-soft);
+        border-inline-start: 3px solid var(--warn);
+        padding: 0.85rem 1.1rem;
+        margin-top: 1rem;
+        font-size: 0.93rem;
+        color: var(--ink-2);
+      }
+      footer {
+        margin-top: 2.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--muted);
+        font-family: var(--mono);
+      }
+
+      /* Print / PDF — landscape, one section per page. */
+      @page {
+        size: A4 landscape;
+        margin: 10mm;
+      }
+
+      @media print {
+        html,
+        body {
+          background: #fff;
+          margin: 0;
+          padding: 0;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .page {
+          max-width: none;
+          padding: 0;
+          margin: 0;
+        }
+        header,
+        footer {
+          page-break-after: always;
+          padding: 8mm;
+        }
+        section {
+          width: 277mm;
+          min-height: 190mm;
+          box-sizing: border-box;
+          margin: 0;
+          padding: 8mm 10mm;
+          border: none;
+          background: #fff;
+          page-break-before: always;
+          page-break-inside: avoid;
+          break-inside: avoid;
+          overflow: hidden;
+        }
+        section h2 {
+          font-size: 1.4rem;
+          margin-bottom: 0.6rem;
+        }
+        .diagram {
+          background: #fff;
+        }
+        .mermaid svg {
+          max-height: 150mm !important;
+        }
+        a {
+          color: var(--ink) !important;
+          text-decoration: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page" dir="rtl">
+      <header>
+        <div class="eyebrow">Agenticthon 2026 · Round 2 · Judges Reference</div>
+        <h1>درع <span class="accent">Agents Deep Dive</span></h1>
+        <p class="lede">
+          هذا المرجع التقني الكامل لطبقة الذكاء في درع: ١٢ ايجنت، AgentBus حقيقي بـ inbox مستقل لكل
+          ايجنت، wave scheduler يفحص اكتمال الاعتماديات، أدوات deterministic تمنع الهلوسة، و
+          fallback آمن لو انقطع الـ LLM. كل قسم أدناه يجاوب عن سؤال يتوقّع أن يطرحه الحكام.
+        </p>
+        <div class="key-row">
+          <span class="key"
+            ><span class="swatch" style="background: #def0e3"></span> ايجنت / Agent</span
+          >
+          <span class="key"
+            ><span class="swatch" style="background: #1e4d3b"></span> منسّق / Orchestrator</span
+          >
+          <span class="key"
+            ><span class="swatch" style="background: #f7f3eb"></span> أداة / Tool</span
+          >
+          <span class="key"
+            ><span class="swatch" style="background: #fff; border-color: #b88717"></span> خدمة
+            خارجية / External</span
+          >
+        </div>
+      </header>
+
+      <!-- =================================================================== -->
+      <section>
+        <h2><span class="num">01</span>الكتالوج الكامل · ١٢ ايجنت في طبقتين</h2>
+        <p class="sub">
+          طبقة التنسيق تدير الجلسة وتشغّل الموجات. طبقة المتخصّصين تُنتج البطاقات (EntityCards) لكل
+          جهة حكومية. الـ LLM المستخدم في كل ايجنت ذكي هو
+          <code>claude-sonnet-4-6</code> — موديل واحد عبر الـ Anthropic SDK، مع backup key للفشل
+          عند 429. الايجنتات الحتمية (deterministic) ما تستدعي LLM إطلاقاً.
+        </p>
+
+        <h3>طبقة التنسيق (Coordination — ٥ ايجنتات)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>المعرّف</th>
+              <th>الدور</th>
+              <th>المحرّك</th>
+              <th>المخرج</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="id">chat</td>
+              <td><strong>وكيل المحادثة</strong> — يجمع ١٦ إجابة عربية حرّة عن المحل (نشاط، مدينة، عمالة، إيجار، ...).</td>
+              <td>Sonnet 4.6 + JSON-extraction</td>
+              <td><code>ChatSession.answers</code></td>
+            </tr>
+            <tr>
+              <td class="id">orchestrator</td>
+              <td><strong>المنسّق</strong> — مجدول الموجات (waves)، يكتب status pending→running→complete، يلتقط الأخطاء.</td>
+              <td>deterministic (TypeScript)</td>
+              <td>activities + final upsert</td>
+            </tr>
+            <tr>
+              <td class="id">research</td>
+              <td><strong>وكيل البحث</strong> — يجلب آخر التحديثات التنظيمية الحقيقية للمتخصّصين قبل تشغيلهم.</td>
+              <td>Sonnet 4.6 + tool <code>web_search_20250305</code></td>
+              <td>RegulatoryUpdate[] → broadcast</td>
+            </tr>
+            <tr>
+              <td class="id">analysis</td>
+              <td><strong>وكيل التحليل</strong> — يكتب narrative عربي + ٣ أولويات للأسبوع، فوق طبقة gap detection حتميّة.</td>
+              <td>deterministic core + Sonnet narrator</td>
+              <td>OperationalReport (gaps + narrative)</td>
+            </tr>
+            <tr>
+              <td class="id">report</td>
+              <td><strong>وكيل التقرير</strong> — يجمع كل البطاقات + roadmap + تقويم تجديدات في ProjectRecord واحد.</td>
+              <td>deterministic (TypeScript)</td>
+              <td>EntityInfo[] + RoadmapWeek[]</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>طبقة المتخصّصين (Specialists — ٧ ايجنتات، كلهم LLM)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>المعرّف</th>
+              <th>الجهة</th>
+              <th>الاعتماديات (deps)</th>
+              <th>أدواته الخاصة</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="id">mci</td>
+              <td>وزارة التجارة (السجل التجاري)</td>
+              <td>—</td>
+              <td><code>check_renewal_urgency</code></td>
+            </tr>
+            <tr>
+              <td class="id">zatca</td>
+              <td>الزكاة والضريبة (VAT, CIT)</td>
+              <td>mci</td>
+              <td><code>check_vat_threshold</code></td>
+            </tr>
+            <tr>
+              <td class="id">mohr_gosi</td>
+              <td>الموارد البشرية + التأمينات (نطاقات)</td>
+              <td>mci</td>
+              <td><code>estimate_nitaqat_zone</code></td>
+            </tr>
+            <tr>
+              <td class="id">civil_defense</td>
+              <td>الدفاع المدني (شهادة السلامة)</td>
+              <td>mci</td>
+              <td>
+                <code>list_safety_requirements</code>،
+                <code>calculate_extinguisher_count</code>،
+                <code>estimate_safety_cost</code>
+              </td>
+            </tr>
+            <tr>
+              <td class="id">municipality</td>
+              <td>البلدية / بلدي (الرخصة البلدية)</td>
+              <td>civil_defense</td>
+              <td>
+                <code>get_balady_licence_label</code>،
+                <code>estimate_balady_cost</code>
+              </td>
+            </tr>
+            <tr>
+              <td class="id">sfda</td>
+              <td>الغذاء والدواء (المطاعم/البقالات/الكوفي)</td>
+              <td>municipality</td>
+              <td><code>list_food_safety_requirements</code></td>
+            </tr>
+            <tr>
+              <td class="id">moh</td>
+              <td>وزارة الصحة (المطاعم + الصالونات)</td>
+              <td>municipality</td>
+              <td><code>list_health_requirements</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="sub" style="margin-top: 1.25rem">
+          الأدوات المشتركة بين كل المتخصّصين (في <code>shared-tools.ts</code>):
+          <code>get_shop_summary</code>،
+          <code>check_renewal_urgency</code>،
+          <code>add_months_to_date</code>،
+          <code>lookup_vertical_requirements</code>.
+        </p>
+      </section>
+
+      <!-- =================================================================== -->
+      <section>
+        <h2><span class="num">02</span>AgentBus — كيف يتواصلون فعلياً</h2>
+        <p class="sub">
+          الـ AgentBus هو قلب الـ A2A. ليس logger UI — كل ايجنت عنده <strong>inbox مستقل</strong>،
+          والـ outbox تنطلق رسائله للـ inboxes الأخرى لمّا الـ wave يخلص. الايجنت الجاي في الـ wave
+          التالي يفتح inboxه، يقرأ الرسائل، ويبني سلوكه عليها (مثلاً municipality يضيف رخصة المطبخ
+          فقط لو وصلتها رسالة من civil_defense تقول <code>hasKitchen: true</code>).
+        </p>
+
+        <div class="diagram">
+          <pre class="mermaid">
+flowchart TB
+  subgraph BUS["AgentBus — inbox per agent"]
+    direction LR
+    INB_MUNI[("inbox<br/>municipality")]
+    INB_SFDA[("inbox<br/>sfda")]
+    INB_MOH[("inbox<br/>moh")]
+    INB_CD[("inbox<br/>civil_defense")]
+    INB_OTH[("inbox<br/>others")]
+  end
+
+  subgraph SCHED["Wave Scheduler"]
+    direction TB
+    READY{"ready?<br/>deps subset of completed"}
+    RUN["Promise.all<br/>parallel run"]
+    DELIVER["bus.deliver outboxes"]
+  end
+
+  AGENT_A["Agent A<br/>LlmSpecialist"]
+  AGENT_B["Agent B<br/>LlmSpecialist"]
+
+  AGENT_A -->|"outbox: type + payload + messageAr"| DELIVER
+  DELIVER --> BUS
+  BUS -->|"getInbox(id)"| AGENT_B
+  AGENT_B -->|"run(context, inbox)"| READY
+  READY -- yes --> RUN
+  RUN --> AGENT_A
+  RUN --> AGENT_B
+
+  classDef bus fill:#1e4d3b,stroke:#14110f,color:#fff,font-weight:600;
+  classDef inbox fill:#fff,stroke:#1e4d3b,color:#14110f;
+  classDef agent fill:#def0e3,stroke:#1e4d3b,color:#14110f,font-weight:600;
+  classDef sched fill:#efe9d9,stroke:#3a342e,color:#14110f;
+  class BUS bus;
+  class INB_MUNI,INB_SFDA,INB_MOH,INB_CD,INB_OTH inbox;
+  class AGENT_A,AGENT_B agent;
+  class READY,RUN,DELIVER sched;
+          </pre>
+        </div>
+
+        <h3>أنواع الرسائل (AgentMessage.type)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>النوع</th>
+              <th>متى يُستخدم</th>
+              <th>مثال حقيقي</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="id">dependency</td>
+              <td>handoff بين ايجنتين متسلسلين — الجاي ينتظره</td>
+              <td>civil_defense → municipality: <code>{ safetyCertReady: true, hasKitchen: true }</code></td>
+            </tr>
+            <tr>
+              <td class="id">data_share</td>
+              <td>مشاركة حقيقة بدون توقّع رد</td>
+              <td>mci → ALL: <code>{ crReady: true }</code></td>
+            </tr>
+            <tr>
+              <td class="id">update</td>
+              <td>تحديث تنظيمي من research موجّه لمتخصص</td>
+              <td>research → sfda: «اشتراطات جديدة لتغليف اللحوم 2026-Q2»</td>
+            </tr>
+            <tr>
+              <td class="id">warning</td>
+              <td>تنبيه يحتاجه ايجنت آخر في قراره</td>
+              <td>zatca → mci: «المنشأة تجاوزت حد الـ VAT»</td>
+            </tr>
+            <tr>
+              <td class="id">ack</td>
+              <td>تأكيد استلام أو إكمال</td>
+              <td>analysis → report: «اكتملت ٤ ثغرات حرجة»</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>قواعد التسليم</h3>
+        <ul>
+          <li>
+            <strong>to: 'ALL'</strong> = broadcast لكل ايجنت مسجَّل في الـ run، باستثناء المرسل
+            نفسه.
+          </li>
+          <li>
+            <strong>to: AgentId</strong> = توصيل مباشر للـ inbox المعني. لو الـ id مش مسجَّل في
+            هذا الـ run، الرسالة تُسقَط من الـ bus لكن تبقى في الـ log.
+          </li>
+          <li>
+            <strong>الترتيب محفوظ</strong> — الـ bus يحتفظ بـ <code>seq</code> تصاعدي لكل رسالة،
+            والـ UI يعتمد عليه لاكتشاف الجديد بدون refetch كامل.
+          </li>
+          <li>
+            <strong>blocked retry</strong> — لو ايجنت رجع <code>status: 'blocked'</code> (الـ
+            inbox ناقص)، الـ scheduler يعيده في موجة لاحقة حتى ٣ مرات. أكثر من ذلك يعتبر
+            deadlocked.
+          </li>
+          <li>
+            <strong>كشف الـ deadlock</strong> — أي wave ما فيها agent ready يرمي خطأ بدلاً من
+            الانتظار اللانهائي. <code>MAX_WAVES = 16</code> سقف صلب.
+          </li>
+        </ul>
+      </section>
+
+      <!-- =================================================================== -->
+      <section>
+        <h2><span class="num">03</span>الموجات (Waves) — كيف يصير الـ parallelism</h2>
+        <p class="sub">
+          المنسّق ما يستدعي الايجنتات بالترتيب — يحسب أيّهم اعتمادياتهم اكتملت، يشغّلهم
+          <strong>بالتوازي عبر <code>Promise.all</code></strong>، يستلم الـ outboxes، يسلّمها للـ
+          inboxes، يكرّر. مثال على المتجر التجاري (vertical = restaurant، ٧ متخصصين):
+        </p>
+
+        <div class="diagram">
+          <pre class="mermaid">
+flowchart LR
+  subgraph W1["Wave 1"]
+    MCI["mci<br/>deps: none"]
+  end
+  subgraph W2["Wave 2 · parallel"]
+    ZAT["zatca<br/>deps: mci"]
+    HR["mohr_gosi<br/>deps: mci"]
+    CD["civil_defense<br/>deps: mci"]
+  end
+  subgraph W3["Wave 3"]
+    MUNI["municipality<br/>deps: civil_defense"]
+  end
+  subgraph W4["Wave 4 · parallel"]
+    SFDA["sfda<br/>deps: municipality"]
+    MOH["moh<br/>deps: municipality"]
+  end
+
+  MCI --> ZAT
+  MCI --> HR
+  MCI --> CD
+  CD --> MUNI
+  MUNI --> SFDA
+  MUNI --> MOH
+
+  classDef wave fill:#efe9d9,stroke:#3a342e,color:#14110f,font-weight:600;
+  classDef agent fill:#def0e3,stroke:#1e4d3b,color:#14110f;
+  class W1,W2,W3,W4 wave;
+  class MCI,ZAT,HR,CD,MUNI,SFDA,MOH agent;
+          </pre>
+        </div>
+
+        <ul>
+          <li>الموجة ٢ تشغّل ٣ ايجنتات بالتوازي — توفير وقت حقيقي لأن كل واحد بنداء LLM مستقل.</li>
+          <li>المصدر: <code>src/agents/runtime/orchestrator-runtime.ts</code> سطر ٥٠–١٠٠.</li>
+          <li>
+            عدد الموجات الفعلي للمطعم = ٤، للكوفي والبقالة = ٤، للمغسلة = ٣. القيمة تظهر في الـ
+            UI كـ <code>runResult.waves</code>.
+          </li>
+        </ul>
+      </section>
+
+      <!-- =================================================================== -->
+      <section>
+        <h2><span class="num">04</span>تشريح ايجنت متخصّص — Civil Defense كنموذج</h2>
+        <p class="sub">
+          كل المتخصّصين السبعة يرثون من <code>LlmSpecialistAgent</code>. النموذج التالي هو
+          <code>CivilDefenseAgent</code> ويوضح الدورة الكاملة: gating بالـ inbox → Claude tool
+          loop → JSON parse → outbox → fallback آمن.
+        </p>
+
+        <div class="diagram">
+          <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant Sched as Wave Scheduler
+  participant CD as CivilDefenseAgent
+  participant Claude as Anthropic SDK<br/>(Sonnet 4.6)
+  participant Tools as Local tools<br/>(deterministic)
+  participant Bus as AgentBus
+
+  Sched->>CD: run(context, inbox)
+  CD->>CD: blockedReason(inbox)?<br/>يبحث عن mci.crReady
+  alt inbox فارغ
+    CD-->>Sched: { status: 'blocked', reason: '...' }
+  else mci.crReady موجودة
+    CD->>Claude: messages.create<br/>(systemPrompt + tools)
+    loop tool-use loop (≤6 iterations)
+      Claude-->>CD: tool_use: list_safety_requirements
+      CD->>Tools: handler(input)
+      Tools-->>CD: { requirements: [...] }
+      CD-->>Claude: tool_result
+    end
+    Claude-->>CD: final_text (JSON)
+    CD->>CD: parseAgentJson&lt;CivilDefenseRawOutput&gt;
+    alt JSON غير صالح
+      CD->>CD: fallback(context, inbox)
+    end
+    CD-->>Sched: { status:'complete', data, outbox, trace }
+    Sched->>Bus: deliver(outbox) → municipality.inbox
+  end
+          </pre>
+        </div>
+
+        <h3>الـ system prompt — قواعد لا يكسرها الموديل</h3>
+        <pre class="code"><span class="c">// src/agents/specialists/civil-defense-agent.ts</span>
+<span class="k">أنت</span> متخصّص الدفاع المدني السعودي. مهمّتك تحديد متطلبات السلامة لمحلّ صغير
+ثم صياغة شهادة السلامة المطلوبة وتفسيرها بعربية واضحة.
+
+<span class="k">القواعد:</span>
+- لا تخترع أرقاماً. كل عدد طفايات أو تكلفة أو متطلب يجي من الـ tools.
+- استخدم <span class="s">get_shop_summary</span> أولاً لفهم المحل.
+- استخدم <span class="s">list_safety_requirements</span> للقاعدة، ثم
+  <span class="s">calculate_extinguisher_count</span> لو في الإجابة عدد ناقص.
+- لو في رسالة من <span class="s">research</span> في الـ inbox فيها تحديث تنظيمي،
+  أضفه كـ "جديد —" في requirements.
+- في outbox: أرسل dependency message لـ municipality فيها
+  <span class="s">{ safetyCertReady, hasKitchen, estimatedTimeAr }</span>.
+</pre>
+
+        <h3>المخرج (EntityInfo + outbox)</h3>
+        <ul>
+          <li>
+            <strong>data</strong>: <code>explainAr</code> (شرح عربي)،
+            <code>estimatedCostSar { min, max }</code>،
+            <code>estimatedTimeAr</code>،
+            <code>requirements[]</code>،
+            <code>criticalWarningAr</code>،
+            <code>renewalMonths</code>.
+          </li>
+          <li>
+            <strong>outbox</strong>: رسالة dependency لـ municipality. payload يحدد لو في مطبخ
+            (محل مطعم/كوفي) — البلدية تضيف بناءً عليها <em>رخصة مطبخ تجاري</em> تلقائياً.
+          </li>
+          <li>
+            <strong>trace</strong>: عدد التكرارات، tokens المستهلكة، latency، النص النهائي.
+            تُحفظ في <code>project.agentTraces</code> ويعرضها الـ UI في الداشبورد.
+          </li>
+        </ul>
+
+        <div class="callout">
+          <strong>fallback الحتمي:</strong> لو فشل النداء (لا يوجد API key، rate limit، 5xx، JSON
+          غير صالح بعد ٦ تكرارات) — الايجنت يستخدم منطق محلي مشتق من
+          <code>src/knowledge/entities</code> ويرجع نفس شكل الـ EntityInfo. <strong>الخدمة لا
+          تتوقّف لأن الموديل تأخّر.</strong>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <section>
+        <h2><span class="num">05</span>قاموس الأدوات (Tools)</h2>
+        <p class="sub">
+          كل أداة دالّة TypeScript محليّة (<em>deterministic</em>) — ما تستدعي خدمة خارجية، تشتغل
+          مع/بدون انترنت، نتائجها ثابتة بنفس المدخلات. هذا اللي يمنع الهلوسة في الأرقام والقوانين.
+        </p>
+
+        <h3>أدوات مشتركة (shared-tools.ts)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>الوظيفة</th>
+              <th>المخرج</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="id">get_shop_summary</td>
+              <td>يلخّص إجابات المحادثة في كائن واحد</td>
+              <td><code>{ vertical, area_sqm, employees, city, ... }</code></td>
+            </tr>
+            <tr>
+              <td class="id">check_renewal_urgency</td>
+              <td>يحسب الأيام المتبقّية لتاريخ تجديد ويصنّف الإلحاحية</td>
+              <td><code>{ days_left, severity }</code></td>
+            </tr>
+            <tr>
+              <td class="id">add_months_to_date</td>
+              <td>عملية تواريخ خالصة — ما تخلي الموديل يحسبها بنفسه</td>
+              <td>تاريخ ISO</td>
+            </tr>
+            <tr>
+              <td class="id">lookup_vertical_requirements</td>
+              <td>يقرأ من knowledge base حسب نوع النشاط</td>
+              <td><code>{ requirements: string[] }</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>أدوات متخصّصة (واحدة أو أكثر لكل ايجنت)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>الايجنت</th>
+              <th>الصيغة الحقيقية في الكود</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="id">calculate_extinguisher_count</td>
+              <td>civil_defense</td>
+              <td><code>max(2, ceil(area / 100))</code></td>
+            </tr>
+            <tr>
+              <td class="id">estimate_safety_cost</td>
+              <td>civil_defense</td>
+              <td>جدول حسب النشاط (restaurant: 200–1000 SAR، …)</td>
+            </tr>
+            <tr>
+              <td class="id">list_safety_requirements</td>
+              <td>civil_defense</td>
+              <td>قاعدة + إضافات حسب وجود مطبخ/كيماويات/كهرباء</td>
+            </tr>
+            <tr>
+              <td class="id">get_balady_licence_label</td>
+              <td>municipality</td>
+              <td>اسم الرخصة العربي حسب النشاط</td>
+            </tr>
+            <tr>
+              <td class="id">estimate_balady_cost</td>
+              <td>municipality</td>
+              <td>تكلفة الرخصة بالـ SAR (نطاق)</td>
+            </tr>
+            <tr>
+              <td class="id">check_vat_threshold</td>
+              <td>zatca</td>
+              <td>هل الإيراد &gt; 375K SAR (حد التسجيل الإلزامي)</td>
+            </tr>
+            <tr>
+              <td class="id">estimate_nitaqat_zone</td>
+              <td>mohr_gosi</td>
+              <td>تصنيف المنشأة في النطاقات (أحمر/أصفر/أخضر)</td>
+            </tr>
+            <tr>
+              <td class="id">list_food_safety_requirements</td>
+              <td>sfda</td>
+              <td>اشتراطات نقل/تخزين/تغليف الأغذية</td>
+            </tr>
+            <tr>
+              <td class="id">list_health_requirements</td>
+              <td>moh</td>
+              <td>الشهادات الصحية للعاملين + اشتراطات المنشأة</td>
+            </tr>
+            <tr>
+              <td class="id">list_gaps + get_gap_details</td>
+              <td>analysis</td>
+              <td>تقرير الثغرات (severity, deadline, fine ceiling)</td>
+            </tr>
+            <tr>
+              <td class="id">web_search_20250305</td>
+              <td>research</td>
+              <td>أداة Anthropic الرسمية للبحث على الويب</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          <strong>لماذا أدوات حتمية بدل ما الـ LLM يحسب؟</strong> لو خلّينا الموديل يقدّر عدد
+          الطفايات أو حد الـ VAT، ممكن يخطئ بـ ٢٠٪ أو يخترع أرقاماً. الأدوات تحول هذه القيم إلى
+          عمليات حسابية مغلقة على knowledge base محلي، فالموديل يصير بس <em>ينسّق</em> ويفسّر
+          بعربي — ما يُفترض فيه شيء ما يعرفه.
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <section>
+        <h2><span class="num">06</span>التدفّق من البداية إلى النهاية</h2>
+        <p class="sub">
+          من <code>POST /api/project/start</code> إلى داشبورد المستخدم. كل خطوة قابلة للملاحظة في
+          الـ <code>activities</code> + <code>messages</code> live على
+          <code>/project/[id]/agents</code>.
+        </p>
+
+        <div class="diagram">
+          <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant U as 👤 المستخدم
+  participant API as POST /api/project/start
+  participant W as Vercel waitUntil
+  participant ORCH as Orchestrator
+  participant RES as Research
+  participant SPEC as Specialists (×7)
+  participant AN as Analysis
+  participant SB as Supabase
+
+  U->>API: { sessionId }
+  API->>SB: insert project (pending)
+  API-->>U: { projectId, status:'pending' }
+  API->>W: waitUntil(orchestrator)
+
+  W->>ORCH: runProjectOrchestrator(id)
+  ORCH->>SB: status='running'
+  Note over ORCH: emit('orchestrator','started')
+
+  ORCH->>RES: runResearchAgent(activeIds)
+  RES->>RES: web_search → JSON parse
+  RES-->>ORCH: RegulatoryUpdate[]
+  RES->>SB: send(update message → sfda/moh/...)
+
+  ORCH->>SPEC: runAgents(agents, context)
+  loop waves 1..N
+    SPEC->>SPEC: blockedReason(inbox)?
+    SPEC->>SPEC: Claude tool loop
+    SPEC->>SB: emit('working'/'completed') + outbox
+  end
+
+  ORCH->>AN: enrichOperationalReport
+  AN->>AN: deterministic gaps + LLM narrator
+  AN-->>ORCH: report
+
+  ORCH->>SB: status='complete'<br/>+ entities + roadmap + warnings + renewals
+  ORCH->>SB: flushBus(run)  ← ينتظر آخر دفعة
+          </pre>
+        </div>
+
+        <ul>
+          <li>
+            <strong>Persistence لحظية:</strong> كل <code>emit</code> و <code>send</code> يجدّول
+            upsert فوري لـ Supabase (طابور مرتّب لكل run في
+            <code>src/lib/agent-bus.ts</code>) عشان أي lambda ثاني يجي يـ poll يشوف التقدّم.
+          </li>
+          <li>
+            <strong>survival:</strong>
+            <code>waitUntil</code> من <code>@vercel/functions</code> يبقي الـ lambda حيّاً بعد
+            الرد، و <code>maxDuration: 300</code> ثانية في
+            <code>/api/project/start</code>.
+          </li>
+          <li>
+            <strong>terminate cleanly:</strong> <code>flushBus(run)</code> في
+            <code>finally</code> ينتظر آخر upsert يخلّص قبل ما الـ lambda ينقتل.
+          </li>
+        </ul>
+      </section>
+
+      <!-- =================================================================== -->
+      <section>
+        <h2><span class="num">07</span>مراقبة + خطأ + مرونة</h2>
+
+        <h3>التتبع (Trace)</h3>
+        <p>
+          كل ايجنت LLM يخزّن trace كامل في
+          <code>project.agentTraces[agentId]</code>:
+        </p>
+        <ul>
+          <li><strong>iterations[]</strong> — كل تكرار للـ tool loop (المدخل، الأداة المُستدعاة، النتيجة).</li>
+          <li><strong>totalInputTokens / totalOutputTokens</strong> — استهلاك tokens.</li>
+          <li><strong>totalLatencyMs</strong> — زمن النداء الكلي.</li>
+          <li><strong>mode</strong>: <code>'live'</code> (Claude نجح) أو <code>'fallback'</code> (استخدمنا الحتمي مع <code>fallbackReason</code>).</li>
+        </ul>
+        <p>
+          الواجهة في <code>/project/[id]</code> تعرض هذه التتبّعات في panel لكل ايجنت — الحكام
+          يقدرون يفتحون أي بطاقة ويشوفون <em>وش بالضبط طلبه الموديل</em>.
+        </p>
+
+        <h3>سياسات الفشل (Resilience)</h3>
+        <table>
+          <thead>
+            <tr><th>الفشل</th><th>الاستجابة</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Anthropic 429 (rate limit)</td>
+              <td>تحويل تلقائي لـ <code>BACKUP_ANTHROPIC_API_KEY</code> لو موجود (<code>src/lib/claude.ts</code>)</td>
+            </tr>
+            <tr>
+              <td>JSON غير صالح من الموديل</td>
+              <td><code>parseAgentJson</code> يلتقطه، الـ specialist يستدعي <code>fallback()</code></td>
+            </tr>
+            <tr>
+              <td>tool loop تجاوز ٦ تكرارات</td>
+              <td>قطع وفشل آمن → fallback</td>
+            </tr>
+            <tr>
+              <td>web_search رجع شيء غير array</td>
+              <td>research يستخدم <code>FALLBACK_UPDATES</code> (قائمة معتمدة من مواقع gov.sa)</td>
+            </tr>
+            <tr>
+              <td>ايجنت مسدود (inbox ناقص)</td>
+              <td>retry حتى ٣ مرات، ثم <code>error: blocked past N retries</code></td>
+            </tr>
+            <tr>
+              <td>Vercel كاد يقتل الـ lambda</td>
+              <td><code>waitUntil</code> + <code>flushBus</code> يحفظون آخر دفعة قبل القتل</td>
+            </tr>
+            <tr>
+              <td>Anthropic key مفقود</td>
+              <td>كل ايجنت LLM يدخل <code>fallback()</code> فوراً — التطبيق لا يفشل</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>حدود واضحة (Limits)</h3>
+        <ul>
+          <li><code>MAX_WAVES = 16</code> — كشف dependency cycles.</li>
+          <li><code>MAX_BLOCKED_RETRIES = 3</code> — لا انتظار لانهائي.</li>
+          <li><code>maxIterations = 6</code> لكل tool loop — لا حلقات لانهائية.</li>
+          <li><code>maxTokens = 1500</code> لكل نداء specialist، <code>2000</code> للبحث.</li>
+        </ul>
+      </section>
+
+      <!-- =================================================================== -->
+      <section>
+        <h2><span class="num">08</span>FAQ — توقّع أسئلة الحكام</h2>
+
+        <div class="qa">
+          <div class="q">هل الـ A2A فعلي ولا decoration؟</div>
+          <div class="a">
+            فعلي. لو شلت رسالة <code>civil_defense → municipality</code> ما تظهر «رخصة المطبخ
+            التجاري» في تقرير المطعم. المصدر:
+            <code>src/agents/specialists/civil-defense-agent.ts</code> سطر ٦٥،
+            والاستهلاك في <code>municipality-agent.ts</code> blockedReason.
+          </div>
+        </div>
+
+        <div class="qa">
+          <div class="q">ليش ما تستخدمون LangChain أو CrewAI أو AutoGen؟</div>
+          <div class="a">
+            لأن المتطلبات معروفة ومحدودة (٧ متخصصين، ٤ أنواع رسائل، wave scheduler). كتابتها
+            مباشرة بـ TypeScript أعطتنا: types صريحة، traces مخصّصة، لا dependencies إضافية،
+            وقدرة كاملة على debugging الـ deadlocks. الكود كله أقل من ٤٠٠ سطر للـ runtime + bus.
+          </div>
+        </div>
+
+        <div class="qa">
+          <div class="q">كيف تضمنون أن الموديل ما يهلوس أرقاماً (مثل عدد الطفايات)؟</div>
+          <div class="a">
+            الـ system prompt يقول صراحة: «لا تخترع أرقاماً. استخدم الـ tools». الـ tools نفسها
+            دوال TypeScript محلية بأرقام مأخوذة من knowledge base
+            (<code>src/knowledge/entities</code>). الموديل يستدعيها — ما يحسبها. لو تجاوز الـ
+            instruction (نادر)، الـ <code>parseAgentJson</code> يطّبق schema validation، وأي خرق
+            يدخل في الـ fallback الحتمي.
+          </div>
+        </div>
+
+        <div class="qa">
+          <div class="q">ليش Sonnet 4.6 وليس Haiku أو Opus؟</div>
+          <div class="a">
+            Sonnet 4.6 هو أفضل model من ناحية coding/reasoning مع سعر معقول و latency جيدة.
+            Haiku أسرع لكن دقّته في tool-use loops أقل في الاختبارات اللي سوّيناها. Opus 4.7
+            مخصّص للـ planning العميق فقط — هنا الـ pipeline متجزّأ على ٧ متخصصين، فتنوع المهام
+            بسيط نسبياً وهيكل الـ prompts صارم. النتيجة: ~3.2 ثانية latency متوسط لكل
+            specialist.
+          </div>
+        </div>
+
+        <div class="qa">
+          <div class="q">وش يصير لو انقطع Claude API منتصف الـ run؟</div>
+          <div class="a">
+            كل specialist يلتقط الاستثناء ويستدعي <code>fallback()</code> — منطق حتمي يرجع نفس
+            شكل الـ <code>EntityInfo</code> ويعلِّم الـ trace كـ <code>'fallback'</code>. الـ
+            run يكمل، الـ UI يعرض البطاقات مع علامة «منطق احتياطي» (لو توسّعنا الـ UI).
+          </div>
+        </div>
+
+        <div class="qa">
+          <div class="q">كيف يعرف الـ scheduler أن الايجنت مسدود؟</div>
+          <div class="a">
+            الـ specialist يرجع <code>{ status: 'blocked', reason: '...' }</code> عند فحص الـ
+            <code>blockedReason(context, inbox)</code>. مثلاً municipality يرجع blocked لو ما
+            شاف <code>safetyCertReady: true</code> من civil_defense. الـ scheduler يبقيه في
+            pending ويعيد محاولته بعد كل wave جديدة.
+          </div>
+        </div>
+
+        <div class="qa">
+          <div class="q">هل الـ research فعلاً يبحث على الويب أو fakes the data؟</div>
+          <div class="a">
+            يستخدم أداة Anthropic الرسمية <code>web_search_20250305</code> ويفلتر النتائج
+            ليبقي بس روابط <code>gov.sa</code> + إعلام موثوق. لو الـ tool ما توفّر في إصدار
+            الـ SDK أو رجع schema غريب، يسقط على
+            <code>FALLBACK_UPDATES</code> (تحديثات مدوّنة بتواريخ ومصادر حقيقية).
+          </div>
+        </div>
+
+        <div class="qa">
+          <div class="q">المعمارية scalable لو زدنا ايجنتات تانية (مثلاً وزارة النقل)؟</div>
+          <div class="a">
+            نعم. تضيف class جديد يرث من <code>LlmSpecialistAgent</code>، تحدد
+            <code>id</code> + <code>dependencies</code>، تكتب system/user prompts + tools +
+            parseOutput + fallback، تسجّله في
+            <code>specialists/index.ts</code>. الـ scheduler يلتقطه تلقائياً ويرتّبه في الموجة
+            المناسبة.
+          </div>
+        </div>
+
+        <div class="qa">
+          <div class="q">وش الفرق بين الـ activities والـ messages؟</div>
+          <div class="a">
+            <strong>activities</strong> = حالة الايجنت نفسه (started/working/completed/error)
+            للعرض في الـ UI. <strong>messages</strong> = حمولة فعلية بين ايجنتين عبر الـ bus،
+            تحوي <code>type</code> و <code>payload</code>. الاثنان يسلسَلان معاً في الـ
+            timeline بعمود <code>seq</code> مشترك.
+          </div>
+        </div>
+
+        <div class="qa">
+          <div class="q">هل تخزّنون كلام الموديل (PII / privacy)؟</div>
+          <div class="a">
+            نخزّن trace لكل ايجنت (iterations + tokens + final text) في Supabase ضمن
+            <code>project.agentTraces</code> — البيانات تخص المحل نفسه (نشاط، مساحة، عدد عمالة)
+            وليست بيانات شخصية. الإيميل اختياري، يُخزَّن مفصول في
+            <code>project.email</code> ولا يُمرّر للـ LLM في الـ prompts.
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        daraa-sandy.vercel.app · github.com/baxdr/daraa · بدر العمري + سفر الدوسري
+      </footer>
+    </div>
+
+    <script type="module">
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true,
+          curve: 'basis',
+          nodeSpacing: 50,
+          rankSpacing: 70,
+          padding: 18,
+        },
+        sequence: {
+          useMaxWidth: true,
+          actorMargin: 70,
+          messageMargin: 45,
+          mirrorActors: false,
+          boxMargin: 12,
+          boxTextMargin: 8,
+          noteMargin: 12,
+        },
+        themeVariables: {
+          fontFamily: 'IBM Plex Sans Arabic, system-ui, sans-serif',
+          fontSize: '15px',
+          background: '#f7f3eb',
+          primaryColor: '#fff',
+          primaryBorderColor: '#1e4d3b',
+          primaryTextColor: '#14110f',
+          lineColor: '#3a342e',
+          secondaryColor: '#def0e3',
+          tertiaryColor: '#efe9d9',
+          actorBkg: '#def0e3',
+          actorBorder: '#1e4d3b',
+          actorTextColor: '#14110f',
+          actorLineColor: '#3a342e',
+          signalColor: '#3a342e',
+          signalTextColor: '#14110f',
+          labelBoxBkgColor: '#1e4d3b',
+          labelBoxBorderColor: '#14110f',
+          labelTextColor: '#fff',
+          loopTextColor: '#14110f',
+          noteBkgColor: '#fff7d6',
+          noteBorderColor: '#b88717',
+          noteTextColor: '#14110f',
+          activationBkgColor: '#def0e3',
+          activationBorderColor: '#1e4d3b',
+          clusterBkg: '#efe9d9',
+          clusterBorder: '#1e4d3b',
+        },
+      });
+    </script>
+  </body>
+</html>

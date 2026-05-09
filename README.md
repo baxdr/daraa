@@ -1,10 +1,10 @@
 # درع — DARAA
 
-### Saudi Business Formation & Compliance Intelligence
+### Saudi Small-Shop Compliance & License Tracking
 
 <div dir="rtl">
 
-> مستشار ذكاء اصطناعي متعدد الوكلاء يرتّب لك الجهات الحكومية بالتسلسل الصحيح، يفحص موقعك ضد أنظمة حماية البيانات، ويُجهّز مستنداتك الرسمية — من أول فكرة لآخر تجديد.
+> مستشار ذكاء اصطناعي متعدد الوكلاء يتابع رخص المحلات الصغيرة في السعودية، يُنبّه قبل انتهاء التجديدات، ويشرح لكل مالك بالعربي وش المطلوب من كل جهة حكومية وكيف يجهّزها.
 
 </div>
 
@@ -12,13 +12,14 @@
 
 ## Overview
 
-**DARAA** is an Arabic-first, multi-agent AI platform built for the Saudi market. It solves two problems that every Saudi business owner faces:
+**DARAA** is an Arabic-first, multi-agent AI platform for Saudi small-shop owners (مطاعم، كوفي، بقالات، صالونات، مغاسل). It collects 16 facts about the shop in a natural Arabic conversation, then runs 12 specialised agents in parallel waves to produce:
 
-1. **Formation** — Navigating 7–15 government entities (Ministry of Commerce, Civil Defense, Municipality, SFDA, ZATCA, MOHR, GOSI...) in the correct sequence, with the right documents, without missing critical dependencies.
+- A complete map of every government entity the shop must register with (MCI, Civil Defense, Municipality, SFDA, MOH, MOHR/GOSI, ZATCA — up to 7 per vertical).
+- Cost ranges and time estimates per entity, **never invented** — always derived from local deterministic tools.
+- A renewal calendar with per-license deadlines and a daily cron that emails owners 30 / 14 / 7 days before each expiry.
+- A live activity feed showing exactly which agent ran, what tools it called, and what messages it sent to other agents — full transparency for the owner.
 
-2. **Compliance** — Understanding and fixing gaps against Saudi PDPL (Personal Data Protection Law), NCA ECC cybersecurity controls, and ZATCA e-invoicing requirements — before inspectors arrive.
-
-**Built for Agenticthon 2026** — covering all three tracks: Process Automation · Multi-Agent Systems · Agent-to-Agent (A2A) Communication.
+**Built for Agenticthon 2026** — covering: Process Automation · Multi-Agent Systems · Agent-to-Agent (A2A) Communication.
 
 **Team**: بدر العمري · سفر الدوسري
 
@@ -26,23 +27,37 @@
 
 ## Architecture
 
-### Agent System
+### Agent System — 12 agents in 2 layers
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                Coordination Layer (8 agents)                 │
+│           Coordination Layer (5 agents)                      │
 │                                                              │
-│   Orchestrator · Chat · Research · Scan                      │
-│   Analysis · Report · Document · Regulatory (reserved)       │
+│  chat · orchestrator · research · analysis · report          │
 └──────────────────────────┬──────────────────────────────────┘
                            │  Wave Scheduler + AgentBus
 ┌──────────────────────────▼──────────────────────────────────┐
-│                 Specialist Layer (11 agents)                 │
+│           Specialist Layer (7 agents — all LLM)              │
 │                                                              │
-│  MCI · ZATCA · ZATCA E-Invoice · MOHR+GOSI · Civil Defense   │
-│  Municipality · SFDA · MOH · PDPL+NCA · Maroof · Contractor  │
+│  mci · zatca · mohr_gosi · civil_defense                     │
+│  municipality · sfda · moh                                   │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+| Agent           | Role                                                            | LLM?             | File                                                                                                     |
+| --------------- | --------------------------------------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------- |
+| `chat`          | Collects 16 answers via free-form Arabic conversation           | Yes — Sonnet 4.6 | [`src/agents/chat-agent/`](src/agents/chat-agent/)                                                       |
+| `orchestrator`  | Wave scheduler, state transitions, error capture                | No               | [`src/agents/project-orchestrator/runner.ts`](src/agents/project-orchestrator/runner.ts)                 |
+| `research`      | Pulls live regulatory updates with `web_search` tool            | Yes — Sonnet 4.6 | [`src/agents/research-agent.ts`](src/agents/research-agent.ts)                                           |
+| `analysis`      | Builds gap report (deterministic) + writes Arabic narrative     | Hybrid           | [`src/agents/operational-analysis/`](src/agents/operational-analysis/)                                   |
+| `report`        | Compiles entities + roadmap + renewals into final ProjectRecord | No               | [`src/agents/project-orchestrator/entity-builder.ts`](src/agents/project-orchestrator/entity-builder.ts) |
+| `mci`           | Ministry of Commerce — Commercial Registration                  | Yes — Sonnet 4.6 | [`src/agents/specialists/mci-agent.ts`](src/agents/specialists/mci-agent.ts)                             |
+| `zatca`         | Zakat & Tax — VAT threshold check                               | Yes — Sonnet 4.6 | [`src/agents/specialists/zatca-agent.ts`](src/agents/specialists/zatca-agent.ts)                         |
+| `mohr_gosi`     | HR & Social Insurance — Nitaqat zone estimation                 | Yes — Sonnet 4.6 | [`src/agents/specialists/mohr-gosi-agent.ts`](src/agents/specialists/mohr-gosi-agent.ts)                 |
+| `civil_defense` | Civil Defense — Safety certificate, extinguisher math           | Yes — Sonnet 4.6 | [`src/agents/specialists/civil-defense-agent.ts`](src/agents/specialists/civil-defense-agent.ts)         |
+| `municipality`  | Balady License — needs `civil_defense` outbox                   | Yes — Sonnet 4.6 | [`src/agents/specialists/municipality-agent.ts`](src/agents/specialists/municipality-agent.ts)           |
+| `sfda`          | Food & Drug Authority (food verticals only)                     | Yes — Sonnet 4.6 | [`src/agents/specialists/sfda-agent.ts`](src/agents/specialists/sfda-agent.ts)                           |
+| `moh`           | Ministry of Health (restaurants + salons)                       | Yes — Sonnet 4.6 | [`src/agents/specialists/moh-agent.ts`](src/agents/specialists/moh-agent.ts)                             |
 
 ### True A2A Communication
 
@@ -56,94 +71,164 @@ npm run test:agents
 
 Output shows `municipality → blocked (wave 1)` then `municipality → complete (wave 3)` — after receiving the civil_defense message.
 
-### Two Modes, One Platform
+### Wave Scheduling — parallel where possible
+
+For a restaurant (7 specialists), the scheduler runs **4 waves**:
 
 ```
-User enters chat
-      │
-      ├─ "أبي أفتح مشروع جديد"  ──► Formation Mode
-      │                                 Roadmap · Costs · Documents
-      │                                 ↓
-      └─ "عندي مشروع شغّال"    ──► Compliance Mode
-                                        PDPL Scan · Gap Report · Fixes
+Wave 1: mci  (no deps)
+Wave 2: zatca · mohr_gosi · civil_defense  (parallel — all depend on mci)
+Wave 3: municipality  (depends on civil_defense)
+Wave 4: sfda · moh  (parallel — both depend on municipality)
 ```
 
-The same 11 specialist agents run in both modes — `establishment` mode returns requirements and costs; `compliance` mode returns current status and gaps.
+Source: [`src/agents/runtime/orchestrator-runtime.ts`](src/agents/runtime/orchestrator-runtime.ts).
 
 ---
 
-## Key Features
+## How the LLM Is Wired
 
-### 🧠 Intelligent Arabic Conversation
+| Question                            | Answer                                                                                                                 |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Which model?**                    | `claude-sonnet-4-6` — single model for every LLM agent in the system.                                                  |
+| **Which provider?**                 | Anthropic API directly (the official `@anthropic-ai/sdk` SDK).                                                         |
+| **Which agents call it?**           | `chat`, `research`, `analysis` (narrator), and all 7 specialists. The orchestrator and report layer are deterministic. |
+| **Where is it configured?**         | [`src/lib/claude.ts`](src/lib/claude.ts) — `MODELS.sonnet = 'claude-sonnet-4-6'`.                                      |
+| **What if the API key is missing?** | Every LLM agent has a deterministic `fallback()` path — the system still produces a valid result without the LLM.      |
+| **Rate-limit handling?**            | If primary key returns 429, automatic failover to `BACKUP_ANTHROPIC_API_KEY` if configured.                            |
+| **Tool use?**                       | Every specialist runs a tool-use loop (≤6 iterations) where Claude calls local TypeScript functions for facts/numbers. |
+| **Why tools?**                      | Numbers (extinguisher count, VAT threshold, fine ceilings) come from local deterministic functions, not LLM guesses.   |
 
-Claude Sonnet drives the chat — understands free-form Gulf Arabic input, extracts **up to 10 structured fields (mode-dependent)** from a single sentence, explains every technical term inline with Saudi-specific analogies.
-
-```
-Input:  "ودي أفتح كوفي بجدة أنا وشريك، رأس المال ٨٠ ألف، كلنا سعوديين"
-Output: vertical=restaurant · city=jeddah · partners=2 · capital=80000 · foreignPartner=false
-```
-
-Remaining required fields (company name, lease status) are asked in one or two follow-up turns.
-
-> ⚠️ **Requires `ANTHROPIC_API_KEY` in `.env.local`** for free-text extraction. Without it, the chat falls back to button-only mode — buttons still work but free typing is not parsed.
-
-### 🔍 Live Website Scanner
-
-Four parallel scanners run against any public URL after the chat completes:
-
-| Scanner              | What it checks                                           |
-| -------------------- | -------------------------------------------------------- |
-| Privacy Policy       | Existence · Arabic version · PDPL signals (8 checks)     |
-| Security Headers     | HSTS · CSP · X-Frame-Options · Referrer-Policy           |
-| Third-Party Trackers | 21 known domains (Google Analytics, FB Pixel, Hotjar...) |
-| Data Forms           | PII fields without consent checkbox or privacy link      |
-
-All requests go through an SSRF guard — private IPs, metadata endpoints, and redirect chains are rejected.
-
-### 📋 Auto-Generated Legal Documents
-
-Four document types, generated by Claude Sonnet with company-specific context:
-
-- **سياسة الخصوصية** — Privacy Policy (11 sections, PDPL-compliant, Arabic)
-- **تعيين DPO** — Data Protection Officer Appointment Letter
-- **سجل المعالجة** — Data Processing Register
-- **خطة الاستجابة** — Incident Response Plan
-
-All documents render as A4 print-ready pages. `window.print()` → correct Arabic PDF shaping.
-
-### 🔄 Formation → Compliance Transition
-
-After completing the formation roadmap, a single CTA carries the user into compliance mode — company name, city, and activity type are preserved. No re-entry.
+For a deeper walkthrough see [`hackathon/agents-deep-dive.html`](hackathon/agents-deep-dive.html).
 
 ---
 
 ## Tech Stack
 
-| Layer        | Technology                                                                   |
-| ------------ | ---------------------------------------------------------------------------- |
-| Framework    | Next.js 14 (App Router) + TypeScript strict                                  |
-| UI           | Tailwind CSS — Modernist Arabic Editorial system                             |
-| Fonts        | Almarai (headings) · IBM Plex Sans Arabic (body) · JetBrains Mono (numerals) |
-| AI           | Anthropic SDK — `claude-sonnet-4-6`                                          |
-| HTML Parsing | Cheerio                                                                      |
-| Validation   | Zod on every API endpoint                                                    |
-| State        | In-memory Maps (globalThis) · 1-hour TTL                                     |
-| PDF          | `window.print()` + print CSS                                                 |
-| Deploy       | Vercel                                                                       |
+| Layer       | Technology                                                                   |
+| ----------- | ---------------------------------------------------------------------------- |
+| Framework   | Next.js 14 (App Router) + TypeScript strict                                  |
+| UI          | Tailwind CSS v4 — Modernist Arabic Editorial system                          |
+| Fonts       | Almarai (headings) · IBM Plex Sans Arabic (body) · JetBrains Mono (numerals) |
+| AI          | Anthropic SDK — `claude-sonnet-4-6`                                          |
+| Persistence | Supabase Postgres (jsonb blob) · in-memory cache during a run                |
+| Auth        | Supabase Auth (magic-link + Google OAuth)                                    |
+| Email       | Resend SMTP — daily renewal reminders                                        |
+| Cron        | GitHub Actions — 7am KSA daily                                               |
+| Functions   | Vercel Fluid Compute · `waitUntil` for post-response orchestration           |
+| Validation  | Zod on every API endpoint                                                    |
+| Deploy      | Vercel — `daraa-sandy.vercel.app`                                            |
+
+---
+
+## Project Structure
+
+Where every agent and its supporting code actually lives:
+
+```
+src/
+├── agents/
+│   ├── runtime/
+│   │   ├── agent-bus.ts                # AgentBus — inbox per agent + delivery
+│   │   ├── orchestrator-runtime.ts     # Wave scheduler — runs agents in parallel
+│   │   ├── types.ts                    # Agent / AgentMessage / AgentResult types
+│   │   ├── replay/                     # Deterministic replay for tests
+│   │   └── telemetry/                  # Trace recorder + types
+│   │
+│   ├── chat-agent/                     # The conversation agent (LLM)
+│   │   ├── claude-turn.ts              # Calls Sonnet, parses JSON extractions
+│   │   ├── fast-path.ts                # Skips LLM when input matches a button choice
+│   │   ├── prompt.ts                   # System prompt + question-bridge prompt
+│   │   ├── helpers.ts                  # Affordance/suggestion helpers for the UI
+│   │   └── scripted.ts                 # Demo-mode scripted answers
+│   │
+│   ├── chat-flow/                      # The 16-question script (deterministic)
+│   │   ├── flow.ts                     # nextQuestion() walker
+│   │   ├── questions.ts                # Question definitions
+│   │   └── validators.ts               # Per-field validation rules
+│   │
+│   ├── project-orchestrator/           # Layer 1 — orchestration
+│   │   ├── runner.ts                   # The pipeline: research → specialists → analysis → report
+│   │   ├── entity-builder.ts           # Compose EntityCards from agent results
+│   │   ├── warnings.ts                 # Top-warning rules per vertical
+│   │   └── index.ts                    # Public barrel
+│   │
+│   ├── specialists/                    # Layer 2 — 7 LLM specialists
+│   │   ├── llm-base/
+│   │   │   ├── llm-specialist.ts       # Base class — tool loop + fallback
+│   │   │   ├── tool-runner.ts          # Anthropic tool-use loop implementation
+│   │   │   ├── shared-tools.ts         # 4 tools every specialist can use
+│   │   │   └── types.ts                # AgentTool / AgentTrace
+│   │   ├── mci-agent.ts                # MCI / Commercial Registration
+│   │   ├── zatca-agent.ts              # ZATCA / Tax
+│   │   ├── mohr-gosi-agent.ts          # MOHR + GOSI
+│   │   ├── civil-defense-agent.ts      # Civil Defense / Fire Safety
+│   │   ├── municipality-agent.ts       # Balady License
+│   │   ├── sfda-agent.ts               # Food & Drug
+│   │   ├── moh-agent.ts                # Health
+│   │   └── index.ts                    # getAgentsForVertical(v) factory
+│   │
+│   ├── operational-analysis/           # Hybrid: deterministic gaps + LLM narrator
+│   │   ├── runner.ts                   # Builds OperationalReport from chat answers
+│   │   ├── narrator.ts                 # Sonnet — adds Arabic prose + 3 priorities
+│   │   ├── gap-builders.ts             # Per-license gap detection
+│   │   └── date-utils.ts               # Pure date math
+│   │
+│   ├── research-agent.ts               # Sonnet + web_search → RegulatoryUpdate[]
+│   └── types.ts                        # Shared AgentId, AgentActivity, AgentMessage
+│
+├── lib/
+│   ├── claude.ts                       # Anthropic SDK client + MODELS const
+│   ├── agent-bus.ts                    # Public emit/send/flushBus API for orchestrator
+│   ├── project-store.ts                # In-memory project map + persistence hooks
+│   ├── project-fs.ts                   # Filesystem fallback driver
+│   └── chat-sessions.ts                # In-memory chat session store
+│
+├── infrastructure/
+│   ├── persistence/
+│   │   ├── persistence-router.ts       # Selects FS or Supabase by env
+│   │   ├── filesystem/                 # Local-dev driver
+│   │   └── supabase/                   # Production driver (jsonb blob)
+│   └── auth/
+│       ├── supabase-auth.ts            # Server-side Supabase client + cookies
+│       └── get-principal.ts            # Resolve user/anon from session
+│
+├── knowledge/                          # Static Arabic-language reference data
+│   ├── entities.ts                     # Government entities + verticals
+│   ├── pdpl.ts                         # PDPL terms (referenced in chat tooltips)
+│   └── terms.ts                        # Arabic explanations for jargon
+│
+└── app/                                # Next.js App Router
+    ├── chat/                           # /chat — the conversation UI
+    ├── project/[projectId]/            # /project/<id> — final dashboard
+    │   └── agents/                     # /project/<id>/agents — live timeline
+    ├── api/
+    │   ├── chat/                       # POST chat turn
+    │   ├── project/start/route.ts      # Kicks off the orchestrator (waitUntil)
+    │   └── project/[projectId]/        # GET project status (polled by UI)
+    └── auth/                           # Login, logout, magic-link callbacks
+
+hackathon/
+├── architecture-diagram.html           # Layered architecture + sequence diagrams
+├── agents-deep-dive.html               # Full per-agent reference (this is the judges' doc)
+├── concept.md                          # Pitch concept
+└── video-script.md                     # Demo video script
+```
 
 ---
 
 ## What Uses Claude vs What Doesn't
 
-| Uses Claude                                | Deterministic                  |
-| ------------------------------------------ | ------------------------------ |
-| Free-form Arabic chat extraction           | All 11 specialist agents       |
-| Question bridge sentences                  | AgentBus + wave scheduler      |
-| Web search for regulatory updates          | PDPL rule evaluation           |
-| Privacy policy text analysis               | Security/tracker/form scanners |
-| Document generation (with fallback)        | Fine ceiling calculations      |
-| Gap explanation personalisation            | Roadmap & renewal scheduling   |
-| Trade-name availability check (web search) |                                |
+| Uses Claude (LLM)                     | Deterministic (TypeScript only)          |
+| ------------------------------------- | ---------------------------------------- |
+| Free-form Arabic chat extraction      | Wave scheduler + AgentBus delivery       |
+| Question bridge sentences             | Cost / extinguisher / VAT / Nitaqat math |
+| 7 specialists (tool-use loop)         | Renewal calendar + reminder cron logic   |
+| Web search for regulatory updates     | Roadmap composition                      |
+| Operational narrative + priority list | All gap detection (severity, deadlines)  |
+|                                       | Final upsert to Supabase                 |
+
+The split is intentional: **Claude writes Arabic prose and orchestrates tools — it never owns numbers.**
 
 ---
 
@@ -151,162 +236,91 @@ After completing the formation roadmap, a single CTA carries the user into compl
 
 ### Prerequisites
 
-- Node.js 18+
-- An Anthropic API key ([console.anthropic.com](https://console.anthropic.com))
+- Node.js 20+ (Vercel default)
+- pnpm 9+
+- An Anthropic API key — [console.anthropic.com](https://console.anthropic.com)
+- (Optional) Supabase project for production persistence + auth
 
 ### Installation
 
 ```bash
-git clone https://github.com/your-username/daraa
+git clone https://github.com/baxdr/daraa
 cd daraa
-npm install
+pnpm install
 ```
 
 ### Configuration
 
 ```bash
 cp .env.example .env.local
-# Add your ANTHROPIC_API_KEY to .env.local
+# Required
+ANTHROPIC_API_KEY=sk-ant-...
+# Optional — production stack
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+PERSISTENCE_DRIVER=supabase   # 'filesystem' (default) or 'supabase'
+RESEND_API_KEY=...
 ```
 
 ### Build & Run
 
 ```bash
-npm run precompute     # compute Nova Tech stats for the landing page
-npm run dev            # opens at http://localhost:3333
+pnpm dev            # opens at http://localhost:3333
 ```
 
 For production:
 
 ```bash
-npm run precompute
-npm run build
-npm run start
+pnpm build
+pnpm start
 ```
 
 ### Testing
 
 ```bash
-# Agent runtime (A2A proof-of-blocking)
-npm run test:agents
-
-# Form scanner (runs against bundled Nova Tech HTML)
-npm run test:forms
-
-# Full end-to-end (28 assertions — needs server running)
-npm run test:smoke
-
-# TypeScript
-npm run typecheck
+pnpm test:agents    # AgentBus runtime + A2A proof-of-blocking
+pnpm typecheck      # tsc --noEmit
+pnpm lint           # next lint
 ```
 
 ---
 
-## Demo
+## Demo Flow
 
-> Set `ANTHROPIC_API_KEY` in `.env.local` before the demo. The free-text
-> extraction below doesn't work without it.
+> Set `ANTHROPIC_API_KEY` before the demo. The free-text extraction won't
+> work without it.
 
-### Try the Formation Flow
+1. Click "ابدأ الاستشارة المجانية".
+2. Type in Arabic: `"عندي كوفي بالرياض، مساحته ٨٠ متر، فيه ٤ موظفين"`.
+3. Watch the chat agent extract `vertical=coffee · city=riyadh · area=80 · employees=4` from one sentence.
+4. Answer the remaining ~10 questions (each one explained in plain Arabic).
+5. Hit "ابدأ المتابعة" → redirected to `/project/[id]/agents`.
+6. Watch the 5 specialists run in parallel waves with **live A2A messages**.
+7. Auto-redirect to the dashboard with full roadmap, costs, and renewal calendar.
 
-1. Click "ابدأ الاستشارة المجانية"
-2. Type in Arabic: `"ودي أفتح كوفي بجدة أنا وشريك رأس مال ٨٠ ألف"`
-3. Watch Claude extract 5 fields from one sentence
-4. Answer the follow-up for company name and lease status
-5. See agents run in waves with live A2A messages
-6. Get a full roadmap with costs, requirements, and smart warnings
-
-### Try the Compliance Flow
-
-1. Select "عندي مشروع شغّال"
-2. Answer questions about your company
-3. Provide a website URL (or use a public one from the list below)
-4. Get a compliance score, gap analysis, and ready-to-use documents
-
-### Demo Site
-
-`/demo/novatech/` — a deliberately flawed Saudi tech company website with:
-
-- Privacy policy in English only (missing PDPL signals)
-- 3 third-party trackers loading without consent
-- Contact form with no consent checkbox
-- Missing security headers
-
-**Expected baseline:** ~32% compliance · 6 gaps · 2 M SAR fine ceiling.
-
-> _Numbers come from `npm run precompute` — it simulates a "bare static
-> hosting" security-header profile. A live scan of `/demo/novatech/` on
-> localhost would score higher because the Next.js dev server attaches
-> strict CSP/HSTS on every response, which Nova Tech wouldn't have in a
-> realistic shared-hosting deployment. The precompute reflects the
-> latter._
-
----
-
-## Project Structure
-
-```
-daraa/
-├── src/
-│   ├── agents/
-│   │   ├── runtime/
-│   │   │   ├── agent-bus.ts           # Real A2A message bus
-│   │   │   └── orchestrator-runtime.ts # Wave scheduler
-│   │   ├── specialists/               # 11 entity agents
-│   │   │   ├── mci-agent.ts
-│   │   │   ├── municipality-agent.ts
-│   │   │   ├── civil-defense-agent.ts
-│   │   │   └── ...
-│   │   ├── chat-agent.ts              # Claude-driven conversation
-│   │   ├── research-agent.ts          # Web search for updates
-│   │   ├── name-check.ts              # Trade-name web search
-│   │   ├── document-agent.ts          # Document generation
-│   │   └── analysis-agent.ts          # PDPL rule evaluator
-│   ├── scanner/
-│   │   ├── privacy-policy.ts          # Claude + Cheerio
-│   │   ├── security-headers.ts        # HTTP HEAD analysis
-│   │   ├── third-party.ts             # 21 tracker domains
-│   │   └── forms.ts                   # PII form detection
-│   ├── knowledge/
-│   │   ├── entities.ts                # Government entity database
-│   │   ├── pdpl.ts                    # PDPL rules + fine ceilings
-│   │   └── terms.ts                   # Arabic term explanations
-│   ├── data/
-│   │   └── nova-tech-stats.json       # Precomputed demo numbers
-│   └── app/
-│       ├── chat/                      # Conversation interface
-│       ├── project/[projectId]/       # Unified dashboard
-│       └── documents/[docId]/         # Document viewer
-├── public/
-│   └── demo/novatech/                 # Deliberately flawed demo site
-└── scripts/
-    ├── test-agent-runtime.ts          # A2A proof of concept
-    ├── test-form-scanner.ts           # Form scanner unit test
-    ├── precompute-nova-stats.ts       # Pre-compute demo stats
-    └── smoke.sh                       # 28 E2E assertions
-```
+Live demo: **[daraa-sandy.vercel.app](https://daraa-sandy.vercel.app)**.
 
 ---
 
 ## Honest Limitations
 
-This is a hackathon MVP. Before production:
+This is a hackathon MVP under active iteration. Before production:
 
-- **No persistence** — sessions expire after 1 hour. Supabase schema is written (`supabase/migrations/`) but not connected.
-- **No authentication** — anyone with a project URL can view it.
-- **Regulatory figures** — fine ceiling numbers are conservative placeholders sourced from published PDPL text. They need legal review before being presented as definitive.
-- **Form scanner** — Cheerio-only; dynamically rendered React forms (client-side JS) are not detected.
-- **No government APIs** — `mc.gov.sa` and `maroof.sa` don't offer public APIs. Trade-name checks use Claude `web_search` with an "استرشادية" disclaimer; the real definitive check still happens on the official portal at submission time.
+- **Regulatory figures** — fine ceilings and cost ranges are conservative placeholders sourced from public regulator pages. They need legal review before being presented as definitive.
+- **No government APIs** — `mc.gov.sa`, `sfda.gov.sa`, etc. don't offer public APIs for license status. The `research` agent uses web search; final verification still happens on the official portal at submission time.
+- **Email reminders** — daily cron is wired (`/api/cron/renewal-reminders`) but Resend-backed sending requires production keys.
+- **Supabase RLS** — currently relies on service-role for orchestrator writes. Per-row owner policies need expansion before opening the dashboard publicly.
 
 ---
 
 ## Tracks Covered
 
-| Track                    | How                                                                                         |
-| ------------------------ | ------------------------------------------------------------------------------------------- |
-| **Process Automation**   | Full government formation pipeline — 7–15 entities, correct sequence, dependencies enforced |
-| **Multi-Agent Systems**  | 11 specialist agents + 8 coordination agents, wave scheduler, inbox-based routing           |
-| **Agent-to-Agent (A2A)** | Real AgentBus — messages carry payloads that change receiving agent behaviour at runtime    |
+| Track                    | How                                                                                           |
+| ------------------------ | --------------------------------------------------------------------------------------------- |
+| **Process Automation**   | Full small-shop license pipeline — up to 7 entities, correct sequence, dependencies enforced. |
+| **Multi-Agent Systems**  | 5 coordination + 7 specialist agents, wave scheduler, inbox-based routing.                    |
+| **Agent-to-Agent (A2A)** | Real AgentBus — payloads change receiving-agent behaviour at runtime.                         |
 
 ---
 
